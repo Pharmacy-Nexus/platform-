@@ -1,0 +1,69 @@
+{
+  "questions": [
+    {
+      "id": "ab-001",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Which antibiotic class inhibits bacterial cell wall synthesis by binding to penicillin-binding proteins (PBPs)?",
+      "options": ["Aminoglycosides", "Fluoroquinolones", "Beta-lactams", "Macrolides"],
+      "correctAnswer": "Beta-lactams",
+      "explanation": "Beta-lactam antibiotics (penicillins, cephalosporins, carbapenems) inhibit the transpeptidation enzyme (penicillin-binding proteins) needed for cross-linking of peptidoglycan chains in bacterial cell walls, leading to cell lysis.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "ab-002",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Vancomycin is the drug of choice for infections caused by which organism?",
+      "options": ["Gram-negative rods", "MRSA", "Mycobacterium tuberculosis", "Pseudomonas aeruginosa"],
+      "correctAnswer": "MRSA",
+      "explanation": "Vancomycin inhibits cell wall synthesis by binding to D-Ala-D-Ala terminus of peptidoglycan precursors. It is the treatment of choice for methicillin-resistant Staphylococcus aureus (MRSA) infections, which are resistant to beta-lactams.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "ab-003",
+      "type": "true-false",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Aminoglycosides are effective against anaerobic bacteria because they require oxygen-dependent transport to enter bacterial cells.",
+      "options": ["True", "False"],
+      "correctAnswer": "True",
+      "explanation": "Aminoglycosides require active oxygen-dependent transport to cross the bacterial cell membrane. Since anaerobes lack this transport system in the absence of oxygen, aminoglycosides are ineffective against anaerobic bacteria.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "ab-004",
+      "type": "clinical-case",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "What is the most appropriate antibiotic choice for this patient?",
+      "options": ["Amoxicillin", "Vancomycin + Piperacillin-tazobactam", "Doxycycline", "Ciprofloxacin"],
+      "correctAnswer": "Vancomycin + Piperacillin-tazobactam",
+      "explanation": "This patient has severe sepsis of unknown source, requiring broad-spectrum empiric coverage. Vancomycin covers MRSA and other gram-positive organisms, while Piperacillin-tazobactam covers gram-negative organisms including Pseudomonas. This combination provides adequate broad-spectrum coverage pending culture results.",
+      "difficulty": "hard",
+      "caseScenario": "A 68-year-old diabetic patient presents with fever (39.5°C), hypotension (BP 85/50), tachycardia (HR 118), and altered mental status. Blood cultures are pending. He has a urinary catheter and a central venous line.",
+      "imageUrl": ""
+    },
+    {
+      "id": "ab-005",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Which antibiotic is contraindicated in children under 8 years and pregnant women due to teeth and bone effects?",
+      "options": ["Amoxicillin", "Tetracycline", "Azithromycin", "Trimethoprim"],
+      "correctAnswer": "Tetracycline",
+      "explanation": "Tetracyclines chelate calcium and deposit in developing teeth and bones, causing permanent dental discoloration, enamel hypoplasia, and inhibition of bone growth. They cross the placenta and enter breast milk, making them contraindicated in children under 8 and during pregnancy/breastfeeding.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    }
+  ]
+}
