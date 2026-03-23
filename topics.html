@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Topics • Pharmacy Nexus</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body data-page="subjects">
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="index.html"><span class="brand-mark">PN</span><span>Pharmacy Nexus</span></a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">☰</button>
+      <nav class="nav-links" id="navLinks">
+        <a class="nav-link" data-page="home" href="index.html">Home</a>
+        <a class="nav-link" data-page="subjects" href="subjects.html">Subjects</a>
+        <a class="nav-link" data-page="study" href="study.html">Study</a>
+        <a class="nav-link" data-page="final-exam" href="final-exam.html">Final Exam</a>
+        <a class="nav-link" data-page="dashboard" href="dashboard.html">Dashboard</a>
+      </nav>
+    </div>
+  </header>
+  <main class="section">
+    <div class="container">
+      <div class="page-hero">
+        <h1 id="topicsTitle">Topics</h1>
+        <p id="topicsDescription">Choose a subject from the homepage to see its topics.</p>
+      </div>
+      <div class="toolbar">
+        <input class="search-box" id="topicSearch" type="search" placeholder="Search topics...">
+      </div>
+      <div class="grid cards-3" id="topicsGrid"></div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <div class="footer-contact">Contact: pharmacynexusofficial@gmail.com</div>
+        <div class="footer-copy">For feedback, collaboration, or educational contributions, feel free to contact us.</div>
+      </div>
+      <div class="text-muted small">Topics load only after entering a subject.</div>
+    </div>
+  </footer>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Topic Detail • Pharmacy Nexus</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body data-page="subjects">
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="index.html"><span class="brand-mark">PN</span><span>Pharmacy Nexus</span></a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">☰</button>
+      <nav class="nav-links" id="navLinks">
+        <a class="nav-link" data-page="home" href="index.html">Home</a>
+        <a class="nav-link" data-page="subjects" href="subjects.html">Subjects</a>
+        <a class="nav-link" data-page="study" href="study.html">Study</a>
+        <a class="nav-link" data-page="final-exam" href="final-exam.html">Final Exam</a>
+        <a class="nav-link" data-page="dashboard" href="dashboard.html">Dashboard</a>
+      </nav>
+    </div>
+  </header>
+  <main class="section">
+    <div class="container" id="topicDetailRoot">
+      <div class="page-hero">
+        <a class="btn btn-soft" id="backToTopics" href="subjects.html">Back to Topics</a>
+      </div>
+      <section class="surface card">
+        <span class="badge" id="topicSubject">Subject</span>
+        <h1 id="topicName">Topic Name</h1>
+        <p class="text-muted">Review topic details before entering study mode.</p>
+        <div class="metrics" style="margin-top:24px;">
+          <div class="surface metric-card"><div class="metric-label">Number of Questions</div><div class="metric-value" id="topicQuestionCount">0</div></div>
+          <div class="surface metric-card"><div class="metric-label">Easy</div><div class="metric-value" id="diffEasy">0</div></div>
+          <div class="surface metric-card"><div class="metric-label">Medium</div><div class="metric-value" id="diffMedium">0</div></div>
+          <div class="surface metric-card"><div class="metric-label">Hard</div><div class="metric-value" id="diffHard">0</div></div>
+        </div>
+        <div class="question-actions" style="margin-top:24px;">
+          <a class="btn btn-primary" id="studyTopicButton" href="study.html">Study Questions</a>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <div class="footer-contact">Contact: pharmacynexusofficial@gmail.com</div>
+        <div class="footer-copy">For feedback, collaboration, or educational contributions, feel free to contact us.</div>
+      </div>
+      <div class="text-muted small">One topic, one JSON file.</div>
+    </div>
+  </footer>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
