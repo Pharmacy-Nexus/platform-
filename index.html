@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pharmacy Nexus</title>
+  <meta name="description" content="Pharmacy Nexus - Study platform for future pharmacists" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <button class="brand" data-route="home" type="button">
+          <span class="brand-mark">PN</span>
+          <span>
+            <strong>Pharmacy Nexus</strong>
+            <small>Study smarter</small>
+          </span>
+        </button>
+
+        <nav class="nav" id="mainNav">
+          <button type="button" data-route="home">Home</button>
+          <button type="button" data-route="subjects">Subjects</button>
+          <button type="button" data-route="study">Study</button>
+          <button type="button" data-route="final-exam">Final Exam</button>
+          <button type="button" data-route="dashboard">Dashboard</button>
+        </nav>
+
+        <button type="button" class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
+      </div>
+    </header>
+
+    <main id="app"></main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div>
+          <h3>Pharmacy Nexus</h3>
+          <p>Your academic companion for structured pharmacy learning.</p>
+        </div>
+        <div>
+          <h4>Contact: pharmacynexusofficial@gmail.com</h4>
+          <p>For feedback, collaboration, or educational contributions, feel free to contact us.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <dialog id="adminDialog" class="admin-dialog">
+    <div class="admin-head">
+      <div>
+        <h2>Admin Panel</h2>
+        <p>Hidden access • Ctrl + Shift + A</p>
+      </div>
+      <button type="button" class="ghost-btn" id="closeAdmin">Close</button>
+    </div>
+    <div class="admin-body" id="adminRoot"></div>
+  </dialog>
+
+  <template id="emptyStateTemplate">
+    <section class="empty-state card">
+      <h3>No data available</h3>
+      <p>Use the Admin Panel to add subjects, topics, and questions.</p>
+    </section>
+  </template>
+
+  <script src="./app.js"></script>
+</body>
+</html>
