@@ -691,6 +691,54 @@ const App = (() => {
     return config;
   }
 
+  function parseGithubError(text, path = '') {
+    let payload = null;
+    try { payload = text ? JSON.parse(text) : null; } catch {}
+    const message = payload?.message || text || 'GitHub request failed.';
+    if (message.includes('Not Found') || payload?.status === '404') {
+      return `GitHub could not find this repo/path. Check owner, repo, branch, and PAT access. Path: ${path}`;
+    }
+    if (message.includes('Bad credentials')) {
+      return 'GitHub PAT is invalid. Use a Classic PAT with repo access.';
+    }
+    if (message.includes('Resource not accessible') || payload?.status === '403') {
+      return 'GitHub blocked this request. Make sure your PAT has repo access and the branch exists.';
+    }
+    if (message.includes('Repository access blocked')) return message;
+    return message;
+  }
+
+  async function githubRepoRequest(endpoint) {
+    const config = getGithubConfig();
+    if (!config.owner || !config.repo || !config.token) {
+      throw new Error('Save GitHub owner, repo, branch, and PAT first.');
+    }
+    const response = await fetch(`https://api.github.com/repos/${config.owner}/${config.repo}${endpoint}`, {
+      headers: {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': `token ${config.token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    const text = await response.text();
+    if (!response.ok) throw new Error(parseGithubError(text, endpoint));
+    return text ? JSON.parse(text) : {};
+  }
+
+  async function verifyGithubConfig() {
+    const config = getGithubConfig();
+    if (!config.owner || !config.repo || !config.branch || !config.token) {
+      throw new Error('Fill owner, repo, branch, and PAT first.');
+    }
+    await githubRepoRequest('');
+    try {
+      await githubRepoRequest(`/branches/${encodeURIComponent(config.branch)}`);
+    } catch (error) {
+      throw new Error(`GitHub repo is reachable, but branch "${config.branch}" was not found.`);
+    }
+    return true;
+  }
+
   function populateGithubFields() {
     const config = getGithubConfig();
     if (byId('ghOwner')) byId('ghOwner').value = config.owner || '';
@@ -711,14 +759,14 @@ const App = (() => {
       ...options,
       headers: {
         'Accept': 'application/vnd.github+json',
-        'Authorization': `Bearer ${config.token}`,
+        'Authorization': `token ${config.token}`,
         'Content-Type': 'application/json',
         ...(options.headers || {}),
       },
     });
     const text = await response.text();
     if (!response.ok) {
-      throw new Error(text || `GitHub request failed for ${path}`);
+      throw new Error(parseGithubError(text, path));
     }
     return text ? JSON.parse(text) : {};
   }
@@ -794,6 +842,15 @@ const App = (() => {
     syncQuestionTopics();
   }
 
+  async function reloadIndexFromGithub() {
+    const latest = await githubGetFile('data/index.json');
+    if (latest?.json) {
+      state.index = latest.json;
+      return latest.json;
+    }
+    return state.index;
+  }
+
   async function createSubject() {
     const name = byId('newSubjectName').value.trim();
     if (!name) return setNotice('subjectNotice', 'error', 'Enter a subject name.');
@@ -802,8 +859,10 @@ const App = (() => {
     if (state.index.subjects.some((subject) => subject.id === subjectId)) {
       return setNotice('subjectNotice', 'error', 'This subject already exists.');
     }
+    await verifyGithubConfig();
     state.index.subjects.push({ id: subjectId, name, topics: [] });
     await githubPutJson('data/index.json', state.index, `Add subject: ${name}`);
+    await reloadIndexFromGithub();
     byId('newSubjectName').value = '';
     populateSubjectSelects();
     setNotice('subjectNotice', 'success', `Subject "${name}" added successfully.`);
@@ -818,10 +877,12 @@ const App = (() => {
     const topicId = slugify(name);
     if (!topicId) return setNotice('topicNotice', 'error', 'Enter a valid topic name.');
     if (subject.topics.some((topic) => topic.id === topicId)) return setNotice('topicNotice', 'error', 'This topic already exists.');
+    await verifyGithubConfig();
     const path = `data/${subjectId}/${topicId}.json`;
     subject.topics.push({ id: topicId, name, file: path, questionCount: 0 });
     await githubPutJson(path, { questions: [] }, `Create topic: ${name}`);
     await githubPutJson('data/index.json', state.index, `Add topic: ${name}`);
+    await reloadIndexFromGithub();
     byId('newTopicName').value = '';
     populateSubjectSelects();
     setNotice('topicNotice', 'success', `Topic "${name}" created successfully.`);
@@ -879,6 +940,7 @@ const App = (() => {
     const topicMeta = getTopic(subjectId, topicId);
     if (!topicMeta) return setNotice('questionNotice', 'error', 'Topic not found.');
 
+    await verifyGithubConfig();
     const file = await githubGetFile(topicMeta.file);
     const topicJson = file?.json || { questions: [] };
     topicJson.questions.push({
@@ -897,6 +959,7 @@ const App = (() => {
     topicMeta.questionCount = topicJson.questions.length;
     await githubPutJson(topicMeta.file, topicJson, `Add question to ${topicMeta.name}`);
     await githubPutJson('data/index.json', state.index, `Update count for ${topicMeta.name}`);
+    await reloadIndexFromGithub();
 
     ['questionTextInput', 'questionExplanation', 'questionCaseScenario', 'questionImageUrl', 'optionA', 'optionB', 'optionC', 'optionD'].forEach((id) => {
       const field = byId(id);
@@ -909,7 +972,8 @@ const App = (() => {
 
   async function testGithubAccess() {
     saveGithubConfig();
-    await githubGetFile('data/index.json');
+    await verifyGithubConfig();
+    return true;
   }
 
   function injectSharedAdminDialog() {
@@ -939,7 +1003,7 @@ const App = (() => {
             <div class="brand-mark">PN</div>
             <div>
               <div>Admin Panel</div>
-              <div class="small" style="opacity:.85;">Manage subjects, topics, and questions</div>
+              <div class="small" style="opacity:.85;">Simple content manager</div>
             </div>
           </div>
           <div class="admin-menu">
@@ -954,7 +1018,7 @@ const App = (() => {
         <section class="admin-body">
           <div data-admin-panel="settings">
             <h2>GitHub Settings</h2>
-            <p class="text-muted">Save these once in this browser. After that, subject, topic, and question updates will go directly to your GitHub repository.</p>
+            <p class="text-muted">Save these once in this browser. Use your GitHub username, exact repo name, exact branch name, and a Classic PAT with repo access.</p>
             <div class="form-grid">
               <input id="ghOwner" class="text-input" placeholder="GitHub username / owner">
               <input id="ghRepo" class="text-input" placeholder="Repository name">
@@ -995,7 +1059,7 @@ const App = (() => {
 
           <div data-admin-panel="questions" class="hidden">
             <h2>Add Question</h2>
-            <p class="text-muted">Choose the topic, enter the question, fill the options, then pick the correct answer from the dropdown.</p>
+            <p class="text-muted">Choose subject and topic, write the question, add options, then choose the correct answer.</p>
             <div class="form-grid">
               <select id="questionSubjectSelect" class="select-box"></select>
               <select id="questionTopicSelect" class="select-box"></select>
@@ -1106,6 +1170,16 @@ const App = (() => {
     byId('adminUnlockBtn').addEventListener('click', () => {
       unlockAdmin().catch((error) => setNotice('adminLockNotice', 'error', error.message));
     });
+    ['adminPasswordInput', 'adminPasswordConfirm'].forEach((id) => {
+      const input = byId(id);
+      if (!input) return;
+      input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          unlockAdmin().catch((error) => setNotice('adminLockNotice', 'error', error.message));
+        }
+      });
+    });
     byId('adminCloseFromLockBtn').addEventListener('click', closeAdminDialog);
     byId('closeAdminBtn').addEventListener('click', closeAdminDialog);
 
@@ -1125,7 +1199,7 @@ const App = (() => {
 
     byId('testGithubBtn').addEventListener('click', () => {
       testGithubAccess()
-        .then(() => setNotice('githubNotice', 'success', 'GitHub connection is working.'))
+        .then(() => setNotice('githubNotice', 'success', 'GitHub connection is working. Repo and branch were found successfully.'))
         .catch((error) => setNotice('githubNotice', 'error', error.message));
     });
 
