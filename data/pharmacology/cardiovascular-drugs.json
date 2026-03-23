@@ -1,0 +1,56 @@
+{
+  "questions": [
+    {
+      "id": "cv-001",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "cardiovascular-drugs",
+      "question": "ACE inhibitors reduce blood pressure primarily by inhibiting the conversion of which compound?",
+      "options": ["Angiotensin I to Angiotensin II", "Angiotensin II to Angiotensin III", "Renin to Angiotensinogen", "Aldosterone to Cortisol"],
+      "correctAnswer": "Angiotensin I to Angiotensin II",
+      "explanation": "ACE (Angiotensin-Converting Enzyme) inhibitors block the conversion of Angiotensin I to Angiotensin II. This reduces vasoconstriction and aldosterone secretion, leading to decreased blood pressure and reduced cardiac workload.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "cv-002",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "cardiovascular-drugs",
+      "question": "Which class of antiarrhythmic drugs works by blocking sodium channels and is classified as Class I?",
+      "options": ["Beta blockers", "Calcium channel blockers", "Sodium channel blockers", "Potassium channel blockers"],
+      "correctAnswer": "Sodium channel blockers",
+      "explanation": "Class I antiarrhythmics (e.g., lidocaine, flecainide, quinidine) work by blocking sodium channels, which decreases the rate of rise of the action potential and slows conduction velocity, particularly useful for ventricular arrhythmias.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "cv-003",
+      "type": "true-false",
+      "subject": "pharmacology",
+      "topic": "cardiovascular-drugs",
+      "question": "Statins reduce LDL cholesterol by inhibiting HMG-CoA reductase, which is the rate-limiting enzyme in cholesterol biosynthesis.",
+      "options": ["True", "False"],
+      "correctAnswer": "True",
+      "explanation": "Statins competitively inhibit HMG-CoA (3-hydroxy-3-methylglutaryl-coenzyme A) reductase, which catalyzes the rate-limiting step in cholesterol biosynthesis in the liver. This results in decreased intracellular cholesterol and upregulation of LDL receptors, leading to increased LDL clearance from blood.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "cv-004",
+      "type": "clinical-case",
+      "subject": "pharmacology",
+      "topic": "cardiovascular-drugs",
+      "question": "Which medication should be avoided in this patient?",
+      "options": ["Amlodipine", "Ramipril", "Losartan", "Spironolactone"],
+      "correctAnswer": "Ramipril",
+      "explanation": "ACE inhibitors (like Ramipril) are contraindicated in pregnancy (especially 2nd and 3rd trimester) because they cause fetal renal dysgenesis, oligohydramnios, and neonatal renal failure. ARBs (Losartan) are also contraindicated. Amlodipine is the preferred antihypertensive in pregnancy.",
+      "difficulty": "hard",
+      "caseScenario": "A 32-year-old woman at 24 weeks gestation presents with blood pressure of 155/98 mmHg. She has no proteinuria. Her previous antihypertensive was an ACE inhibitor which she stopped when she found out she was pregnant.",
+      "imageUrl": ""
+    }
+  ]
+}
