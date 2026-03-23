@@ -3,82 +3,54 @@
     {
       "id": "pharmacology",
       "name": "Pharmacology",
-      "description": "Study of drug actions, mechanisms, and therapeutic uses",
       "topics": [
-        {
-          "id": "autonomic-pharmacology",
-          "name": "Autonomic Pharmacology",
-          "filePath": "data/pharmacology/autonomic-pharmacology.json",
-          "questionCount": 5
-        },
         {
           "id": "antibiotics",
           "name": "Antibiotics",
-          "filePath": "data/pharmacology/antibiotics.json",
-          "questionCount": 5
+          "file": "data/pharmacology/antibiotics.json",
+          "questionCount": 3
         },
         {
-          "id": "cardiovascular-drugs",
-          "name": "Cardiovascular Drugs",
-          "filePath": "data/pharmacology/cardiovascular-drugs.json",
-          "questionCount": 4
-        }
-      ]
-    },
-    {
-      "id": "clinical-pharmacy",
-      "name": "Clinical Pharmacy",
-      "description": "Patient-centered pharmacy practice and drug therapy management",
-      "topics": [
-        {
-          "id": "hypertension",
-          "name": "Hypertension Management",
-          "filePath": "data/clinical-pharmacy/hypertension.json",
-          "questionCount": 5
-        },
-        {
-          "id": "diabetes",
-          "name": "Diabetes Management",
-          "filePath": "data/clinical-pharmacy/diabetes.json",
-          "questionCount": 4
+          "id": "sedatives-hypnotics",
+          "name": "Sedatives & Hypnotics",
+          "file": "data/pharmacology/sedatives-hypnotics.json",
+          "questionCount": 3
         }
       ]
     },
     {
       "id": "pharmaceutics",
       "name": "Pharmaceutics",
-      "description": "Science of dosage form design, drug formulation and delivery",
       "topics": [
         {
           "id": "tablets",
-          "name": "Tablet Formulations",
-          "filePath": "data/pharmaceutics/tablets.json",
-          "questionCount": 4
+          "name": "Tablets",
+          "file": "data/pharmaceutics/tablets.json",
+          "questionCount": 3
         },
         {
           "id": "suspensions",
-          "name": "Pharmaceutical Suspensions",
-          "filePath": "data/pharmaceutics/suspensions.json",
+          "name": "Suspensions",
+          "file": "data/pharmaceutics/suspensions.json",
           "questionCount": 3
         }
       ]
     },
     {
-      "id": "biochemistry",
-      "name": "Biochemistry",
-      "description": "Chemical processes and substances in living organisms",
+      "id": "clinical-pharmacy",
+      "name": "Clinical Pharmacy",
       "topics": [
         {
-          "id": "enzymes",
-          "name": "Enzyme Kinetics",
-          "filePath": "data/biochemistry/enzymes.json",
-          "questionCount": 4
+          "id": "hypertension",
+          "name": "Hypertension",
+          "file": "data/clinical-pharmacy/hypertension.json",
+          "questionCount": 3
         },
         {
-          "id": "metabolism",
-          "name": "Drug Metabolism",
-          "filePath": "data/biochemistry/metabolism.json",
-          "questionCount": 4
+          "id": "diabetes-mellitus",
+          "name": "Diabetes Mellitus",
+          "file": "data/clinical-pharmacy/diabetes-mellitus.json",
+          "questionCount": 3
         }
       ]
     }
