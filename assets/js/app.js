@@ -691,6 +691,54 @@ const App = (() => {
     return config;
   }
 
+  function parseGithubError(text, path = '') {
+    let payload = null;
+    try { payload = text ? JSON.parse(text) : null; } catch {}
+    const message = payload?.message || text || 'GitHub request failed.';
+    if (message.includes('Not Found') || payload?.status === '404') {
+      return `GitHub could not find this repo/path. Check owner, repo, branch, and PAT access. Path: ${path}`;
+    }
+    if (message.includes('Bad credentials')) {
+      return 'GitHub PAT is invalid. Use a Classic PAT with repo access.';
+    }
+    if (message.includes('Resource not accessible') || payload?.status === '403') {
+      return 'GitHub blocked this request. Make sure your PAT has repo access and the branch exists.';
+    }
+    if (message.includes('Repository access blocked')) return message;
+    return message;
+  }
+
+  async function githubRepoRequest(endpoint) {
+    const config = getGithubConfig();
+    if (!config.owner || !config.repo || !config.token) {
+      throw new Error('Save GitHub owner, repo, branch, and PAT first.');
+    }
+    const response = await fetch(`https://api.github.com/repos/${config.owner}/${config.repo}${endpoint}`, {
+      headers: {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': `token ${config.token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    const text = await response.text();
+    if (!response.ok) throw new Error(parseGithubError(text, endpoint));
+    return text ? JSON.parse(text) : {};
+  }
+
+  async function verifyGithubConfig() {
+    const config = getGithubConfig();
+    if (!config.owner || !config.repo || !config.branch || !config.token) {
+      throw new Error('Fill owner, repo, branch, and PAT first.');
+    }
+    await githubRepoRequest('');
+    try {
+      await githubRepoRequest(`/branches/${encodeURIComponent(config.branch)}`);
+    } catch (error) {
+      throw new Error(`GitHub repo is reachable, but branch "${config.branch}" was not found.`);
+    }
+    return true;
+  }
+
   function populateGithubFields() {
     const config = getGithubConfig();
     if (byId('ghOwner')) byId('ghOwner').value = config.owner || '';
@@ -718,7 +766,7 @@ const App = (() => {
     });
     const text = await response.text();
     if (!response.ok) {
-      throw new Error(text || `GitHub request failed for ${path}`);
+      throw new Error(parseGithubError(text, path));
     }
     return text ? JSON.parse(text) : {};
   }
@@ -748,26 +796,6 @@ const App = (() => {
     return githubRequest(path, { method: 'PUT', body: JSON.stringify(body) });
   }
 
-  async function githubDeleteFile(path, message) {
-    const config = getGithubConfig();
-    const existing = await githubGetFile(path);
-    if (!existing?.sha) return;
-    const body = {
-      message,
-      branch: config.branch,
-      sha: existing.sha,
-    };
-    return githubRequest(path, { method: 'DELETE', body: JSON.stringify(body) });
-  }
-
-  function clearNotice(id) {
-    const el = byId(id);
-    if (!el) return;
-    el.className = 'notice hidden';
-    el.textContent = '';
-  }
-
-
   function setNotice(id, type, message) {
     const el = byId(id);
     if (!el) return;
@@ -788,75 +816,39 @@ const App = (() => {
     const topicSubjectSelect = byId('topicSubjectSelect');
     const questionSubjectSelect = byId('questionSubjectSelect');
     const questionTopicSelect = byId('questionTopicSelect');
-    const deleteSubjectSelect = byId('deleteSubjectSelect');
-    const deleteTopicSubjectSelect = byId('deleteTopicSubjectSelect');
-    const deleteTopicSelect = byId('deleteTopicSelect');
-    const deleteQuestionSubjectSelect = byId('deleteQuestionSubjectSelect');
-    const deleteQuestionTopicSelect = byId('deleteQuestionTopicSelect');
 
-    const subjectOptions = '<option value="">Choose subject</option>' + state.index.subjects.map((subject) =>
-      `<option value="${subject.id}">${escapeHtml(subject.name)}</option>`).join('');
-
-    if (topicSubjectSelect) topicSubjectSelect.innerHTML = subjectOptions;
-    if (questionSubjectSelect) questionSubjectSelect.innerHTML = subjectOptions;
-    if (deleteSubjectSelect) deleteSubjectSelect.innerHTML = '<option value="">Choose subject to delete</option>' + state.index.subjects.map((subject) =>
-      `<option value="${subject.id}">${escapeHtml(subject.name)}</option>`).join('');
-    if (deleteTopicSubjectSelect) deleteTopicSubjectSelect.innerHTML = subjectOptions;
-    if (deleteQuestionSubjectSelect) deleteQuestionSubjectSelect.innerHTML = subjectOptions;
-
-    function syncTopicsForSelect(subjectSelect, topicSelect, placeholder = 'Choose topic') {
-      const subject = getSubject(subjectSelect?.value);
-      if (!topicSelect) return;
-      if (!subject) {
-        topicSelect.innerHTML = `<option value="">${placeholder}</option>`;
-        return;
-      }
-      topicSelect.innerHTML = `<option value="">${placeholder}</option>` + subject.topics.map((topic) =>
-        `<option value="${topic.id}">${escapeHtml(topic.name)}</option>`).join('');
+    if (topicSubjectSelect) {
+      topicSubjectSelect.innerHTML = '<option value="">Choose subject</option>' + state.index.subjects.map((subject) =>
+        `<option value="${subject.id}">${escapeHtml(subject.name)}</option>`).join('');
     }
 
-    async function syncDeleteQuestionList() {
-      const questionSelect = byId('deleteQuestionSelect');
-      const subjectId = deleteQuestionSubjectSelect?.value;
-      const topicId = deleteQuestionTopicSelect?.value;
-      if (!questionSelect) return;
-      questionSelect.innerHTML = '<option value="">Choose question</option>';
-      if (!subjectId || !topicId) return;
-      const topicMeta = getTopic(subjectId, topicId);
-      if (!topicMeta) return;
-      try {
-        const file = await githubGetFile(topicMeta.file);
-        const questions = file?.json?.questions || [];
-        questionSelect.innerHTML = '<option value="">Choose question</option>' + questions.map((question, index) => {
-          const text = (question.question || '').replace(/\s+/g, ' ').slice(0, 90);
-          return `<option value="${question.id}">${index + 1}. ${escapeHtml(text || question.id)}</option>`;
-        }).join('');
-      } catch {
-        questionSelect.innerHTML = '<option value="">Could not load questions</option>';
-      }
+    if (questionSubjectSelect) {
+      questionSubjectSelect.innerHTML = '<option value="">Choose subject</option>' + state.index.subjects.map((subject) =>
+        `<option value="${subject.id}">${escapeHtml(subject.name)}</option>`).join('');
     }
 
     function syncQuestionTopics() {
-      syncTopicsForSelect(questionSubjectSelect, questionTopicSelect, 'Choose topic');
-    }
-
-    function syncDeleteTopicChoices() {
-      syncTopicsForSelect(deleteTopicSubjectSelect, deleteTopicSelect, 'Choose topic to delete');
-    }
-
-    function syncDeleteQuestionTopics() {
-      syncTopicsForSelect(deleteQuestionSubjectSelect, deleteQuestionTopicSelect, 'Choose topic');
-      syncDeleteQuestionList();
+      const subject = getSubject(questionSubjectSelect?.value);
+      if (!questionTopicSelect) return;
+      if (!subject) {
+        questionTopicSelect.innerHTML = '<option value="">Choose topic</option>';
+        return;
+      }
+      questionTopicSelect.innerHTML = '<option value="">Choose topic</option>' + subject.topics.map((topic) =>
+        `<option value="${topic.id}">${escapeHtml(topic.name)}</option>`).join('');
     }
 
     if (questionSubjectSelect) questionSubjectSelect.onchange = syncQuestionTopics;
-    if (deleteTopicSubjectSelect) deleteTopicSubjectSelect.onchange = syncDeleteTopicChoices;
-    if (deleteQuestionSubjectSelect) deleteQuestionSubjectSelect.onchange = syncDeleteQuestionTopics;
-    if (deleteQuestionTopicSelect) deleteQuestionTopicSelect.onchange = syncDeleteQuestionList;
-
     syncQuestionTopics();
-    syncDeleteTopicChoices();
-    syncDeleteQuestionTopics();
+  }
+
+  async function reloadIndexFromGithub() {
+    const latest = await githubGetFile('data/index.json');
+    if (latest?.json) {
+      state.index = latest.json;
+      return latest.json;
+    }
+    return state.index;
   }
 
   async function createSubject() {
@@ -867,8 +859,10 @@ const App = (() => {
     if (state.index.subjects.some((subject) => subject.id === subjectId)) {
       return setNotice('subjectNotice', 'error', 'This subject already exists.');
     }
+    await verifyGithubConfig();
     state.index.subjects.push({ id: subjectId, name, topics: [] });
     await githubPutJson('data/index.json', state.index, `Add subject: ${name}`);
+    await reloadIndexFromGithub();
     byId('newSubjectName').value = '';
     populateSubjectSelects();
     setNotice('subjectNotice', 'success', `Subject "${name}" added successfully.`);
@@ -883,10 +877,12 @@ const App = (() => {
     const topicId = slugify(name);
     if (!topicId) return setNotice('topicNotice', 'error', 'Enter a valid topic name.');
     if (subject.topics.some((topic) => topic.id === topicId)) return setNotice('topicNotice', 'error', 'This topic already exists.');
+    await verifyGithubConfig();
     const path = `data/${subjectId}/${topicId}.json`;
     subject.topics.push({ id: topicId, name, file: path, questionCount: 0 });
     await githubPutJson(path, { questions: [] }, `Create topic: ${name}`);
     await githubPutJson('data/index.json', state.index, `Add topic: ${name}`);
+    await reloadIndexFromGithub();
     byId('newTopicName').value = '';
     populateSubjectSelects();
     setNotice('topicNotice', 'success', `Topic "${name}" created successfully.`);
@@ -944,6 +940,7 @@ const App = (() => {
     const topicMeta = getTopic(subjectId, topicId);
     if (!topicMeta) return setNotice('questionNotice', 'error', 'Topic not found.');
 
+    await verifyGithubConfig();
     const file = await githubGetFile(topicMeta.file);
     const topicJson = file?.json || { questions: [] };
     topicJson.questions.push({
@@ -962,6 +959,7 @@ const App = (() => {
     topicMeta.questionCount = topicJson.questions.length;
     await githubPutJson(topicMeta.file, topicJson, `Add question to ${topicMeta.name}`);
     await githubPutJson('data/index.json', state.index, `Update count for ${topicMeta.name}`);
+    await reloadIndexFromGithub();
 
     ['questionTextInput', 'questionExplanation', 'questionCaseScenario', 'questionImageUrl', 'optionA', 'optionB', 'optionC', 'optionD'].forEach((id) => {
       const field = byId(id);
@@ -972,71 +970,10 @@ const App = (() => {
     setNotice('questionNotice', 'success', `Question added to ${topicMeta.name}.`);
   }
 
-
-  async function deleteSubject() {
-    const subjectId = byId('deleteSubjectSelect')?.value;
-    if (!subjectId) return setNotice('subjectNotice', 'error', 'Choose a subject to delete.');
-    const subject = getSubject(subjectId);
-    if (!subject) return setNotice('subjectNotice', 'error', 'Subject not found.');
-    const ok = window.confirm(`Delete subject "${subject.name}" and all of its topics/questions? This cannot be undone.`);
-    if (!ok) return;
-
-    for (const topic of [...subject.topics]) {
-      await githubDeleteFile(topic.file, `Delete topic file: ${topic.name}`);
-      state.topicCache.delete(topic.file);
-    }
-    state.index.subjects = state.index.subjects.filter((item) => item.id !== subjectId);
-    await githubPutJson('data/index.json', state.index, `Delete subject: ${subject.name}`);
-    if (byId('deleteSubjectSelect')) byId('deleteSubjectSelect').value = '';
-    populateSubjectSelects();
-    setNotice('subjectNotice', 'success', `Subject "${subject.name}" deleted successfully.`);
-  }
-
-  async function deleteTopic() {
-    const subjectId = byId('deleteTopicSubjectSelect')?.value;
-    const topicId = byId('deleteTopicSelect')?.value;
-    if (!subjectId || !topicId) return setNotice('topicNotice', 'error', 'Choose the subject and topic to delete.');
-    const subject = getSubject(subjectId);
-    const topic = getTopic(subjectId, topicId);
-    if (!subject || !topic) return setNotice('topicNotice', 'error', 'Topic not found.');
-    const ok = window.confirm(`Delete topic "${topic.name}" and all of its questions? This cannot be undone.`);
-    if (!ok) return;
-
-    await githubDeleteFile(topic.file, `Delete topic: ${topic.name}`);
-    state.topicCache.delete(topic.file);
-    subject.topics = subject.topics.filter((item) => item.id !== topicId);
-    await githubPutJson('data/index.json', state.index, `Delete topic: ${topic.name}`);
-    if (byId('deleteTopicSelect')) byId('deleteTopicSelect').value = '';
-    populateSubjectSelects();
-    setNotice('topicNotice', 'success', `Topic "${topic.name}" deleted successfully.`);
-  }
-
-  async function deleteQuestion() {
-    const subjectId = byId('deleteQuestionSubjectSelect')?.value;
-    const topicId = byId('deleteQuestionTopicSelect')?.value;
-    const questionId = byId('deleteQuestionSelect')?.value;
-    if (!subjectId || !topicId || !questionId) return setNotice('questionNotice', 'error', 'Choose the subject, topic, and question to delete.');
-    const topicMeta = getTopic(subjectId, topicId);
-    if (!topicMeta) return setNotice('questionNotice', 'error', 'Topic not found.');
-    const file = await githubGetFile(topicMeta.file);
-    const topicJson = file?.json || { questions: [] };
-    const question = topicJson.questions.find((item) => item.id === questionId);
-    if (!question) return setNotice('questionNotice', 'error', 'Question not found.');
-    const ok = window.confirm('Delete this question permanently?');
-    if (!ok) return;
-
-    topicJson.questions = topicJson.questions.filter((item) => item.id !== questionId);
-    topicMeta.questionCount = topicJson.questions.length;
-    await githubPutJson(topicMeta.file, topicJson, `Delete question from ${topicMeta.name}`);
-    await githubPutJson('data/index.json', state.index, `Update count for ${topicMeta.name}`);
-    state.topicCache.delete(topicMeta.file);
-    populateSubjectSelects();
-    setNotice('questionNotice', 'success', 'Question deleted successfully.');
-  }
-
   async function testGithubAccess() {
     saveGithubConfig();
-    await githubGetFile('data/index.json');
+    await verifyGithubConfig();
+    return true;
   }
 
   function injectSharedAdminDialog() {
@@ -1066,7 +1003,7 @@ const App = (() => {
             <div class="brand-mark">PN</div>
             <div>
               <div>Admin Panel</div>
-              <div class="small" style="opacity:.85;">Manage subjects, topics, and questions</div>
+              <div class="small" style="opacity:.85;">Simple content manager</div>
             </div>
           </div>
           <div class="admin-menu">
@@ -1081,7 +1018,7 @@ const App = (() => {
         <section class="admin-body">
           <div data-admin-panel="settings">
             <h2>GitHub Settings</h2>
-            <p class="text-muted">Save these once in this browser. After that, subject, topic, and question updates will go directly to your GitHub repository.</p>
+            <p class="text-muted">Save these once in this browser. Use your GitHub username, exact repo name, exact branch name, and a Classic PAT with repo access.</p>
             <div class="form-grid">
               <input id="ghOwner" class="text-input" placeholder="GitHub username / owner">
               <input id="ghRepo" class="text-input" placeholder="Repository name">
@@ -1104,16 +1041,6 @@ const App = (() => {
             <div class="question-actions">
               <button class="btn btn-primary" id="createSubjectBtn">Create Subject</button>
             </div>
-
-            <div class="admin-divider"></div>
-            <h3>Delete Subject</h3>
-            <p class="text-muted">This removes the subject from index.json and deletes all topic files inside it.</p>
-            <div class="form-grid">
-              <select id="deleteSubjectSelect" class="select-box full"></select>
-            </div>
-            <div class="question-actions">
-              <button class="btn btn-danger" id="deleteSubjectBtn">Delete Subject</button>
-            </div>
             <div id="subjectNotice" class="notice hidden"></div>
           </div>
 
@@ -1127,23 +1054,12 @@ const App = (() => {
             <div class="question-actions">
               <button class="btn btn-primary" id="createTopicBtn">Create Topic</button>
             </div>
-
-            <div class="admin-divider"></div>
-            <h3>Delete Topic</h3>
-            <p class="text-muted">Choose the subject and topic. This deletes the topic JSON file and removes it from index.json.</p>
-            <div class="form-grid">
-              <select id="deleteTopicSubjectSelect" class="select-box"></select>
-              <select id="deleteTopicSelect" class="select-box"></select>
-            </div>
-            <div class="question-actions">
-              <button class="btn btn-danger" id="deleteTopicBtn">Delete Topic</button>
-            </div>
             <div id="topicNotice" class="notice hidden"></div>
           </div>
 
           <div data-admin-panel="questions" class="hidden">
             <h2>Add Question</h2>
-            <p class="text-muted">Choose the topic, enter the question, fill the options, then pick the correct answer from the dropdown.</p>
+            <p class="text-muted">Choose subject and topic, write the question, add options, then choose the correct answer.</p>
             <div class="form-grid">
               <select id="questionSubjectSelect" class="select-box"></select>
               <select id="questionTopicSelect" class="select-box"></select>
@@ -1179,20 +1095,6 @@ const App = (() => {
 
             <div class="question-actions">
               <button class="btn btn-primary" id="createQuestionBtn">Save Question</button>
-            </div>
-
-            <div class="admin-divider"></div>
-            <h3>Delete Question</h3>
-            <p class="text-muted">Choose the exact question you want to remove from the selected topic file.</p>
-            <div class="form-grid">
-              <select id="deleteQuestionSubjectSelect" class="select-box"></select>
-              <select id="deleteQuestionTopicSelect" class="select-box"></select>
-              <select id="deleteQuestionSelect" class="select-box full">
-                <option value="">Choose question</option>
-              </select>
-            </div>
-            <div class="question-actions">
-              <button class="btn btn-danger" id="deleteQuestionBtn">Delete Question</button>
             </div>
             <div id="questionNotice" class="notice hidden"></div>
           </div>
@@ -1268,6 +1170,16 @@ const App = (() => {
     byId('adminUnlockBtn').addEventListener('click', () => {
       unlockAdmin().catch((error) => setNotice('adminLockNotice', 'error', error.message));
     });
+    ['adminPasswordInput', 'adminPasswordConfirm'].forEach((id) => {
+      const input = byId(id);
+      if (!input) return;
+      input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          unlockAdmin().catch((error) => setNotice('adminLockNotice', 'error', error.message));
+        }
+      });
+    });
     byId('adminCloseFromLockBtn').addEventListener('click', closeAdminDialog);
     byId('closeAdminBtn').addEventListener('click', closeAdminDialog);
 
@@ -1287,29 +1199,20 @@ const App = (() => {
 
     byId('testGithubBtn').addEventListener('click', () => {
       testGithubAccess()
-        .then(() => setNotice('githubNotice', 'success', 'GitHub connection is working.'))
+        .then(() => setNotice('githubNotice', 'success', 'GitHub connection is working. Repo and branch were found successfully.'))
         .catch((error) => setNotice('githubNotice', 'error', error.message));
     });
 
     byId('createSubjectBtn').addEventListener('click', () => {
       createSubject().catch((error) => setNotice('subjectNotice', 'error', error.message));
     });
-    byId('deleteSubjectBtn').addEventListener('click', () => {
-      deleteSubject().catch((error) => setNotice('subjectNotice', 'error', error.message));
-    });
 
     byId('createTopicBtn').addEventListener('click', () => {
       createTopic().catch((error) => setNotice('topicNotice', 'error', error.message));
     });
-    byId('deleteTopicBtn').addEventListener('click', () => {
-      deleteTopic().catch((error) => setNotice('topicNotice', 'error', error.message));
-    });
 
     byId('createQuestionBtn').addEventListener('click', () => {
       createQuestion().catch((error) => setNotice('questionNotice', 'error', error.message));
-    });
-    byId('deleteQuestionBtn').addEventListener('click', () => {
-      deleteQuestion().catch((error) => setNotice('questionNotice', 'error', error.message));
     });
 
     byId('questionType').addEventListener('change', syncQuestionFormForType);
