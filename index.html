@@ -8,8 +8,76 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./styles.css" />
-  </head>
-  <body>
     <script src="./app.js" defer></script>
+  </head>
+  <body data-page="home">
+    <header class="site-header">
+      <div class="container nav-wrap">
+        <a class="brand" href="./index.html">
+          <span class="brand-mark">P</span>
+          <span>Pharmacy Nexus</span>
+        </a>
+
+        <button id="navToggle" class="nav-toggle" aria-label="Toggle navigation">☰</button>
+
+        <nav id="navLinks" class="nav-links">
+          <a class="nav-link" data-page="home" href="./index.html">Home</a>
+          <a class="nav-link" data-page="subjects" href="./subjects.html">Subjects</a>
+          <a class="nav-link" data-page="study" href="./study.html">Study</a>
+          <a class="nav-link" data-page="final-exam" href="./final-exam.html">Final Exam</a>
+          <a class="nav-link" data-page="dashboard" href="./dashboard.html">Dashboard</a>
+        </nav>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="badge">Pharmacy Learning Platform</span>
+          <h1>Your Ultimate Pharmacy Learning Platform<br><span class="text-gold">Built for Future Pharmacists</span></h1>
+          <p>
+            Study by subject and topic, track your progress, and prepare with a focused academic interface designed to stay fast and lightweight.
+          </p>
+        </div>
+
+        <aside class="hero-card">
+          <h3>Quick Overview</h3>
+          <p class="text-muted">Start with subjects, drill into topics, and use study mode or final exam mode when you are ready.</p>
+          <div class="stat-row">
+            <div class="mini-stat">
+              <span class="text-muted">Subjects</span>
+              <strong data-stat="subjects">0</strong>
+            </div>
+            <div class="mini-stat">
+              <span class="text-muted">Topics</span>
+              <strong data-stat="topics">0</strong>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <main>
+      <section class="section">
+        <div class="container">
+          <div class="toolbar">
+            <div>
+              <h2>Subjects</h2>
+              <p class="text-muted">Choose a subject to explore its topics.</p>
+            </div>
+            <input id="subjectSearch" class="search-box" type="search" placeholder="Search subjects..." />
+          </div>
+
+          <div id="subjectsGrid" class="grid cards-3"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="section">
+      <div class="container surface card">
+        <h3>Contact: pharmacynexusofficial@gmail.com</h3>
+        <p class="text-muted">For feedback, collaboration, or educational contributions, feel free to contact us.</p>
+      </div>
+    </footer>
   </body>
 </html>
