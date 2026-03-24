@@ -1,1254 +1,1304 @@
+(function () {
+  'use strict';
 
-const App = (() => {
-  const STORAGE_KEYS = {
-    github: 'pn_github_config',
-    progress: 'pn_progress_v1',
-    adminPassword: 'pn_admin_password_v1',
+  const PAGE = document.body.dataset.page || 'home';
+  const SET_SIZE = 30;
+  const KEYS = {
+    progress: 'pn_progress_v3',
+    saved: 'pn_saved_v3',
+    adminPass: 'pn_admin_pass_v3',
+    github: 'pn_github_v3',
+    review: 'pn_review_v3'
   };
 
   const state = {
     index: null,
-    topicCache: new Map(),
-    adminUnlocked: false,
+    subjectMap: new Map(),
+    topicMap: new Map(),
+    questionCache: new Map(),
+    currentReview: null
   };
 
-  const qs = (selector, scope = document) => scope.querySelector(selector);
-  const qsa = (selector, scope = document) => [...scope.querySelectorAll(selector)];
-  const byId = (id) => document.getElementById(id);
+  const el = (tag, cls, html) => {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (html !== undefined) node.innerHTML = html;
+    return node;
+  };
 
-  const slugify = (value = '') => value.toLowerCase().trim()
+  const getJSON = async (path) => {
+    const response = await fetch(path, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Failed to load ${path}`);
+    return response.json();
+  };
+
+  const slugify = (value) => value.toLowerCase().trim()
     .replace(/&/g, ' and ')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
-  const formatDate = (value) => new Date(value).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-  const uniqueId = (prefix = 'id') => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const escapeHtml = (value = '') => String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-
-  function readStorage(key, fallback) {
-    try {
-      const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : fallback;
-    } catch {
-      return fallback;
+  const shuffle = (items) => {
+    const copy = [...items];
+    for (let i = copy.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
     }
-  }
+    return copy;
+  };
 
-  function writeStorage(key, value) {
-    localStorage.setItem(key, JSON.stringify(value));
-  }
+  const params = () => new URLSearchParams(window.location.search);
+  const readStore = (key, fallback) => {
+    try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch (_) { return fallback; }
+  };
+  const writeStore = (key, value) => localStorage.setItem(key, JSON.stringify(value));
+  const formatDate = (date) => new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
 
-  function showMainError(message) {
-    const root = document.querySelector('main');
-    if (root) root.insertAdjacentHTML('afterbegin', `<div class="container"><div class="empty-state">${escapeHtml(message)}</div></div>`);
-  }
-
-  function getProgress() {
-    return readStorage(STORAGE_KEYS.progress, {
-      studyHistory: [],
-      examHistory: [],
-      questionStats: {},
-      topicCompletion: {},
+  async function loadIndex() {
+    if (state.index) return state.index;
+    const index = await getJSON('./data/index.json');
+    state.index = index;
+    state.subjectMap.clear();
+    state.topicMap.clear();
+    index.subjects.forEach((subject) => {
+      state.subjectMap.set(subject.id, subject);
+      subject.topics.forEach((topic) => {
+        state.topicMap.set(`${subject.id}:${topic.id}`, { ...topic, subjectId: subject.id, subjectName: subject.name });
+      });
     });
+    return index;
   }
 
-  function saveProgress(progress) {
-    writeStorage(STORAGE_KEYS.progress, progress);
-  }
-
-  function recordStudyEvent({ question, correct, revealed = true }) {
-    const progress = getProgress();
-    const entry = progress.questionStats[question.id] || {
-      id: question.id,
-      subject: question.subject,
-      topic: question.topic,
-      attempts: 0,
-      correct: 0,
-      reveals: 0,
-      lastSeen: null,
-    };
-    entry.attempts += 1;
-    if (correct) entry.correct += 1;
-    if (revealed) entry.reveals += 1;
-    entry.lastSeen = new Date().toISOString();
-    progress.questionStats[question.id] = entry;
-    saveProgress(progress);
-  }
-
-  function recordStudySession(session) {
-    const progress = getProgress();
-    progress.studyHistory.unshift({ id: uniqueId('study'), ...session });
-    progress.studyHistory = progress.studyHistory.slice(0, 50);
-    const key = `${session.subject}|${session.topic}`;
-    progress.topicCompletion[key] = {
-      subject: session.subject,
-      topic: session.topic,
-      percent: session.percent,
-      completedQuestions: session.completedQuestions,
-      totalQuestions: session.totalQuestions,
-      updatedAt: new Date().toISOString(),
-    };
-    saveProgress(progress);
-  }
-
-  function recordExamSession(session) {
-    const progress = getProgress();
-    progress.examHistory.unshift({ id: uniqueId('exam'), ...session });
-    progress.examHistory = progress.examHistory.slice(0, 50);
-    saveProgress(progress);
-  }
-
-  async function loadIndex(force = false) {
-    if (state.index && !force) return state.index;
-    const response = await fetch('data/index.json', { cache: 'no-store' });
-    if (!response.ok) throw new Error('Failed to load data/index.json');
-    state.index = await response.json();
-    return state.index;
-  }
-
-  async function loadTopicFile(path, force = false) {
-    if (state.topicCache.has(path) && !force) return state.topicCache.get(path);
-    const response = await fetch(path, { cache: 'no-store' });
-    if (!response.ok) throw new Error(`Failed to load ${path}`);
-    const data = await response.json();
-    state.topicCache.set(path, data);
+  async function loadTopic(subjectId, topicId) {
+    const key = `${subjectId}:${topicId}`;
+    if (state.questionCache.has(key)) return state.questionCache.get(key);
+    const topicMeta = state.topicMap.get(key);
+    if (!topicMeta) throw new Error('Topic not found');
+    const data = await getJSON(`./${topicMeta.file}`);
+    state.questionCache.set(key, data);
     return data;
   }
 
-  function getSubject(subjectId) {
-    return state.index?.subjects?.find((item) => item.id === subjectId) || null;
+  function pageLink(path, query = {}) {
+    const u = new URL(path, window.location.href);
+    Object.entries(query).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== '') u.searchParams.set(k, String(v));
+    });
+    return `${u.pathname.split('/').pop()}${u.search}`;
   }
 
-  function getTopic(subjectId, topicId) {
-    return getSubject(subjectId)?.topics?.find((item) => item.id === topicId) || null;
-  }
-
-  function getTopicByFilePath(path) {
-    for (const subject of state.index?.subjects || []) {
-      const match = subject.topics.find((topic) => topic.file === path);
-      if (match) return { subject, topic: match };
+  function getSavedIds() { return readStore(KEYS.saved, []); }
+  function setSavedIds(ids) { writeStore(KEYS.saved, ids); }
+  function isSaved(id) { return getSavedIds().includes(id); }
+  function toggleSaved(question) {
+    const ids = getSavedIds();
+    const exists = ids.includes(question.id);
+    let next;
+    if (exists) {
+      next = ids.filter((id) => id !== question.id);
+    } else {
+      next = [...ids, question.id];
     }
-    return null;
+    setSavedIds(next);
+    const progress = readStore(KEYS.progress, { savedBank: {} });
+    progress.savedBank = progress.savedBank || {};
+    if (!exists) progress.savedBank[question.id] = question;
+    else delete progress.savedBank[question.id];
+    writeStore(KEYS.progress, progress);
+    return !exists;
   }
 
-  function renderSubjectsGrid(container, subjects) {
-    if (!container) return;
-    if (!subjects.length) {
-      container.innerHTML = '<div class="empty-state">No subjects found.</div>';
-      return;
-    }
-    container.innerHTML = subjects.map((subject) => `
-      <article class="surface card">
-        <div class="card-top">
+  function getProgress() {
+    return readStore(KEYS.progress, {
+      studiedQuestions: 0,
+      studySessions: 0,
+      finalExamsCompleted: 0,
+      correctSelections: 0,
+      totalSelections: 0,
+      subjects: {},
+      topics: {},
+      recent: [],
+      strengths: {},
+      weak: {},
+      savedBank: {}
+    });
+  }
+
+  function saveProgress(progress) { writeStore(KEYS.progress, progress); }
+
+  function ensureShell() {
+    const root = document.getElementById('site-shell');
+    root.innerHTML = `
+      <header class="site-header">
+        <div class="container navbar">
+          <a class="brand" href="./index.html">
+            <span class="brand-mark">PN</span>
+            <span>Pharmacy Nexus</span>
+          </a>
+          <button class="nav-toggle" id="navToggle" type="button" aria-label="Open navigation"><span></span></button>
+          <nav class="nav-menu" id="navMenu">
+            <a class="nav-link ${PAGE === 'home' ? 'is-active' : ''}" href="./index.html">Home</a>
+            <a class="nav-link ${PAGE === 'subjects' || PAGE === 'topics' || PAGE === 'topic' ? 'is-active' : ''}" href="./subjects.html">Subjects</a>
+            <a class="nav-link ${PAGE === 'study' ? 'is-active' : ''}" href="./subjects.html">Study</a>
+            <a class="nav-link ${PAGE === 'final-exam' ? 'is-active' : ''}" href="./final-exam.html">Final Exam</a>
+            <a class="nav-link ${PAGE === 'dashboard' ? 'is-active' : ''}" href="./dashboard.html">Dashboard</a>
+            <a class="nav-link ${PAGE === 'saved' ? 'is-active' : ''}" href="./saved.html">Saved</a>
+          </nav>
+        </div>
+      </header>
+      <main class="main-section"><div class="container" id="pageRoot"></div></main>
+      <footer class="footer">
+        <div class="container footer-shell">
           <div>
-            <span class="badge">${subject.topics.length} Topics</span>
-            <h3>${escapeHtml(subject.name)}</h3>
+            <strong>Contact: pharmacynexusofficial@gmail.com</strong>
+            <div>For feedback, collaboration, or educational contributions, feel free to contact us.</div>
+          </div>
+          <div>Hidden admin panel: press <strong>Ctrl + Shift + A</strong></div>
+        </div>
+      </footer>
+      <div class="admin-backdrop" id="adminBackdrop"></div>
+    `;
+
+    const toggle = document.getElementById('navToggle');
+    const menu = document.getElementById('navMenu');
+    toggle.addEventListener('click', () => {
+      toggle.classList.toggle('is-open');
+      menu.classList.toggle('is-open');
+    });
+    menu.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => {
+      toggle.classList.remove('is-open');
+      menu.classList.remove('is-open');
+    }));
+  }
+
+  function renderHome(index) {
+    const root = document.getElementById('pageRoot');
+    const subjects = index.subjects;
+    const topicsCount = subjects.reduce((acc, s) => acc + s.topics.length, 0);
+    root.innerHTML = `
+      <section class="hero">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">Pharmacy Nexus • Structured Learning</span>
+            <h1>Your Ultimate Pharmacy Learning Platform <span>Built for Future Pharmacists</span></h1>
+            <p>Move subject by subject, topic by topic, study in clear 30-question sets, review every attempt in detail, and finish with a polished final exam workflow.</p>
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="./subjects.html">Explore Subjects</a>
+              <a class="btn btn-secondary" href="./final-exam.html">Go to Final Exam</a>
+            </div>
+          </div>
+          <div class="hero-panel">
+            <h3>Focused. Clean. Expandable.</h3>
+            <p>Study sets, instant feedback, saved questions, final exam review, dashboard tracking, and hidden admin management inside one lightweight static build.</p>
+            <div class="stats-grid">
+              <div class="stat-box"><div class="label">Subjects</div><div class="value">${subjects.length}</div></div>
+              <div class="stat-box"><div class="label">Topics</div><div class="value">${topicsCount}</div></div>
+              <div class="stat-box"><div class="label">Study Sets</div><div class="value">30 Q</div></div>
+              <div class="stat-box"><div class="label">Storage</div><div class="value">JSON</div></div>
+            </div>
           </div>
         </div>
-        <p class="text-muted">Organized study topics for ${escapeHtml(subject.name)}.</p>
-        <a class="btn btn-primary" href="topics.html?subject=${encodeURIComponent(subject.id)}">Open Topics</a>
-      </article>
-    `).join('');
-  }
-
-  function renderTopicCards(container, subject, topics) {
-    if (!container) return;
-    if (!topics.length) {
-      container.innerHTML = '<div class="empty-state">No topics match your search.</div>';
-      return;
-    }
-    container.innerHTML = topics.map((topic) => `
-      <article class="surface card">
-        <div class="card-top">
+      </section>
+      <section style="margin-top:34px;">
+        <div class="section-header">
           <div>
-            <span class="badge">${topic.questionCount} Questions</span>
-            <h3>${escapeHtml(topic.name)}</h3>
+            <h2>Subjects Only</h2>
+            <p>Topics stay inside their subject pages to keep the homepage clean and focused.</p>
           </div>
         </div>
-        <p class="text-muted">Open this topic and start focused study.</p>
-        <div class="question-actions">
-          <a class="btn btn-primary" href="topic.html?subject=${encodeURIComponent(subject.id)}&topic=${encodeURIComponent(topic.id)}">Open Topic</a>
-          <a class="btn btn-soft" href="study.html?subject=${encodeURIComponent(subject.id)}&topic=${encodeURIComponent(topic.id)}">Study</a>
-        </div>
-      </article>
-    `).join('');
+        <div class="panel" style="margin-bottom:18px;"><input class="input" id="subjectSearch" placeholder="Search subjects..." /></div>
+        <div class="card-grid" id="subjectsGrid"></div>
+      </section>
+    `;
+    renderSubjectCards(subjects, document.getElementById('subjectsGrid'), document.getElementById('subjectSearch'));
   }
 
-  async function initHome() {
-    const { subjects } = await loadIndex();
-    const container = byId('subjectsGrid');
-    renderSubjectsGrid(container, subjects);
-    const search = byId('subjectSearch');
-    if (search) {
-      search.addEventListener('input', () => {
-        const value = search.value.trim().toLowerCase();
-        renderSubjectsGrid(container, subjects.filter((subject) => subject.name.toLowerCase().includes(value)));
+  function renderSubjectCards(subjects, target, searchInput) {
+    const draw = (term = '') => {
+      const filtered = subjects.filter((subject) => subject.name.toLowerCase().includes(term.toLowerCase()));
+      target.innerHTML = filtered.length ? '' : '<div class="empty-state">No subjects matched your search.</div>';
+      filtered.forEach((subject) => {
+        const card = el('article', 'card soft');
+        card.innerHTML = `
+          <div class="meta-row"><span class="badge">${subject.topics.length} Topics</span><span class="tag">${subject.id}</span></div>
+          <h3>${subject.name}</h3>
+          <p class="muted">Structured study content for ${subject.name} with topic-based JSON files.</p>
+          <div class="meta-row">${subject.topics.slice(0, 2).map((t) => `<span class="tag">${t.name}</span>`).join('')}</div>
+          <div style="margin-top:20px;"><a class="btn btn-dark" href="${pageLink('./topics.html', { subject: subject.id })}">Open Topics</a></div>
+        `;
+        target.appendChild(card);
       });
-    }
-    const subjectStat = qs('[data-stat="subjects"]');
-    const topicStat = qs('[data-stat="topics"]');
-    if (subjectStat) subjectStat.textContent = String(subjects.length);
-    if (topicStat) topicStat.textContent = String(subjects.reduce((sum, subject) => sum + subject.topics.length, 0));
+    };
+    draw();
+    searchInput?.addEventListener('input', (e) => draw(e.target.value));
   }
 
-  async function initSubjectsPage() {
-    const { subjects } = await loadIndex();
-    const container = byId('allSubjectsGrid');
-    renderSubjectsGrid(container, subjects);
-    const search = byId('subjectsPageSearch');
-    if (search) {
-      search.addEventListener('input', () => {
-        const value = search.value.trim().toLowerCase();
-        renderSubjectsGrid(container, subjects.filter((subject) => subject.name.toLowerCase().includes(value)));
-      });
-    }
+  function renderSubjectsPage(index) {
+    const root = document.getElementById('pageRoot');
+    root.innerHTML = `
+      <div class="section-header"><div><h2>Subjects</h2><p>Choose a subject, then move into its topics and study sets.</p></div></div>
+      <div class="panel" style="margin-bottom:18px;"><input class="input" id="subjectSearch" placeholder="Search subjects..." /></div>
+      <div class="card-grid" id="subjectsGrid"></div>
+    `;
+    renderSubjectCards(index.subjects, document.getElementById('subjectsGrid'), document.getElementById('subjectSearch'));
   }
 
-  async function initTopicsPage() {
-    await loadIndex();
-    const subjectId = new URLSearchParams(location.search).get('subject');
-    const subject = getSubject(subjectId);
-    const title = byId('topicsTitle');
-    const description = byId('topicsDescription');
-    const container = byId('topicsGrid');
+  function renderTopicsPage() {
+    const subjectId = params().get('subject');
+    const subject = state.subjectMap.get(subjectId);
+    const root = document.getElementById('pageRoot');
     if (!subject) {
-      if (title) title.textContent = 'Subject not found';
-      if (description) description.textContent = 'Please return to Subjects and choose a valid subject.';
-      if (container) container.innerHTML = '<div class="empty-state">This subject does not exist.</div>';
+      root.innerHTML = '<div class="empty-state">Subject not found.</div>';
       return;
     }
-    title.textContent = `${subject.name} Topics`;
-    description.textContent = 'Choose a topic to open its details or go directly into study mode.';
-    renderTopicCards(container, subject, subject.topics);
-    const search = byId('topicSearch');
-    if (search) {
-      search.addEventListener('input', () => {
-        const value = search.value.trim().toLowerCase();
-        renderTopicCards(container, subject, subject.topics.filter((topic) => topic.name.toLowerCase().includes(value)));
-      });
-    }
-  }
-
-  async function initTopicDetailPage() {
-    await loadIndex();
-    const params = new URLSearchParams(location.search);
-    const subjectId = params.get('subject');
-    const topicId = params.get('topic');
-    const subject = getSubject(subjectId);
-    const topic = getTopic(subjectId, topicId);
-    const root = byId('topicDetailRoot');
-    if (!subject || !topic) {
-      if (root) root.innerHTML = '<div class="empty-state">Topic not found. Return to the subject list and try again.</div>';
-      return;
-    }
-    const { questions } = await loadTopicFile(topic.file);
-    byId('topicName').textContent = topic.name;
-    byId('topicSubject').textContent = subject.name;
-    byId('topicQuestionCount').textContent = String(questions.length);
-    byId('diffEasy').textContent = String(questions.filter((q) => q.difficulty === 'easy').length);
-    byId('diffMedium').textContent = String(questions.filter((q) => q.difficulty === 'medium').length);
-    byId('diffHard').textContent = String(questions.filter((q) => q.difficulty === 'hard').length);
-    byId('studyTopicButton').href = `study.html?subject=${encodeURIComponent(subject.id)}&topic=${encodeURIComponent(topic.id)}`;
-    byId('backToTopics').href = `topics.html?subject=${encodeURIComponent(subject.id)}`;
-  }
-
-  async function initStudyPage() {
-    await loadIndex();
-    const params = new URLSearchParams(location.search);
-    const subjectId = params.get('subject');
-    const topicId = params.get('topic');
-    const root = byId('studyRoot');
-    const subject = getSubject(subjectId);
-    const topic = getTopic(subjectId, topicId);
-
-    if (!subject || !topic) {
-      if (root) root.innerHTML = `
-        <div class="empty-state">
-          Select a subject and topic first.
-          <div class="question-actions" style="justify-content:center;">
-            <a class="btn btn-primary" href="subjects.html">Go to Subjects</a>
+    root.innerHTML = `
+      <div class="section-header"><div><h2>${subject.name}</h2><p>Choose a topic, then enter a study set or prepare for the final exam.</p></div></div>
+      <div class="panel" style="margin-bottom:18px;"><input class="input" id="topicSearch" placeholder="Search topics..." /></div>
+      <div class="card-grid" id="topicsGrid"></div>
+    `;
+    const grid = document.getElementById('topicsGrid');
+    const draw = (term = '') => {
+      const filtered = subject.topics.filter((t) => t.name.toLowerCase().includes(term.toLowerCase()));
+      grid.innerHTML = filtered.length ? '' : '<div class="empty-state">No topics matched your search.</div>';
+      filtered.forEach((topic) => {
+        const setCount = Math.ceil(topic.questionCount / SET_SIZE);
+        const card = el('article', 'card');
+        card.innerHTML = `
+          <div class="meta-row"><span class="badge">${topic.questionCount} Questions</span><span class="tag">${setCount} Sets</span></div>
+          <h3>${topic.name}</h3>
+          <p class="muted">Study in shuffled sets with instant feedback and end-of-set review.</p>
+          <div class="action-row" style="margin-top:22px;justify-content:flex-start;">
+            <a class="btn btn-dark" href="${pageLink('./topic.html', { subject: subject.id, topic: topic.id })}">Study</a>
           </div>
-        </div>`;
+        `;
+        grid.appendChild(card);
+      });
+    };
+    draw();
+    document.getElementById('topicSearch').addEventListener('input', (e) => draw(e.target.value));
+  }
+
+  async function renderTopicPage() {
+    const subjectId = params().get('subject');
+    const topicId = params().get('topic');
+    const subject = state.subjectMap.get(subjectId);
+    const topic = state.topicMap.get(`${subjectId}:${topicId}`);
+    const root = document.getElementById('pageRoot');
+    if (!subject || !topic) {
+      root.innerHTML = '<div class="empty-state">Topic not found.</div>';
       return;
     }
-
-    const { questions } = await loadTopicFile(topic.file);
-    let currentIndex = 0;
-    let selectedAnswer = null;
-    let revealed = false;
-    const seen = new Set();
-
-    byId('studyTitle').textContent = topic.name;
-    byId('studySubtitle').textContent = `${subject.name} • Focused Study`;
-
-    const updateProgressDisplay = () => {
-      const percent = questions.length ? Math.round((seen.size / questions.length) * 100) : 0;
-      byId('studyProgressText').textContent = `${percent}%`;
-      byId('studyProgressBar').style.width = `${percent}%`;
-      if (seen.size === questions.length && questions.length) {
-        byId('studyFinishNotice').classList.remove('hidden');
-        recordStudySession({
-          date: new Date().toISOString(),
-          subject: subject.id,
-          subjectName: subject.name,
-          topic: topic.id,
-          topicName: topic.name,
-          percent,
-          completedQuestions: seen.size,
-          totalQuestions: questions.length,
-        });
-      }
-    };
-
-    const renderQuestion = () => {
-      const question = questions[currentIndex];
-      seen.add(question.id);
-      selectedAnswer = null;
-      revealed = false;
-
-      byId('questionType').textContent = question.type;
-      byId('questionDifficulty').textContent = question.difficulty;
-      byId('questionCounter').textContent = `Question ${currentIndex + 1} of ${questions.length}`;
-      byId('questionText').textContent = question.question;
-      byId('answerBox').classList.add('hidden');
-      byId('correctAnswer').textContent = question.correctAnswer;
-      byId('explanation').textContent = question.explanation;
-
-      const caseBox = byId('caseBox');
-      if (question.caseScenario) {
-        caseBox.classList.remove('hidden');
-        byId('caseText').textContent = question.caseScenario;
-      } else {
-        caseBox.classList.add('hidden');
-      }
-
-      const imageWrap = byId('imageWrap');
-      if (question.imageUrl) {
-        imageWrap.classList.remove('hidden');
-        byId('questionImage').src = question.imageUrl;
-      } else {
-        imageWrap.classList.add('hidden');
-        byId('questionImage').removeAttribute('src');
-      }
-
-      const optionsRoot = byId('optionsRoot');
-      optionsRoot.innerHTML = '';
-      question.options.forEach((option, index) => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'option';
-        button.innerHTML = `<span class="option-index">${String.fromCharCode(65 + index)}</span><span>${escapeHtml(option)}</span>`;
-        button.addEventListener('click', () => {
-          selectedAnswer = option;
-          qsa('.option', optionsRoot).forEach((item) => item.classList.remove('selected'));
-          button.classList.add('selected');
-        });
-        optionsRoot.appendChild(button);
-      });
-
-      updateProgressDisplay();
-    };
-
-    byId('revealAnswerBtn').onclick = () => {
-      const question = questions[currentIndex];
-      if (revealed) return;
-      revealed = true;
-      qsa('.option', byId('optionsRoot')).forEach((button, index) => {
-        const value = question.options[index];
-        if (value === question.correctAnswer) button.classList.add('correct');
-        if (selectedAnswer && value === selectedAnswer && value !== question.correctAnswer) button.classList.add('incorrect');
-      });
-      byId('answerBox').classList.remove('hidden');
-      recordStudyEvent({
-        question,
-        correct: selectedAnswer === question.correctAnswer,
-        revealed: true,
-      });
-    };
-
-    byId('prevQuestionBtn').onclick = () => {
-      if (currentIndex > 0) {
-        currentIndex -= 1;
-        renderQuestion();
-      }
-    };
-
-    byId('nextQuestionBtn').onclick = () => {
-      if (currentIndex < questions.length - 1) {
-        currentIndex += 1;
-        renderQuestion();
-      } else {
-        byId('studyFinishNotice').classList.remove('hidden');
-        updateProgressDisplay();
-      }
-    };
-
-    renderQuestion();
-  }
-
-  async function initFinalExamPage() {
-    await loadIndex();
-    const configRoot = byId('examConfigRoot');
-    const liveRoot = byId('examLiveRoot');
-    const reviewRoot = byId('examReviewRoot');
-    const subjectSelect = byId('examSubject');
-    const modeSelect = byId('examMode');
-    const topicCheckboxes = byId('topicCheckboxes');
-    const difficultySelect = byId('examDifficulty');
-    const countInput = byId('examQuestionCount');
-    const minutesInput = byId('examTimeLimit');
-
-    if (!subjectSelect) return;
-    subjectSelect.innerHTML = '<option value="all">All Subjects</option>';
-    state.index.subjects.forEach((subject) => {
-      const option = document.createElement('option');
-      option.value = subject.id;
-      option.textContent = subject.name;
-      subjectSelect.appendChild(option);
-    });
-
-    function renderTopicCheckboxes() {
-      topicCheckboxes.innerHTML = '';
-      if (modeSelect.value !== 'single') {
-        topicCheckboxes.classList.add('hidden');
-        return;
-      }
-      const subject = getSubject(subjectSelect.value);
-      topicCheckboxes.classList.remove('hidden');
-      if (!subject) {
-        topicCheckboxes.innerHTML = '<div class="empty-state">Choose one subject first.</div>';
-        return;
-      }
-      subject.topics.forEach((topic) => {
-        const label = document.createElement('label');
-        label.className = 'option';
-        label.innerHTML = `<input type="checkbox" value="${topic.id}" checked><div><strong>${escapeHtml(topic.name)}</strong><div class="small text-muted">${topic.questionCount} questions</div></div>`;
-        topicCheckboxes.appendChild(label);
-      });
-    }
-
-    modeSelect.addEventListener('change', renderTopicCheckboxes);
-    subjectSelect.addEventListener('change', renderTopicCheckboxes);
-    renderTopicCheckboxes();
-
-    byId('startExamBtn').onclick = async () => {
-      const mode = modeSelect.value;
-      const selectedSubjectId = subjectSelect.value;
-      const difficulty = difficultySelect.value;
-      const requestedCount = Math.max(1, Number(countInput.value || 10));
-      const minutes = Math.max(1, Number(minutesInput.value || 30));
-
-      if (mode === 'single' && selectedSubjectId === 'all') {
-        alert('Choose one subject for Single Subject Final mode.');
-        return;
-      }
-
-      let topics = [];
-      if (mode === 'multiple') {
-        topics = selectedSubjectId === 'all'
-          ? state.index.subjects.flatMap((subject) => subject.topics)
-          : (getSubject(selectedSubjectId)?.topics || []);
-      } else {
-        const subject = getSubject(selectedSubjectId);
-        const chosenTopics = qsa('input[type="checkbox"]:checked', topicCheckboxes).map((input) => input.value);
-        topics = (subject?.topics || []).filter((topic) => chosenTopics.includes(topic.id));
-      }
-
-      if (!topics.length) {
-        alert('No topics selected.');
-        return;
-      }
-
-      const pool = [];
-      for (const topic of topics) {
-        const data = await loadTopicFile(topic.file);
-        pool.push(...data.questions);
-      }
-
-      const filtered = difficulty === 'all' ? pool : pool.filter((question) => question.difficulty === difficulty);
-      const shuffled = [...filtered].sort(() => Math.random() - 0.5);
-      const questions = shuffled.slice(0, requestedCount);
-
-      if (!questions.length) {
-        alert('No questions found for this configuration.');
-        return;
-      }
-
-      startExamSession(questions, minutes, { mode, subject: selectedSubjectId, difficulty });
-    };
-
-    function startExamSession(questions, minutes, meta) {
-      configRoot.classList.add('hidden');
-      reviewRoot.classList.add('hidden');
-      liveRoot.classList.remove('hidden');
-
-      let currentIndex = 0;
-      const answers = {};
-      const finishAt = Date.now() + minutes * 60 * 1000;
-      let timerId = null;
-
-      const counter = byId('examCounter');
-      const timer = byId('examTimer');
-      const questionText = byId('examQuestionText');
-      const optionsRoot = byId('examOptionsRoot');
-      const progressBar = byId('examProgressBar');
-      const caseBox = byId('examCaseBox');
-      const caseText = byId('examCaseText');
-
-      function renderExamQuestion() {
-        const question = questions[currentIndex];
-        counter.textContent = `Question ${currentIndex + 1} of ${questions.length}`;
-        progressBar.style.width = `${Math.round(((currentIndex + 1) / questions.length) * 100)}%`;
-        questionText.textContent = question.question;
-
-        if (question.caseScenario) {
-          caseBox.classList.remove('hidden');
-          caseText.textContent = question.caseScenario;
-        } else {
-          caseBox.classList.add('hidden');
-        }
-
-        optionsRoot.innerHTML = '';
-        question.options.forEach((option, index) => {
-          const button = document.createElement('button');
-          button.type = 'button';
-          button.className = 'option';
-          if (answers[question.id] === option) button.classList.add('selected');
-          button.innerHTML = `<span class="option-index">${String.fromCharCode(65 + index)}</span><span>${escapeHtml(option)}</span>`;
-          button.onclick = () => {
-            answers[question.id] = option;
-            renderExamQuestion();
-          };
-          optionsRoot.appendChild(button);
-        });
-      }
-
-      function submitExam() {
-        clearInterval(timerId);
-        liveRoot.classList.add('hidden');
-        reviewRoot.classList.remove('hidden');
-
-        const correctCount = questions.reduce((sum, question) => sum + (answers[question.id] === question.correctAnswer ? 1 : 0), 0);
-        const percent = Math.round((correctCount / questions.length) * 100);
-
-        byId('examResultScore').textContent = `${percent}%`;
-        byId('examResultMeta').textContent = `${correctCount} correct out of ${questions.length}`;
-
-        byId('examReviewList').innerHTML = questions.map((question, index) => {
-          const userAnswer = answers[question.id] || 'No answer';
-          const isCorrect = userAnswer === question.correctAnswer;
-          return `
-            <article class="review-item">
-              <div class="meta"><span>Question ${index + 1}</span><span>${escapeHtml(question.subject)}</span><span>${escapeHtml(question.topic)}</span></div>
-              <h4>${escapeHtml(question.question)}</h4>
-              ${question.caseScenario ? `<div class="case-box">${escapeHtml(question.caseScenario)}</div>` : ''}
-              <p class="review-answer ${isCorrect ? 'correct' : 'incorrect'}"><strong>Your answer:</strong> ${escapeHtml(userAnswer)}</p>
-              <p><strong>Correct answer:</strong> ${escapeHtml(question.correctAnswer)}</p>
-              <p class="text-muted">${escapeHtml(question.explanation)}</p>
-            </article>
-          `;
-        }).join('');
-
-        recordExamSession({
-          date: new Date().toISOString(),
-          mode: meta.mode,
-          subject: meta.subject,
-          difficulty: meta.difficulty,
-          totalQuestions: questions.length,
-          score: correctCount,
-          percent,
-        });
-      }
-
-      timerId = setInterval(() => {
-        const remaining = Math.max(0, finishAt - Date.now());
-        const mins = Math.floor(remaining / 60000);
-        const secs = Math.floor((remaining % 60000) / 1000);
-        timer.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-        if (remaining <= 0) submitExam();
-      }, 1000);
-
-      byId('examPrevBtn').onclick = () => {
-        if (currentIndex > 0) {
-          currentIndex -= 1;
-          renderExamQuestion();
-        }
-      };
-      byId('examNextBtn').onclick = () => {
-        if (currentIndex < questions.length - 1) {
-          currentIndex += 1;
-          renderExamQuestion();
-        }
-      };
-      byId('examSubmitBtn').onclick = submitExam;
-
-      renderExamQuestion();
+    const data = await loadTopic(subjectId, topicId);
+    const questions = data.questions || [];
+    const diff = { easy: 0, medium: 0, hard: 0 };
+    questions.forEach((q) => { diff[q.difficulty] = (diff[q.difficulty] || 0) + 1; });
+    const setCount = Math.ceil(questions.length / SET_SIZE);
+    root.innerHTML = `
+      <div class="section-header"><div><h2>${topic.name}</h2><p>${subject.name} • ${questions.length} questions • choose a study set below.</p></div></div>
+      <div class="summary-grid three input-row three">
+        <div class="card summary-card"><div class="muted">Easy</div><div class="big">${diff.easy || 0}</div></div>
+        <div class="card summary-card"><div class="muted">Medium</div><div class="big">${diff.medium || 0}</div></div>
+        <div class="card summary-card"><div class="muted">Hard</div><div class="big">${diff.hard || 0}</div></div>
+      </div>
+      <section style="margin-top:26px;">
+        <div class="card">
+          <h3 style="margin-top:0;">Study Sets</h3>
+          <p class="muted">Questions are automatically split into sets of 30. Inside each set, both question order and answer order are shuffled every time.</p>
+          <div class="topic-sets" id="setGrid"></div>
+        </div>
+      </section>
+    `;
+    const setGrid = document.getElementById('setGrid');
+    for (let i = 0; i < setCount; i += 1) {
+      const start = i * SET_SIZE + 1;
+      const end = Math.min((i + 1) * SET_SIZE, questions.length);
+      const item = el('div', 'set-card');
+      item.innerHTML = `
+        <div class="tag">Set ${i + 1}</div>
+        <h4 style="margin:12px 0 8px;">Questions ${start} - ${end}</h4>
+        <p class="muted">${end - start + 1} questions in this set.</p>
+        <a class="btn btn-dark" href="${pageLink('./study.html', { subject: subjectId, topic: topicId, set: i + 1 })}">Start Set</a>
+      `;
+      setGrid.appendChild(item);
     }
   }
 
-  async function initDashboardPage() {
-    await loadIndex();
+  function prepareStudySet(questions, setNumber) {
+    const start = (setNumber - 1) * SET_SIZE;
+    const chunk = questions.slice(start, start + SET_SIZE);
+    return shuffle(chunk).map((q) => ({
+      ...q,
+      options: shuffle([...(q.options || [])])
+    }));
+  }
+
+  function questionKey(q) { return `${q.subject}:${q.topic}:${q.id}`; }
+
+  function updateStudyProgress(payload) {
     const progress = getProgress();
-    const allQuestionStats = Object.values(progress.questionStats);
-    const attempts = allQuestionStats.reduce((sum, item) => sum + item.attempts, 0);
-    const correct = allQuestionStats.reduce((sum, item) => sum + item.correct, 0);
-    const successRate = attempts ? Math.round((correct / attempts) * 100) : 0;
-
-    byId('metricSuccessRate').textContent = `${successRate}%`;
-    byId('metricSolved').textContent = String(attempts);
-    byId('metricSessions').textContent = String(progress.studyHistory.length);
-    byId('metricExams').textContent = String(progress.examHistory.length);
-
-    const subjectProgress = state.index.subjects.map((subject) => {
-      const entries = Object.values(progress.topicCompletion).filter((item) => item.subject === subject.id);
-      const percent = entries.length ? Math.round(entries.reduce((sum, item) => sum + item.percent, 0) / entries.length) : 0;
-      return { name: subject.name, percent };
+    progress.studiedQuestions += payload.questionsSeen;
+    progress.studySessions += 1;
+    progress.correctSelections += payload.correct;
+    progress.totalSelections += payload.total;
+    progress.subjects[payload.subjectId] = progress.subjects[payload.subjectId] || { attempts: 0, correct: 0, total: 0 };
+    progress.subjects[payload.subjectId].attempts += 1;
+    progress.subjects[payload.subjectId].correct += payload.correct;
+    progress.subjects[payload.subjectId].total += payload.total;
+    progress.topics[payload.topicId] = progress.topics[payload.topicId] || { attempts: 0, correct: 0, total: 0, topicName: payload.topicName, subjectName: payload.subjectName };
+    progress.topics[payload.topicId].attempts += 1;
+    progress.topics[payload.topicId].correct += payload.correct;
+    progress.topics[payload.topicId].total += payload.total;
+    progress.recent.unshift({
+      type: 'study', name: payload.topicName, subject: payload.subjectName, score: `${payload.correct}/${payload.total}`, date: formatDate(new Date())
     });
-
-    byId('subjectProgressList').innerHTML = subjectProgress.map((item) => `
-      <div class="progress-item">
-        <div class="card-top"><strong>${escapeHtml(item.name)} Progress</strong><span>${item.percent}%</span></div>
-        <div class="progress-track"><div class="progress-bar" style="width:${item.percent}%"></div></div>
-      </div>
-    `).join('');
-
-    const topicScores = {};
-    Object.values(progress.questionStats).forEach((entry) => {
-      const key = `${entry.subject}|${entry.topic}`;
-      if (!topicScores[key]) topicScores[key] = { ...entry, attempts: 0, correct: 0 };
-      topicScores[key].attempts += entry.attempts;
-      topicScores[key].correct += entry.correct;
-    });
-
-    const sortedTopics = Object.values(topicScores).map((item) => ({
-      ...item,
-      percent: item.attempts ? Math.round((item.correct / item.attempts) * 100) : 0,
-      subjectName: getSubject(item.subject)?.name || item.subject,
-      topicName: getTopic(item.subject, item.topic)?.name || item.topic,
-    })).sort((a, b) => b.percent - a.percent);
-
-    const strengths = sortedTopics.slice(0, 3);
-    const weaknesses = [...sortedTopics].reverse().slice(0, 3);
-
-    byId('strengthAreas').innerHTML = strengths.length ? strengths.map((item) => `
-      <div class="activity-item"><strong>${escapeHtml(item.topicName)}</strong><div class="text-muted">${escapeHtml(item.subjectName)} • ${item.percent}% success</div></div>
-    `).join('') : '<div class="empty-state">No enough study data yet.</div>';
-
-    byId('weakAreas').innerHTML = weaknesses.length ? weaknesses.map((item) => `
-      <div class="activity-item"><strong>${escapeHtml(item.topicName)}</strong><div class="text-muted">${escapeHtml(item.subjectName)} • ${item.percent}% success</div></div>
-    `).join('') : '<div class="empty-state">No weak areas identified yet.</div>';
-
-    const recent = [...progress.studyHistory, ...progress.examHistory]
-      .sort((a, b) => new Date(b.date) - new Date(a.date))
-      .slice(0, 5);
-
-    byId('recentActivity').innerHTML = recent.length ? recent.map((item) => `
-      <div class="activity-item">
-        <strong>${escapeHtml(item.topicName || (getSubject(item.subject)?.name || item.subject))}${item.mode ? ' Final Exam' : ''}</strong>
-        <div class="text-muted">${escapeHtml(item.subjectName || getSubject(item.subject)?.name || '')} • ${formatDate(item.date)}</div>
-        <div class="small text-muted">${item.totalQuestions ? `${item.totalQuestions} questions` : `${item.completedQuestions} reviewed`}</div>
-      </div>
-    `).join('') : '<div class="empty-state">Your last 5 study or exam sessions will appear here.</div>';
-
-    const recommendation = weaknesses[0];
-    byId('recommendationCard').innerHTML = recommendation ? `
-      <strong>Recommended Review</strong>
-      <h3>${escapeHtml(recommendation.topicName)}</h3>
-      <p class="text-muted">This topic currently has your lowest success rate. Review it again to strengthen retention.</p>
-      <a class="btn btn-primary" href="study.html?subject=${encodeURIComponent(recommendation.subject)}&topic=${encodeURIComponent(recommendation.topic)}">Review Topic</a>
-    ` : '<strong>Recommended Review</strong><p class="text-muted">Start a few study sessions and your recommendation will appear here.</p>';
-
-    const badges = [
-      {
-        title: 'Studied 100 Pharmacology Questions',
-        earned: Object.values(progress.questionStats).filter((item) => item.subject === 'pharmacology').reduce((sum, item) => sum + item.attempts, 0) >= 100,
-      },
-      { title: 'Completed 5 Study Sessions', earned: progress.studyHistory.length >= 5 },
-      { title: 'Achieved 80%+ in Clinical Pharmacy', earned: sortedTopics.some((item) => item.subject === 'clinical-pharmacy' && item.percent >= 80) },
-    ];
-    byId('badgeList').innerHTML = badges.map((badge) => `
-      <div class="badge-item ${badge.earned ? 'earned' : ''}"><strong>${escapeHtml(badge.title)}</strong><div class="text-muted">${badge.earned ? 'Unlocked' : 'Not unlocked yet'}</div></div>
-    `).join('');
+    progress.recent = progress.recent.slice(0, 12);
+    saveProgress(progress);
   }
 
-  function getGithubConfig() {
-    return readStorage(STORAGE_KEYS.github, { owner: '', repo: '', branch: 'main', token: '' });
+  async function renderStudyPage() {
+    const p = params();
+    const subjectId = p.get('subject');
+    const topicId = p.get('topic');
+    const setNumber = Number(p.get('set') || '1');
+    const root = document.getElementById('pageRoot');
+    const subject = state.subjectMap.get(subjectId);
+    const topic = state.topicMap.get(`${subjectId}:${topicId}`);
+    if (!subject || !topic) {
+      root.innerHTML = '<div class="empty-state">Topic not found.</div>';
+      return;
+    }
+    const data = await loadTopic(subjectId, topicId);
+    const prepared = prepareStudySet(data.questions || [], setNumber);
+    if (!prepared.length) {
+      root.innerHTML = '<div class="empty-state">This set does not contain questions.</div>';
+      return;
+    }
+    let index = 0;
+    const answers = {};
+
+    root.innerHTML = `
+      <div class="study-shell">
+        <aside class="side-panel">
+          <div class="sidebar-card">
+            <div class="tag">Study Set ${setNumber}</div>
+            <h3>${topic.name}</h3>
+            <p class="muted">${subject.name}</p>
+            <div style="margin:14px 0 10px;" class="progress-bar"><div class="progress-fill" id="setProgressFill"></div></div>
+            <div class="muted" id="setProgressText"></div>
+          </div>
+          <div class="sidebar-card">
+            <h4>Rules</h4>
+            <p class="muted">First choice locks immediately. Correct answer turns green, wrong choice turns red, and explanation appears right away.</p>
+            <a class="btn btn-light" href="${pageLink('./topic.html', { subject: subjectId, topic: topicId })}">Back to Topic</a>
+          </div>
+        </aside>
+        <section class="question-card" id="studyCard"></section>
+      </div>
+    `;
+
+    const card = document.getElementById('studyCard');
+    const progressFill = document.getElementById('setProgressFill');
+    const progressText = document.getElementById('setProgressText');
+
+    function drawQuestion() {
+      const q = prepared[index];
+      const answered = answers[q.id];
+      const saved = isSaved(q.id);
+      progressFill.style.width = `${((index + 1) / prepared.length) * 100}%`;
+      progressText.textContent = `Question ${index + 1} of ${prepared.length}`;
+      card.innerHTML = `
+        <div class="question-top">
+          <div>
+            <div class="meta-row"><span class="badge">${q.difficulty.toUpperCase()}</span><span class="tag">${q.type}</span></div>
+            <h2 class="question-title">${q.question}</h2>
+          </div>
+          <button class="star-btn ${saved ? 'is-saved' : ''}" id="saveBtn" title="Save question">★</button>
+        </div>
+        ${q.caseScenario ? `<div class="case-box"><strong>Case</strong><div class="muted" style="margin-top:8px;">${q.caseScenario}</div></div>` : ''}
+        ${q.imageUrl ? `<div style="margin-top:18px;"><img src="${q.imageUrl}" alt="Question visual" style="border-radius:22px; border:1px solid var(--border);"></div>` : ''}
+        <div class="option-list" id="optionList"></div>
+        <div class="explanation-box ${answered ? 'is-visible' : ''}" id="explanationBox">
+          <strong>Explanation</strong>
+          <div class="muted" style="margin-top:8px;">${answered ? q.explanation : ''}</div>
+        </div>
+        <div class="action-row">
+          <button class="btn btn-light" id="prevBtn" ${index === 0 ? 'disabled' : ''}>Previous</button>
+          <button class="btn btn-dark" id="nextBtn">${index === prepared.length - 1 ? 'Finish Set' : 'Next'}</button>
+        </div>
+      `;
+      const optionList = document.getElementById('optionList');
+      q.options.forEach((option) => {
+        const btn = el('button', 'option-btn');
+        btn.type = 'button';
+        btn.textContent = option;
+        if (answered) {
+          btn.classList.add('locked');
+          if (option === q.correctAnswer) btn.classList.add('correct');
+          if (option === answered.selected && option !== q.correctAnswer) btn.classList.add('wrong');
+        }
+        btn.addEventListener('click', () => {
+          if (answers[q.id]) return;
+          const correct = option === q.correctAnswer;
+          answers[q.id] = { selected: option, correct };
+          drawQuestion();
+        });
+        optionList.appendChild(btn);
+      });
+
+      document.getElementById('saveBtn').addEventListener('click', () => {
+        const on = toggleSaved(q);
+        document.getElementById('saveBtn').classList.toggle('is-saved', on);
+      });
+      document.getElementById('prevBtn').addEventListener('click', () => { if (index > 0) { index -= 1; drawQuestion(); } });
+      document.getElementById('nextBtn').addEventListener('click', () => {
+        if (index === prepared.length - 1) {
+          finishSet();
+        } else {
+          index += 1;
+          drawQuestion();
+        }
+      });
+    }
+
+    function finishSet() {
+      const rows = prepared.map((q) => ({
+        question: q,
+        selected: answers[q.id]?.selected || 'No answer selected',
+        correct: q.correctAnswer,
+        isCorrect: !!answers[q.id]?.correct
+      }));
+      const correct = rows.filter((row) => row.isCorrect).length;
+      updateStudyProgress({
+        subjectId, topicId: `${subjectId}:${topicId}`, topicName: topic.name, subjectName: subject.name,
+        correct, total: rows.length, questionsSeen: rows.length
+      });
+      writeStore(KEYS.review, {
+        type: 'study',
+        title: `${topic.name} • Set ${setNumber}`,
+        summary: { score: correct, total: rows.length, subject: subject.name, topic: topic.name },
+        rows,
+        actions: { back: pageLink('./topic.html', { subject: subjectId, topic: topicId }), backLabel: 'Back to Topic' }
+      });
+      window.location.href = './review.html';
+    }
+
+    drawQuestion();
   }
 
-  function saveGithubConfig() {
-    const config = {
-      owner: byId('ghOwner')?.value.trim() || '',
-      repo: byId('ghRepo')?.value.trim() || '',
-      branch: byId('ghBranch')?.value.trim() || 'main',
-      token: byId('ghToken')?.value.trim() || '',
+  async function renderFinalExamPage() {
+    const root = document.getElementById('pageRoot');
+    await loadIndex();
+    const subjects = state.index.subjects;
+    root.innerHTML = `
+      <div class="section-header"><div><h2>Final Exam</h2><p>Choose multiple subjects or a single subject with selected topics. Answers stay hidden until the exam ends.</p></div></div>
+      <div id="examSetup"></div>
+      <div id="examEngine"></div>
+    `;
+    const setup = document.getElementById('examSetup');
+    const engine = document.getElementById('examEngine');
+
+    setup.innerHTML = `
+      <div class="card">
+        <div class="input-row two">
+          <div>
+            <label class="muted">Exam mode</label>
+            <select class="select" id="examMode">
+              <option value="multi">Mode 1 • Multiple Subjects</option>
+              <option value="single">Mode 2 • Single Subject + Topics</option>
+            </select>
+          </div>
+          <div>
+            <label class="muted">Difficulty</label>
+            <select class="select" id="examDifficulty">
+              <option value="all">All difficulties</option>
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+        </div>
+        <div class="input-row two" style="margin-top:16px;">
+          <div>
+            <label class="muted">Number of questions</label>
+            <input class="input" id="examCount" type="number" min="5" value="20" />
+          </div>
+          <div>
+            <label class="muted">Time limit (minutes)</label>
+            <input class="input" id="examMinutes" type="number" min="5" value="30" />
+          </div>
+        </div>
+        <div id="modeArea" style="margin-top:16px;"></div>
+        <div style="margin-top:20px;"><button class="btn btn-dark" id="startExamBtn">Start Final Exam</button></div>
+        <div id="examMessage"></div>
+      </div>
+    `;
+
+    const modeSelect = document.getElementById('examMode');
+    const modeArea = document.getElementById('modeArea');
+    const drawMode = () => {
+      if (modeSelect.value === 'multi') {
+        modeArea.innerHTML = `
+          <label class="muted">Subjects</label>
+          <div class="input-row two">
+            <label class="panel"><input type="radio" name="multiScope" value="all" checked /> All subjects</label>
+            <label class="panel"><input type="radio" name="multiScope" value="single" /> One subject only</label>
+          </div>
+          <div style="margin-top:14px;"><select class="select" id="multiSubjectSelect">${subjects.map((s) => `<option value="${s.id}">${s.name}</option>`).join('')}</select></div>
+        `;
+      } else {
+        modeArea.innerHTML = `
+          <div>
+            <label class="muted">Subject</label>
+            <select class="select" id="singleSubjectSelect">${subjects.map((s) => `<option value="${s.id}">${s.name}</option>`).join('')}</select>
+          </div>
+          <div style="margin-top:14px;" id="topicCheckboxes"></div>
+        `;
+        const select = document.getElementById('singleSubjectSelect');
+        const drawTopics = () => {
+          const subject = state.subjectMap.get(select.value);
+          document.getElementById('topicCheckboxes').innerHTML = `<label class="muted">Topics</label><div class="analysis-grid" style="margin-top:10px;">${subject.topics.map((topic) => `<label class="panel"><input type="checkbox" value="${topic.id}" checked /> ${topic.name}</label>`).join('')}</div>`;
+        };
+        select.addEventListener('change', drawTopics);
+        drawTopics();
+      }
     };
-    writeStorage(STORAGE_KEYS.github, config);
-    return config;
-  }
+    modeSelect.addEventListener('change', drawMode);
+    drawMode();
 
-  function parseGithubError(text, path = '') {
-    let payload = null;
-    try { payload = text ? JSON.parse(text) : null; } catch {}
-    const message = payload?.message || text || 'GitHub request failed.';
-    if (message.includes('Not Found') || payload?.status === '404') {
-      return `GitHub could not find this repo/path. Check owner, repo, branch, and PAT access. Path: ${path}`;
-    }
-    if (message.includes('Bad credentials')) {
-      return 'GitHub PAT is invalid. Use a Classic PAT with repo access.';
-    }
-    if (message.includes('Resource not accessible') || payload?.status === '403') {
-      return 'GitHub blocked this request. Make sure your PAT has repo access and the branch exists.';
-    }
-    if (message.includes('Repository access blocked')) return message;
-    return message;
-  }
-
-  async function githubRepoRequest(endpoint) {
-    const config = getGithubConfig();
-    if (!config.owner || !config.repo || !config.token) {
-      throw new Error('Save GitHub owner, repo, branch, and PAT first.');
-    }
-    const response = await fetch(`https://api.github.com/repos/${config.owner}/${config.repo}${endpoint}`, {
-      headers: {
-        'Accept': 'application/vnd.github+json',
-        'Authorization': `token ${config.token}`,
-        'Content-Type': 'application/json',
-      },
+    document.getElementById('startExamBtn').addEventListener('click', async () => {
+      const difficulty = document.getElementById('examDifficulty').value;
+      const count = Number(document.getElementById('examCount').value || '20');
+      const minutes = Number(document.getElementById('examMinutes').value || '30');
+      const msg = document.getElementById('examMessage');
+      try {
+        let pool = [];
+        if (modeSelect.value === 'multi') {
+          const scope = document.querySelector('input[name="multiScope"]:checked')?.value || 'all';
+          const subjectIds = scope === 'all' ? subjects.map((s) => s.id) : [document.getElementById('multiSubjectSelect').value];
+          for (const subjectId of subjectIds) {
+            const subject = state.subjectMap.get(subjectId);
+            for (const topic of subject.topics) {
+              const data = await loadTopic(subjectId, topic.id);
+              pool.push(...data.questions);
+            }
+          }
+        } else {
+          const subjectId = document.getElementById('singleSubjectSelect').value;
+          const checked = [...document.querySelectorAll('#topicCheckboxes input:checked')].map((input) => input.value);
+          if (!checked.length) throw new Error('Select at least one topic.');
+          for (const topicId of checked) {
+            const data = await loadTopic(subjectId, topicId);
+            pool.push(...data.questions);
+          }
+        }
+        if (difficulty !== 'all') pool = pool.filter((q) => q.difficulty === difficulty);
+        if (!pool.length) throw new Error('No questions matched your exam filters.');
+        const examQuestions = shuffle(pool).slice(0, Math.min(count, pool.length)).map((q) => ({ ...q, options: [...q.options] }));
+        setup.classList.add('hidden');
+        startExamEngine(engine, examQuestions, minutes);
+      } catch (error) {
+        msg.innerHTML = `<div class="message error">${error.message}</div>`;
+      }
     });
-    const text = await response.text();
-    if (!response.ok) throw new Error(parseGithubError(text, endpoint));
-    return text ? JSON.parse(text) : {};
   }
 
-  async function verifyGithubConfig() {
-    const config = getGithubConfig();
-    if (!config.owner || !config.repo || !config.branch || !config.token) {
-      throw new Error('Fill owner, repo, branch, and PAT first.');
+  function startExamEngine(container, questions, minutes) {
+    let current = 0;
+    const answers = {};
+    let remaining = minutes * 60;
+    let timerId = null;
+
+    container.innerHTML = `
+      <div class="study-shell">
+        <aside class="side-panel">
+          <div class="sidebar-card"><div class="tag">Final Exam</div><div class="timer" id="examTimer"></div><div class="muted">Time remaining</div></div>
+          <div class="sidebar-card"><div class="progress-bar"><div class="progress-fill" id="examProgressFill"></div></div><div class="muted" id="examProgressText" style="margin-top:10px;"></div></div>
+        </aside>
+        <section class="question-card" id="examCard"></section>
+      </div>
+    `;
+
+    const timerEl = document.getElementById('examTimer');
+    const progressFill = document.getElementById('examProgressFill');
+    const progressText = document.getElementById('examProgressText');
+    const card = document.getElementById('examCard');
+
+    const drawTimer = () => {
+      const mins = Math.floor(remaining / 60).toString().padStart(2, '0');
+      const secs = (remaining % 60).toString().padStart(2, '0');
+      timerEl.textContent = `${mins}:${secs}`;
+    };
+    drawTimer();
+    timerId = setInterval(() => {
+      remaining -= 1;
+      drawTimer();
+      if (remaining <= 0) {
+        clearInterval(timerId);
+        finishExam();
+      }
+    }, 1000);
+
+    function drawQuestion() {
+      const q = questions[current];
+      progressFill.style.width = `${((current + 1) / questions.length) * 100}%`;
+      progressText.textContent = `Question ${current + 1} of ${questions.length}`;
+      card.innerHTML = `
+        <div class="question-top">
+          <div>
+            <div class="meta-row"><span class="badge">${q.difficulty.toUpperCase()}</span><span class="tag">${q.subject}</span><span class="tag">${q.topic}</span></div>
+            <h2 class="question-title">${q.question}</h2>
+          </div>
+        </div>
+        ${q.caseScenario ? `<div class="case-box"><strong>Case</strong><div class="muted" style="margin-top:8px;">${q.caseScenario}</div></div>` : ''}
+        <div class="option-list" id="examOptionList"></div>
+        <div class="action-row">
+          <button class="btn btn-light" id="examPrev" ${current === 0 ? 'disabled' : ''}>Previous</button>
+          <div style="display:flex; gap:12px; flex-wrap:wrap;">
+            <button class="btn btn-danger" id="submitExam">Submit Exam</button>
+            <button class="btn btn-dark" id="examNext">${current === questions.length - 1 ? 'Last Question' : 'Next'}</button>
+          </div>
+        </div>
+      `;
+      const list = document.getElementById('examOptionList');
+      q.options.forEach((option) => {
+        const button = el('button', 'option-btn');
+        button.type = 'button';
+        button.textContent = option;
+        if (answers[q.id] === option) button.classList.add('ghost-correct');
+        button.addEventListener('click', () => {
+          answers[q.id] = option;
+          drawQuestion();
+        });
+        list.appendChild(button);
+      });
+      document.getElementById('examPrev').addEventListener('click', () => { if (current > 0) { current -= 1; drawQuestion(); } });
+      document.getElementById('examNext').addEventListener('click', () => { if (current < questions.length - 1) { current += 1; drawQuestion(); } });
+      document.getElementById('submitExam').addEventListener('click', () => {
+        if (confirm('Submit final exam now?')) finishExam();
+      });
     }
-    await githubRepoRequest('');
-    try {
-      await githubRepoRequest(`/branches/${encodeURIComponent(config.branch)}`);
-    } catch (error) {
-      throw new Error(`GitHub repo is reachable, but branch "${config.branch}" was not found.`);
+
+    function finishExam() {
+      clearInterval(timerId);
+      const rows = questions.map((q) => ({
+        question: q,
+        selected: answers[q.id] || 'No answer selected',
+        correct: q.correctAnswer,
+        isCorrect: answers[q.id] === q.correctAnswer
+      }));
+      const correct = rows.filter((row) => row.isCorrect).length;
+      const progress = getProgress();
+      progress.finalExamsCompleted += 1;
+      progress.correctSelections += correct;
+      progress.totalSelections += rows.length;
+      progress.recent.unshift({ type: 'exam', name: 'Final Exam', subject: 'Mixed', score: `${correct}/${rows.length}`, date: formatDate(new Date()) });
+      progress.recent = progress.recent.slice(0, 12);
+      rows.forEach((row) => {
+        progress.subjects[row.question.subject] = progress.subjects[row.question.subject] || { attempts: 0, correct: 0, total: 0 };
+        progress.subjects[row.question.subject].correct += row.isCorrect ? 1 : 0;
+        progress.subjects[row.question.subject].total += 1;
+        progress.subjects[row.question.subject].attempts += 1;
+        const topicKey = `${row.question.subject}:${row.question.topic}`;
+        progress.topics[topicKey] = progress.topics[topicKey] || { attempts: 0, correct: 0, total: 0, topicName: row.question.topic, subjectName: row.question.subject };
+        progress.topics[topicKey].correct += row.isCorrect ? 1 : 0;
+        progress.topics[topicKey].total += 1;
+        progress.topics[topicKey].attempts += 1;
+      });
+      saveProgress(progress);
+      const bySubject = {};
+      const byTopic = {};
+      rows.forEach((row) => {
+        bySubject[row.question.subject] = bySubject[row.question.subject] || { correct: 0, total: 0 };
+        bySubject[row.question.subject].total += 1;
+        if (row.isCorrect) bySubject[row.question.subject].correct += 1;
+        const topicKey = `${row.question.subject} • ${row.question.topic}`;
+        byTopic[topicKey] = byTopic[topicKey] || { correct: 0, total: 0 };
+        byTopic[topicKey].total += 1;
+        if (row.isCorrect) byTopic[topicKey].correct += 1;
+      });
+      writeStore(KEYS.review, {
+        type: 'exam',
+        title: 'Final Exam Review',
+        summary: { score: correct, total: rows.length, subjects: bySubject, topics: byTopic },
+        rows,
+        actions: { back: './final-exam.html', backLabel: 'Back to Final Exam' }
+      });
+      window.location.href = './review.html';
     }
-    return true;
+
+    drawQuestion();
   }
 
-  function populateGithubFields() {
-    const config = getGithubConfig();
-    if (byId('ghOwner')) byId('ghOwner').value = config.owner || '';
-    if (byId('ghRepo')) byId('ghRepo').value = config.repo || '';
-    if (byId('ghBranch')) byId('ghBranch').value = config.branch || 'main';
-    if (byId('ghToken')) byId('ghToken').value = config.token || '';
+  function renderReviewPage() {
+    const data = readStore(KEYS.review, null);
+    const root = document.getElementById('pageRoot');
+    if (!data) {
+      root.innerHTML = '<div class="empty-state">No review data found yet.</div>';
+      return;
+    }
+    const rows = data.rows || [];
+    const correct = data.summary.score;
+    const total = data.summary.total;
+    const percent = total ? Math.round((correct / total) * 100) : 0;
+
+    let analysis = '';
+    if (data.type === 'exam') {
+      const subjectRows = Object.entries(data.summary.subjects || {})
+        .map(([name, stats]) => ({ name, pct: Math.round((stats.correct / stats.total) * 100), ...stats }))
+        .sort((a, b) => b.pct - a.pct);
+      const topicRows = Object.entries(data.summary.topics || {})
+        .map(([name, stats]) => ({ name, pct: Math.round((stats.correct / stats.total) * 100), ...stats }))
+        .sort((a, b) => a.pct - b.pct);
+      analysis = `
+        <div class="analysis-grid" style="margin-bottom:24px;">
+          <div class="card"><h3 style="margin-top:0;">Strongest Areas</h3>${subjectRows.slice(0, 3).map((row) => `<div class="metric-row"><span>${row.name}</span><strong>${row.pct}%</strong></div>`).join('') || '<div class="muted">No data</div>'}</div>
+          <div class="card"><h3 style="margin-top:0;">Needs Review</h3>${topicRows.slice(0, 4).map((row) => `<div class="metric-row"><span>${row.name}</span><strong>${row.pct}%</strong></div>`).join('') || '<div class="muted">No data</div>'}</div>
+        </div>
+      `;
+    }
+
+    root.innerHTML = `
+      <div class="section-header"><div><h2>${data.title}</h2><p>Detailed performance review with your answers, the correct answers, and explanations.</p></div></div>
+      <div class="summary-grid four" style="margin-bottom:24px;">
+        <div class="card summary-card"><div class="muted">Score</div><div class="big">${correct}/${total}</div></div>
+        <div class="card summary-card"><div class="muted">Percent</div><div class="big">${percent}%</div></div>
+        <div class="card summary-card"><div class="muted">Correct</div><div class="big">${correct}</div></div>
+        <div class="card summary-card"><div class="muted">Incorrect</div><div class="big">${total - correct}</div></div>
+      </div>
+      ${analysis}
+      <div class="review-list" id="reviewList"></div>
+      <div class="action-row" style="margin-top:22px; justify-content:flex-start;">
+        <a class="btn btn-light" href="${data.actions.back}">${data.actions.backLabel}</a>
+        <a class="btn btn-dark" href="./dashboard.html">Go to Dashboard</a>
+      </div>
+    `;
+    const list = document.getElementById('reviewList');
+    rows.forEach((row, idx) => {
+      const saved = isSaved(row.question.id);
+      const card = el('article', 'review-card');
+      card.innerHTML = `
+        <div class="question-top">
+          <div>
+            <div class="review-status ${row.isCorrect ? 'correct' : 'wrong'}">${row.isCorrect ? 'Correct' : 'Incorrect'}</div>
+            <h3 style="margin:10px 0 8px;">${idx + 1}. ${row.question.question}</h3>
+          </div>
+          <button class="star-btn ${saved ? 'is-saved' : ''}">★</button>
+        </div>
+        ${row.question.caseScenario ? `<div class="case-box"><strong>Case</strong><div class="muted" style="margin-top:8px;">${row.question.caseScenario}</div></div>` : ''}
+        <div class="review-answer"><strong>Your answer:</strong> ${row.selected}</div>
+        <div class="review-answer"><strong>Correct answer:</strong> ${row.correct}</div>
+        <div class="review-answer"><strong>Explanation:</strong> ${row.question.explanation}</div>
+      `;
+      card.querySelector('.star-btn').addEventListener('click', (e) => {
+        const on = toggleSaved(row.question);
+        e.currentTarget.classList.toggle('is-saved', on);
+      });
+      list.appendChild(card);
+    });
+  }
+
+  function renderDashboardPage() {
+    const progress = getProgress();
+    const root = document.getElementById('pageRoot');
+    const success = progress.totalSelections ? Math.round((progress.correctSelections / progress.totalSelections) * 100) : 0;
+    const topicRows = Object.values(progress.topics).map((topic) => ({
+      ...topic,
+      pct: topic.total ? Math.round((topic.correct / topic.total) * 100) : 0
+    }));
+    const strengths = [...topicRows].sort((a, b) => b.pct - a.pct).slice(0, 4);
+    const weak = [...topicRows].sort((a, b) => a.pct - b.pct).slice(0, 4);
+    const recommendation = weak[0];
+    const achievementItems = [
+      { label: 'Studied 100 Questions', on: progress.studiedQuestions >= 100 },
+      { label: 'Completed 5 Study Sessions', on: progress.studySessions >= 5 },
+      { label: 'Completed 3 Final Exams', on: progress.finalExamsCompleted >= 3 },
+      { label: 'Reached 80%+ Overall', on: success >= 80 }
+    ];
+
+    root.innerHTML = `
+      <div class="section-header"><div><h2>Student Dashboard</h2><p>Track progress, review weak areas, and monitor recent study and final exam activity.</p></div></div>
+      <div class="summary-grid four">
+        <div class="card summary-card"><div class="muted">Overall Success Rate</div><div class="big">${success}%</div></div>
+        <div class="card summary-card"><div class="muted">Total Solved Questions</div><div class="big">${progress.studiedQuestions}</div></div>
+        <div class="card summary-card"><div class="muted">Study Sessions</div><div class="big">${progress.studySessions}</div></div>
+        <div class="card summary-card"><div class="muted">Final Exams Completed</div><div class="big">${progress.finalExamsCompleted}</div></div>
+      </div>
+      <div class="dashboard-grid" style="margin-top:24px;">
+        <div class="analysis-grid">
+          <div class="card"><h3 style="margin-top:0;">Strength Areas</h3>${strengths.length ? strengths.map((row) => `<div class="metric-row"><span>${row.topicName}</span><strong>${row.pct}%</strong></div>`).join('') : '<div class="muted">No data yet.</div>'}</div>
+          <div class="card"><h3 style="margin-top:0;">Weak Areas</h3>${weak.length ? weak.map((row) => `<div class="metric-row"><span>${row.topicName}</span><strong>${row.pct}%</strong></div>`).join('') : '<div class="muted">No data yet.</div>'}</div>
+        </div>
+        <div class="analysis-grid">
+          <div class="card"><h3 style="margin-top:0;">Recent Activity</h3>${progress.recent.length ? progress.recent.slice(0, 5).map((item) => `<div class="list-item"><div><strong>${item.name}</strong><div class="muted">${item.subject}</div></div><div><strong>${item.score}</strong><div class="muted">${item.date}</div></div></div>`).join('') : '<div class="muted">No recent activity.</div>'}</div>
+          <div class="card"><h3 style="margin-top:0;">Recommendation</h3>${recommendation ? `<div class="panel"><strong>Review ${recommendation.topicName}</strong><div class="muted" style="margin-top:8px;">This topic currently has your lowest tracked percentage.</div></div>` : '<div class="muted">Start studying to unlock recommendations.</div>'}</div>
+        </div>
+        <div class="card"><h3 style="margin-top:0;">Achievements</h3><div class="metric-list">${achievementItems.map((item) => `<div class="achievement">${item.on ? '🏅' : '⭕'} ${item.label}</div>`).join('')}</div></div>
+      </div>
+    `;
+  }
+
+  function renderSavedPage() {
+    const progress = getProgress();
+    const saved = Object.values(progress.savedBank || {});
+    const root = document.getElementById('pageRoot');
+    root.innerHTML = `
+      <div class="section-header"><div><h2>Saved Questions</h2><p>Your starred questions are stored locally in this browser for quick review later.</p></div></div>
+      <div class="saved-grid" id="savedGrid"></div>
+    `;
+    const grid = document.getElementById('savedGrid');
+    if (!saved.length) {
+      grid.innerHTML = '<div class="empty-state">No saved questions yet. Tap the star icon inside study or review pages.</div>';
+      return;
+    }
+    saved.forEach((q) => {
+      const card = el('article', 'card');
+      card.innerHTML = `
+        <div class="question-top">
+          <div>
+            <div class="meta-row"><span class="badge">${q.subject}</span><span class="tag">${q.topic}</span></div>
+            <h3 style="margin:0;">${q.question}</h3>
+          </div>
+          <button class="star-btn is-saved">★</button>
+        </div>
+        <div class="review-answer"><strong>Correct answer:</strong> ${q.correctAnswer}</div>
+        <div class="review-answer"><strong>Explanation:</strong> ${q.explanation}</div>
+      `;
+      card.querySelector('.star-btn').addEventListener('click', (e) => {
+        const on = toggleSaved(q);
+        if (!on) card.remove();
+        if (!document.getElementById('savedGrid').children.length) grid.innerHTML = '<div class="empty-state">No saved questions left.</div>';
+      });
+      grid.appendChild(card);
+    });
+  }
+
+  function githubHeaders(token) {
+    return {
+      Authorization: `token ${token}`,
+      Accept: 'application/vnd.github+json',
+      'Content-Type': 'application/json'
+    };
   }
 
   async function githubRequest(path, options = {}) {
-    const config = getGithubConfig();
-    if (!config.owner || !config.repo || !config.branch || !config.token) {
-      throw new Error('Save GitHub owner, repo, branch, and PAT first.');
+    const settings = readStore(KEYS.github, null);
+    if (!settings?.owner || !settings?.repo || !settings?.branch || !settings?.token) {
+      throw new Error('GitHub settings are incomplete.');
     }
-    const url = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${path}`;
-    const method = options.method || 'GET';
-    const finalUrl = method === 'GET' ? `${url}?ref=${encodeURIComponent(config.branch)}` : url;
-    const response = await fetch(finalUrl, {
+    const res = await fetch(`https://api.github.com/repos/${settings.owner}/${settings.repo}/contents/${path}`, {
       ...options,
-      headers: {
-        'Accept': 'application/vnd.github+json',
-        'Authorization': `token ${config.token}`,
-        'Content-Type': 'application/json',
-        ...(options.headers || {}),
-      },
+      headers: { ...githubHeaders(settings.token), ...(options.headers || {}) }
     });
-    const text = await response.text();
-    if (!response.ok) {
-      throw new Error(parseGithubError(text, path));
-    }
-    return text ? JSON.parse(text) : {};
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.message || 'GitHub request failed');
+    return json;
   }
 
-  async function githubGetFile(path) {
-    try {
-      const data = await githubRequest(path, { method: 'GET' });
-      const content = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
-      return { sha: data.sha, json: JSON.parse(content), raw: content };
-    } catch (error) {
-      if (String(error.message).includes('Not Found') || String(error.message).includes('"status":"404"') || String(error.message).includes('404')) {
-        return null;
+  async function githubGetText(path) {
+    const file = await githubRequest(path);
+    const decoded = atob(file.content.replace(/\n/g, ''));
+    return { text: decoded, sha: file.sha };
+  }
+
+  async function githubPutFile(path, content, message) {
+    let sha;
+    try { sha = (await githubRequest(path)).sha; } catch (_) { sha = undefined; }
+    const settings = readStore(KEYS.github, null);
+    return githubRequest(path, {
+      method: 'PUT',
+      body: JSON.stringify({
+        message,
+        content: btoa(unescape(encodeURIComponent(content))),
+        branch: settings.branch,
+        sha
+      })
+    });
+  }
+
+  async function githubDeleteFile(path, message) {
+    const settings = readStore(KEYS.github, null);
+    const file = await githubRequest(path);
+    return githubRequest(path, {
+      method: 'DELETE',
+      body: JSON.stringify({ message, sha: file.sha, branch: settings.branch })
+    });
+  }
+
+  function injectAdmin() {
+    const backdrop = document.getElementById('adminBackdrop');
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        openAdmin();
       }
-      throw error;
-    }
-  }
-
-  async function githubPutJson(path, jsonContent, message) {
-    const config = getGithubConfig();
-    const existing = await githubGetFile(path);
-    const body = {
-      message,
-      branch: config.branch,
-      content: btoa(unescape(encodeURIComponent(JSON.stringify(jsonContent, null, 2)))),
-    };
-    if (existing?.sha) body.sha = existing.sha;
-    return githubRequest(path, { method: 'PUT', body: JSON.stringify(body) });
-  }
-
-  function setNotice(id, type, message) {
-    const el = byId(id);
-    if (!el) return;
-    el.className = `notice ${type}`;
-    el.textContent = message;
-  }
-
-  function getAdminPassword() {
-    return localStorage.getItem(STORAGE_KEYS.adminPassword) || '';
-  }
-
-  function setAdminPassword(password) {
-    localStorage.setItem(STORAGE_KEYS.adminPassword, password);
-  }
-
-  function populateSubjectSelects() {
-    if (!state.index?.subjects) return;
-    const topicSubjectSelect = byId('topicSubjectSelect');
-    const questionSubjectSelect = byId('questionSubjectSelect');
-    const questionTopicSelect = byId('questionTopicSelect');
-
-    if (topicSubjectSelect) {
-      topicSubjectSelect.innerHTML = '<option value="">Choose subject</option>' + state.index.subjects.map((subject) =>
-        `<option value="${subject.id}">${escapeHtml(subject.name)}</option>`).join('');
-    }
-
-    if (questionSubjectSelect) {
-      questionSubjectSelect.innerHTML = '<option value="">Choose subject</option>' + state.index.subjects.map((subject) =>
-        `<option value="${subject.id}">${escapeHtml(subject.name)}</option>`).join('');
-    }
-
-    function syncQuestionTopics() {
-      const subject = getSubject(questionSubjectSelect?.value);
-      if (!questionTopicSelect) return;
-      if (!subject) {
-        questionTopicSelect.innerHTML = '<option value="">Choose topic</option>';
-        return;
-      }
-      questionTopicSelect.innerHTML = '<option value="">Choose topic</option>' + subject.topics.map((topic) =>
-        `<option value="${topic.id}">${escapeHtml(topic.name)}</option>`).join('');
-    }
-
-    if (questionSubjectSelect) questionSubjectSelect.onchange = syncQuestionTopics;
-    syncQuestionTopics();
-  }
-
-  async function reloadIndexFromGithub() {
-    const latest = await githubGetFile('data/index.json');
-    if (latest?.json) {
-      state.index = latest.json;
-      return latest.json;
-    }
-    return state.index;
-  }
-
-  async function createSubject() {
-    const name = byId('newSubjectName').value.trim();
-    if (!name) return setNotice('subjectNotice', 'error', 'Enter a subject name.');
-    const subjectId = slugify(name);
-    if (!subjectId) return setNotice('subjectNotice', 'error', 'Enter a valid subject name.');
-    if (state.index.subjects.some((subject) => subject.id === subjectId)) {
-      return setNotice('subjectNotice', 'error', 'This subject already exists.');
-    }
-    await verifyGithubConfig();
-    state.index.subjects.push({ id: subjectId, name, topics: [] });
-    await githubPutJson('data/index.json', state.index, `Add subject: ${name}`);
-    await reloadIndexFromGithub();
-    byId('newSubjectName').value = '';
-    populateSubjectSelects();
-    setNotice('subjectNotice', 'success', `Subject "${name}" added successfully.`);
-  }
-
-  async function createTopic() {
-    const subjectId = byId('topicSubjectSelect').value;
-    const name = byId('newTopicName').value.trim();
-    if (!subjectId || !name) return setNotice('topicNotice', 'error', 'Choose a subject and enter a topic name.');
-    const subject = getSubject(subjectId);
-    if (!subject) return setNotice('topicNotice', 'error', 'Subject not found.');
-    const topicId = slugify(name);
-    if (!topicId) return setNotice('topicNotice', 'error', 'Enter a valid topic name.');
-    if (subject.topics.some((topic) => topic.id === topicId)) return setNotice('topicNotice', 'error', 'This topic already exists.');
-    await verifyGithubConfig();
-    const path = `data/${subjectId}/${topicId}.json`;
-    subject.topics.push({ id: topicId, name, file: path, questionCount: 0 });
-    await githubPutJson(path, { questions: [] }, `Create topic: ${name}`);
-    await githubPutJson('data/index.json', state.index, `Add topic: ${name}`);
-    await reloadIndexFromGithub();
-    byId('newTopicName').value = '';
-    populateSubjectSelects();
-    setNotice('topicNotice', 'success', `Topic "${name}" created successfully.`);
-  }
-
-  function getQuestionOptionsFromForm() {
-    const type = byId('questionType').value;
-    if (type === 'true-false') return ['True', 'False'];
-    const options = ['A', 'B', 'C', 'D']
-      .map((label) => byId(`option${label}`)?.value.trim() || '')
-      .filter(Boolean);
-    return options;
-  }
-
-  function syncQuestionFormForType() {
-    const type = byId('questionType')?.value;
-    const optionsGrid = byId('questionOptionsGrid');
-    const correctSelect = byId('questionCorrectAnswer');
-    if (!optionsGrid || !correctSelect) return;
-    if (type === 'true-false') {
-      optionsGrid.classList.add('hidden');
-      correctSelect.innerHTML = '<option value="True">True</option><option value="False">False</option>';
-    } else {
-      optionsGrid.classList.remove('hidden');
-      const options = getQuestionOptionsFromForm();
-      correctSelect.innerHTML = '<option value="">Choose correct answer</option>' + options.map((option) =>
-        `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`).join('');
-    }
-  }
-
-  function bindOptionInputs() {
-    ['A', 'B', 'C', 'D'].forEach((label) => {
-      const input = byId(`option${label}`);
-      if (input) input.oninput = syncQuestionFormForType;
     });
-  }
 
-  async function createQuestion() {
-    const subjectId = byId('questionSubjectSelect').value;
-    const topicId = byId('questionTopicSelect').value;
-    const type = byId('questionType').value;
-    const difficulty = byId('questionDifficulty').value;
-    const questionText = byId('questionTextInput').value.trim();
-    const explanation = byId('questionExplanation').value.trim();
-    const caseScenario = byId('questionCaseScenario').value.trim();
-    const imageUrl = byId('questionImageUrl').value.trim();
-    const options = getQuestionOptionsFromForm();
-    const correctAnswer = byId('questionCorrectAnswer').value.trim();
-
-    if (!subjectId || !topicId) return setNotice('questionNotice', 'error', 'Choose the subject and topic first.');
-    if (!questionText || !explanation) return setNotice('questionNotice', 'error', 'Question text and explanation are required.');
-    if (options.length < 2) return setNotice('questionNotice', 'error', 'Add at least two options.');
-    if (!correctAnswer || !options.includes(correctAnswer)) return setNotice('questionNotice', 'error', 'Choose the correct answer from the list.');
-
-    const topicMeta = getTopic(subjectId, topicId);
-    if (!topicMeta) return setNotice('questionNotice', 'error', 'Topic not found.');
-
-    await verifyGithubConfig();
-    const file = await githubGetFile(topicMeta.file);
-    const topicJson = file?.json || { questions: [] };
-    topicJson.questions.push({
-      id: uniqueId(topicId),
-      type,
-      subject: subjectId,
-      topic: topicId,
-      question: questionText,
-      options,
-      correctAnswer,
-      explanation,
-      difficulty,
-      caseScenario,
-      imageUrl,
-    });
-    topicMeta.questionCount = topicJson.questions.length;
-    await githubPutJson(topicMeta.file, topicJson, `Add question to ${topicMeta.name}`);
-    await githubPutJson('data/index.json', state.index, `Update count for ${topicMeta.name}`);
-    await reloadIndexFromGithub();
-
-    ['questionTextInput', 'questionExplanation', 'questionCaseScenario', 'questionImageUrl', 'optionA', 'optionB', 'optionC', 'optionD'].forEach((id) => {
-      const field = byId(id);
-      if (field) field.value = '';
-    });
-    byId('questionType').value = 'mcq';
-    syncQuestionFormForType();
-    setNotice('questionNotice', 'success', `Question added to ${topicMeta.name}.`);
-  }
-
-  async function testGithubAccess() {
-    saveGithubConfig();
-    await verifyGithubConfig();
-    return true;
-  }
-
-  function injectSharedAdminDialog() {
-    if (byId('adminDialog')) return;
-    const dialog = document.createElement('dialog');
-    dialog.className = 'dialog';
-    dialog.id = 'adminDialog';
-    dialog.innerHTML = `
-      <div class="admin-lock" id="adminLockPanel">
-        <div class="surface admin-lock-card">
-          <span class="badge">Hidden Admin Access</span>
-          <h2 id="adminLockTitle">Admin Password</h2>
-          <p class="text-muted" id="adminLockText">Enter the admin password to open the control panel.</p>
-          <input id="adminPasswordInput" class="text-input full-width" type="password" placeholder="Admin password">
-          <input id="adminPasswordConfirm" class="text-input full-width hidden" type="password" placeholder="Confirm password">
-          <div class="question-actions">
-            <button class="btn btn-primary" id="adminUnlockBtn">Open Admin Panel</button>
-            <button class="btn btn-soft" id="adminCloseFromLockBtn">Cancel</button>
+    function passwordMarkup(hasPass) {
+      return `
+        <div class="password-screen">
+          <h2>${hasPass ? 'Enter Admin Password' : 'Create Admin Password'}</h2>
+          <p class="muted">This password is stored locally in this browser only.</p>
+          <input class="input" id="adminPassInput" type="password" placeholder="${hasPass ? 'Enter password' : 'Create password'}" />
+          <div class="action-row" style="justify-content:flex-start; margin-top:16px;">
+            <button class="btn btn-dark" id="adminPassBtn">${hasPass ? 'Unlock' : 'Save Password'}</button>
+            <button class="btn btn-light" id="adminCancelBtn">Cancel</button>
           </div>
-          <div id="adminLockNotice" class="notice hidden"></div>
+          <div id="adminPassMsg"></div>
         </div>
-      </div>
-
-      <div class="admin-shell hidden" id="adminShell">
-        <aside class="admin-sidebar">
-          <div class="brand">
-            <div class="brand-mark">PN</div>
-            <div>
-              <div>Admin Panel</div>
-              <div class="small" style="opacity:.85;">Simple content manager</div>
-            </div>
-          </div>
-          <div class="admin-menu">
-            <button class="btn admin-tab active" data-admin-tab="settings">1. GitHub</button>
-            <button class="btn admin-tab" data-admin-tab="subjects">2. Add Subject</button>
-            <button class="btn admin-tab" data-admin-tab="topics">3. Add Topic</button>
-            <button class="btn admin-tab" data-admin-tab="questions">4. Add Question</button>
-            <button class="btn btn-danger" id="closeAdminBtn">Close</button>
-          </div>
-        </aside>
-
-        <section class="admin-body">
-          <div data-admin-panel="settings">
-            <h2>GitHub Settings</h2>
-            <p class="text-muted">Save these once in this browser. Use your GitHub username, exact repo name, exact branch name, and a Classic PAT with repo access.</p>
-            <div class="form-grid">
-              <input id="ghOwner" class="text-input" placeholder="GitHub username / owner">
-              <input id="ghRepo" class="text-input" placeholder="Repository name">
-              <input id="ghBranch" class="text-input" placeholder="Branch name (example: main)">
-              <input id="ghToken" class="text-input" type="password" placeholder="GitHub PAT (Classic)">
-            </div>
-            <div class="question-actions">
-              <button class="btn btn-primary" id="saveGithubConfigBtn">Save Settings</button>
-              <button class="btn btn-soft" id="testGithubBtn">Test Connection</button>
-            </div>
-            <div id="githubNotice" class="notice hidden"></div>
-          </div>
-
-          <div data-admin-panel="subjects" class="hidden">
-            <h2>Add Subject</h2>
-            <p class="text-muted">Type the subject name only. The slug ID will be created automatically.</p>
-            <div class="form-grid">
-              <input id="newSubjectName" class="text-input full" placeholder="Example: Pharmacology">
-            </div>
-            <div class="question-actions">
-              <button class="btn btn-primary" id="createSubjectBtn">Create Subject</button>
-            </div>
-            <div id="subjectNotice" class="notice hidden"></div>
-          </div>
-
-          <div data-admin-panel="topics" class="hidden">
-            <h2>Add Topic</h2>
-            <p class="text-muted">Choose the subject first, then type the topic name. The topic JSON file will be created automatically.</p>
-            <div class="form-grid">
-              <select id="topicSubjectSelect" class="select-box"></select>
-              <input id="newTopicName" class="text-input" placeholder="Example: Sedatives & Hypnotics">
-            </div>
-            <div class="question-actions">
-              <button class="btn btn-primary" id="createTopicBtn">Create Topic</button>
-            </div>
-            <div id="topicNotice" class="notice hidden"></div>
-          </div>
-
-          <div data-admin-panel="questions" class="hidden">
-            <h2>Add Question</h2>
-            <p class="text-muted">Choose subject and topic, write the question, add options, then choose the correct answer.</p>
-            <div class="form-grid">
-              <select id="questionSubjectSelect" class="select-box"></select>
-              <select id="questionTopicSelect" class="select-box"></select>
-              <select id="questionType" class="select-box">
-                <option value="mcq">MCQ</option>
-                <option value="true-false">True / False</option>
-                <option value="image-question">Image Question</option>
-                <option value="clinical-case">Clinical Case Question</option>
-              </select>
-              <select id="questionDifficulty" class="select-box">
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-              </select>
-
-              <textarea id="questionTextInput" class="textarea full" placeholder="Question text"></textarea>
-
-              <div id="questionOptionsGrid" class="form-grid full">
-                <input id="optionA" class="text-input" placeholder="Option A">
-                <input id="optionB" class="text-input" placeholder="Option B">
-                <input id="optionC" class="text-input" placeholder="Option C">
-                <input id="optionD" class="text-input" placeholder="Option D">
-              </div>
-
-              <select id="questionCorrectAnswer" class="select-box full">
-                <option value="">Choose correct answer</option>
-              </select>
-
-              <textarea id="questionExplanation" class="textarea full" placeholder="Explanation"></textarea>
-              <textarea id="questionCaseScenario" class="textarea full" placeholder="Case scenario (optional)"></textarea>
-              <input id="questionImageUrl" class="text-input full" placeholder="Image URL (optional)">
-            </div>
-
-            <div class="question-actions">
-              <button class="btn btn-primary" id="createQuestionBtn">Save Question</button>
-            </div>
-            <div id="questionNotice" class="notice hidden"></div>
-          </div>
-        </section>
-      </div>
-    `;
-    document.body.appendChild(dialog);
-  }
-
-  function prepareAdminLock() {
-    const hasPassword = !!getAdminPassword();
-    byId('adminPasswordInput').value = '';
-    byId('adminPasswordConfirm').value = '';
-    byId('adminLockNotice').className = 'notice hidden';
-    byId('adminLockTitle').textContent = hasPassword ? 'Admin Password' : 'Create Admin Password';
-    byId('adminLockText').textContent = hasPassword
-      ? 'Enter the admin password to open the control panel.'
-      : 'First time only: create an admin password for this browser.';
-    byId('adminPasswordConfirm').classList.toggle('hidden', hasPassword);
-    byId('adminUnlockBtn').textContent = hasPassword ? 'Open Admin Panel' : 'Save Password & Open';
-    byId('adminLockPanel').classList.remove('hidden');
-    byId('adminShell').classList.add('hidden');
-  }
-
-  async function unlockAdmin() {
-    const password = byId('adminPasswordInput').value.trim();
-    const confirm = byId('adminPasswordConfirm').value.trim();
-    const current = getAdminPassword();
-
-    if (!current) {
-      if (!password || password.length < 4) return setNotice('adminLockNotice', 'error', 'Use a password with at least 4 characters.');
-      if (password !== confirm) return setNotice('adminLockNotice', 'error', 'Passwords do not match.');
-      setAdminPassword(password);
-    } else if (password !== current) {
-      return setNotice('adminLockNotice', 'error', 'Wrong password.');
+      `;
     }
 
-    await loadIndex();
-    state.adminUnlocked = true;
-    populateGithubFields();
-    populateSubjectSelects();
-    bindOptionInputs();
-    syncQuestionFormForType();
-    byId('adminLockPanel').classList.add('hidden');
-    byId('adminShell').classList.remove('hidden');
-  }
-
-  function openAdminDialog() {
-    const dialog = byId('adminDialog');
-    if (!dialog) return;
-    prepareAdminLock();
-    if (typeof dialog.showModal === 'function' && !dialog.open) dialog.showModal();
-    else dialog.setAttribute('open', 'open');
-  }
-
-  function closeAdminDialog() {
-    const dialog = byId('adminDialog');
-    if (!dialog) return;
-    if (typeof dialog.close === 'function') dialog.close();
-    else dialog.removeAttribute('open');
-  }
-
-  function initAdminEvents() {
-    injectSharedAdminDialog();
-
-    document.addEventListener('keydown', (event) => {
-      if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'a') {
-        event.preventDefault();
-        openAdminDialog();
-      }
-    });
-
-    byId('adminUnlockBtn').addEventListener('click', () => {
-      unlockAdmin().catch((error) => setNotice('adminLockNotice', 'error', error.message));
-    });
-    ['adminPasswordInput', 'adminPasswordConfirm'].forEach((id) => {
-      const input = byId(id);
-      if (!input) return;
-      input.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-          event.preventDefault();
-          unlockAdmin().catch((error) => setNotice('adminLockNotice', 'error', error.message));
+    function openAdmin() {
+      backdrop.classList.add('is-open');
+      const currentPass = localStorage.getItem(KEYS.adminPass);
+      backdrop.innerHTML = passwordMarkup(!!currentPass);
+      document.getElementById('adminPassInput').focus();
+      document.getElementById('adminCancelBtn').onclick = closeAdmin;
+      const submit = () => {
+        const input = document.getElementById('adminPassInput').value.trim();
+        if (!input) return;
+        if (!currentPass) {
+          localStorage.setItem(KEYS.adminPass, input);
+          renderAdminPanel();
+        } else if (input === currentPass) {
+          renderAdminPanel();
+        } else {
+          document.getElementById('adminPassMsg').innerHTML = '<div class="message error">Wrong password.</div>';
         }
+      };
+      document.getElementById('adminPassBtn').onclick = submit;
+      document.getElementById('adminPassInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') submit();
       });
-    });
-    byId('adminCloseFromLockBtn').addEventListener('click', closeAdminDialog);
-    byId('closeAdminBtn').addEventListener('click', closeAdminDialog);
+    }
 
-    qsa('.admin-tab', byId('adminDialog')).forEach((button) => {
-      button.addEventListener('click', () => {
-        qsa('.admin-tab', byId('adminDialog')).forEach((item) => item.classList.remove('active'));
-        qsa('[data-admin-panel]', byId('adminDialog')).forEach((panel) => panel.classList.add('hidden'));
-        button.classList.add('active');
-        qs(`[data-admin-panel="${button.dataset.adminTab}"]`, byId('adminDialog')).classList.remove('hidden');
-      });
-    });
+    function closeAdmin() {
+      backdrop.classList.remove('is-open');
+      backdrop.innerHTML = '';
+    }
 
-    byId('saveGithubConfigBtn').addEventListener('click', () => {
-      saveGithubConfig();
-      setNotice('githubNotice', 'success', 'GitHub settings saved in this browser.');
-    });
+    function renderAdminPanel() {
+      backdrop.innerHTML = `
+        <div class="admin-modal">
+          <aside class="admin-nav">
+            <div>
+              <div class="brand-mark" style="margin-bottom:12px;">PN</div>
+              <strong style="font-size:1.35rem;">Admin Panel</strong>
+              <div style="color:rgba(255,255,255,0.72); margin-top:6px;">Manage subjects, topics, and questions.</div>
+            </div>
+            <button class="is-active" data-tab="github">1. GitHub</button>
+            <button data-tab="subject">2. Add Subject</button>
+            <button data-tab="topic">3. Add Topic</button>
+            <button data-tab="question">4. Add Question</button>
+            <button id="adminClose" style="margin-top:auto; background:rgba(255,255,255,0.04); color:#ffb1b1;">Close</button>
+          </aside>
+          <section class="admin-content"><div id="adminTabContent"></div></section>
+        </div>
+      `;
+      backdrop.querySelectorAll('[data-tab]').forEach((btn) => btn.addEventListener('click', () => {
+        backdrop.querySelectorAll('[data-tab]').forEach((b) => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        drawAdminTab(btn.dataset.tab);
+      }));
+      document.getElementById('adminClose').onclick = closeAdmin;
+      drawAdminTab('github');
+    }
 
-    byId('testGithubBtn').addEventListener('click', () => {
-      testGithubAccess()
-        .then(() => setNotice('githubNotice', 'success', 'GitHub connection is working. Repo and branch were found successfully.'))
-        .catch((error) => setNotice('githubNotice', 'error', error.message));
-    });
+    function drawAdminTab(tab) {
+      const box = document.getElementById('adminTabContent');
+      if (tab === 'github') return drawGithubTab(box);
+      if (tab === 'subject') return drawSubjectTab(box);
+      if (tab === 'topic') return drawTopicTab(box);
+      drawQuestionTab(box);
+    }
 
-    byId('createSubjectBtn').addEventListener('click', () => {
-      createSubject().catch((error) => setNotice('subjectNotice', 'error', error.message));
-    });
+    function drawGithubTab(box) {
+      const settings = readStore(KEYS.github, { owner: '', repo: '', branch: 'main', token: '' });
+      box.innerHTML = `
+        <h2>GitHub Settings</h2>
+        <p class="muted">Use your GitHub username or org as owner, exact repo name, exact branch name, and a Classic PAT with repo access.</p>
+        <div class="input-row two">
+          <input class="input" id="ghOwner" placeholder="Owner" value="${settings.owner || ''}" />
+          <input class="input" id="ghRepo" placeholder="Repo" value="${settings.repo || ''}" />
+        </div>
+        <div class="input-row two" style="margin-top:16px;">
+          <input class="input" id="ghBranch" placeholder="Branch" value="${settings.branch || 'main'}" />
+          <input class="input" id="ghToken" placeholder="Classic PAT" value="${settings.token || ''}" />
+        </div>
+        <div class="action-row" style="justify-content:flex-start; margin-top:16px;">
+          <button class="btn btn-dark" id="ghSave">Save Settings</button>
+          <button class="btn btn-light" id="ghTest">Test Connection</button>
+        </div>
+        <div id="ghMsg"></div>
+      `;
+      document.getElementById('ghSave').onclick = () => {
+        const next = {
+          owner: document.getElementById('ghOwner').value.trim(),
+          repo: document.getElementById('ghRepo').value.trim(),
+          branch: document.getElementById('ghBranch').value.trim(),
+          token: document.getElementById('ghToken').value.trim()
+        };
+        writeStore(KEYS.github, next);
+        document.getElementById('ghMsg').innerHTML = '<div class="message success">Settings saved in this browser.</div>';
+      };
+      document.getElementById('ghTest').onclick = async () => {
+        try {
+          const settingsNow = {
+            owner: document.getElementById('ghOwner').value.trim(),
+            repo: document.getElementById('ghRepo').value.trim(),
+            branch: document.getElementById('ghBranch').value.trim(),
+            token: document.getElementById('ghToken').value.trim()
+          };
+          writeStore(KEYS.github, settingsNow);
+          const res = await fetch(`https://api.github.com/repos/${settingsNow.owner}/${settingsNow.repo}/branches/${settingsNow.branch}`, { headers: githubHeaders(settingsNow.token) });
+          if (!res.ok) throw new Error('GitHub could not find this repo/branch. Check owner, repo, branch, and PAT access.');
+          document.getElementById('ghMsg').innerHTML = '<div class="message success">Connection successful.</div>';
+        } catch (error) {
+          document.getElementById('ghMsg').innerHTML = `<div class="message error">${error.message}</div>`;
+        }
+      };
+    }
 
-    byId('createTopicBtn').addEventListener('click', () => {
-      createTopic().catch((error) => setNotice('topicNotice', 'error', error.message));
-    });
+    function drawSubjectTab(box) {
+      box.innerHTML = `
+        <h2>Add Subject</h2>
+        <p class="muted">Type the subject name only. The slug ID is created automatically.</p>
+        <input class="input" id="subjectNameInput" placeholder="Subject name" />
+        <div class="action-row" style="justify-content:flex-start; margin-top:16px;"><button class="btn btn-dark" id="createSubjectBtn">Create Subject</button></div>
+        <div id="subjectMsg"></div>
+        <h3 style="margin-top:28px;">Delete Subject</h3>
+        <select class="select" id="deleteSubjectSelect">${state.index.subjects.map((s) => `<option value="${s.id}">${s.name}</option>`).join('')}</select>
+        <div class="action-row" style="justify-content:flex-start; margin-top:16px;"><button class="btn btn-danger" id="deleteSubjectBtn">Delete Subject</button></div>
+      `;
+      document.getElementById('createSubjectBtn').onclick = async () => {
+        const name = document.getElementById('subjectNameInput').value.trim();
+        if (!name) return;
+        try {
+          const indexData = JSON.parse((await githubGetText('data/index.json')).text);
+          const id = slugify(name);
+          if (indexData.subjects.some((s) => s.id === id)) throw new Error('Subject already exists.');
+          indexData.subjects.push({ id, name, topics: [] });
+          await githubPutFile('data/index.json', JSON.stringify(indexData, null, 2), `Add subject ${name}`);
+          document.getElementById('subjectMsg').innerHTML = '<div class="message success">Subject created. Refresh the page to load it locally.</div>';
+        } catch (error) {
+          document.getElementById('subjectMsg').innerHTML = `<div class="message error">${error.message}</div>`;
+        }
+      };
+      document.getElementById('deleteSubjectBtn').onclick = async () => {
+        const subjectId = document.getElementById('deleteSubjectSelect').value;
+        if (!subjectId || !confirm('Delete this subject and all its topic files?')) return;
+        try {
+          const indexFile = await githubGetText('data/index.json');
+          const indexData = JSON.parse(indexFile.text);
+          const subject = indexData.subjects.find((s) => s.id === subjectId);
+          for (const topic of subject.topics) {
+            await githubDeleteFile(topic.file, `Delete topic ${topic.name}`);
+          }
+          indexData.subjects = indexData.subjects.filter((s) => s.id !== subjectId);
+          await githubPutFile('data/index.json', JSON.stringify(indexData, null, 2), `Delete subject ${subjectId}`);
+          document.getElementById('subjectMsg').innerHTML = '<div class="message success">Subject deleted from GitHub.</div>';
+        } catch (error) {
+          document.getElementById('subjectMsg').innerHTML = `<div class="message error">${error.message}</div>`;
+        }
+      };
+    }
 
-    byId('createQuestionBtn').addEventListener('click', () => {
-      createQuestion().catch((error) => setNotice('questionNotice', 'error', error.message));
-    });
+    function drawTopicTab(box) {
+      box.innerHTML = `
+        <h2>Add Topic</h2>
+        <div class="input-row two">
+          <select class="select" id="topicSubjectSelect">${state.index.subjects.map((s) => `<option value="${s.id}">${s.name}</option>`).join('')}</select>
+          <input class="input" id="topicNameInput" placeholder="Topic name" />
+        </div>
+        <div class="action-row" style="justify-content:flex-start; margin-top:16px;"><button class="btn btn-dark" id="createTopicBtn">Create Topic</button></div>
+        <div id="topicMsg"></div>
+        <h3 style="margin-top:28px;">Delete Topic</h3>
+        <div class="input-row two">
+          <select class="select" id="deleteTopicSubject"></select>
+          <select class="select" id="deleteTopicSelect"></select>
+        </div>
+        <div class="action-row" style="justify-content:flex-start; margin-top:16px;"><button class="btn btn-danger" id="deleteTopicBtn">Delete Topic</button></div>
+      `;
+      const deleteSubject = document.getElementById('deleteTopicSubject');
+      const deleteTopic = document.getElementById('deleteTopicSelect');
+      deleteSubject.innerHTML = state.index.subjects.map((s) => `<option value="${s.id}">${s.name}</option>`).join('');
+      const syncTopics = () => {
+        const subject = state.subjectMap.get(deleteSubject.value);
+        deleteTopic.innerHTML = subject.topics.map((t) => `<option value="${t.id}">${t.name}</option>`).join('');
+      };
+      deleteSubject.addEventListener('change', syncTopics);
+      syncTopics();
 
-    byId('questionType').addEventListener('change', syncQuestionFormForType);
+      document.getElementById('createTopicBtn').onclick = async () => {
+        const subjectId = document.getElementById('topicSubjectSelect').value;
+        const topicName = document.getElementById('topicNameInput').value.trim();
+        if (!topicName) return;
+        try {
+          const indexData = JSON.parse((await githubGetText('data/index.json')).text);
+          const subject = indexData.subjects.find((s) => s.id === subjectId);
+          const topicId = slugify(topicName);
+          if (subject.topics.some((t) => t.id === topicId)) throw new Error('Topic already exists.');
+          const filePath = `data/${subjectId}/${topicId}.json`;
+          subject.topics.push({ id: topicId, name: topicName, file: filePath, questionCount: 0 });
+          await githubPutFile(filePath, JSON.stringify({ questions: [] }, null, 2), `Create topic file ${topicName}`);
+          await githubPutFile('data/index.json', JSON.stringify(indexData, null, 2), `Add topic ${topicName}`);
+          document.getElementById('topicMsg').innerHTML = '<div class="message success">Topic created on GitHub.</div>';
+        } catch (error) {
+          document.getElementById('topicMsg').innerHTML = `<div class="message error">${error.message}</div>`;
+        }
+      };
+
+      document.getElementById('deleteTopicBtn').onclick = async () => {
+        const subjectId = deleteSubject.value;
+        const topicId = deleteTopic.value;
+        if (!topicId || !confirm('Delete this topic and its file?')) return;
+        try {
+          const indexData = JSON.parse((await githubGetText('data/index.json')).text);
+          const subject = indexData.subjects.find((s) => s.id === subjectId);
+          const topic = subject.topics.find((t) => t.id === topicId);
+          await githubDeleteFile(topic.file, `Delete topic ${topic.name}`);
+          subject.topics = subject.topics.filter((t) => t.id !== topicId);
+          await githubPutFile('data/index.json', JSON.stringify(indexData, null, 2), `Delete topic ${topicId}`);
+          document.getElementById('topicMsg').innerHTML = '<div class="message success">Topic deleted from GitHub.</div>';
+        } catch (error) {
+          document.getElementById('topicMsg').innerHTML = `<div class="message error">${error.message}</div>`;
+        }
+      };
+    }
+
+    function drawQuestionTab(box) {
+      box.innerHTML = `
+        <h2>Add Question</h2>
+        <div class="input-row two">
+          <select class="select" id="qSubject"></select>
+          <select class="select" id="qTopic"></select>
+        </div>
+        <div class="input-row two" style="margin-top:16px;">
+          <select class="select" id="qType"><option value="mcq">MCQ</option><option value="true-false">True / False</option><option value="image">Image Question</option><option value="case">Clinical Case Question</option></select>
+          <select class="select" id="qDifficulty"><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select>
+        </div>
+        <textarea class="textarea" id="qText" placeholder="Question text" style="margin-top:16px;"></textarea>
+        <textarea class="textarea" id="qCase" placeholder="Case scenario (optional)" style="margin-top:16px;"></textarea>
+        <input class="input" id="qImage" placeholder="Image URL (optional)" style="margin-top:16px;" />
+        <div class="input-row two" style="margin-top:16px;"><input class="input" id="qA" placeholder="Option A" /><input class="input" id="qB" placeholder="Option B" /></div>
+        <div class="input-row two" style="margin-top:16px;"><input class="input" id="qC" placeholder="Option C" /><input class="input" id="qD" placeholder="Option D" /></div>
+        <select class="select" id="qCorrect" style="margin-top:16px;"><option value="A">Correct = Option A</option><option value="B">Correct = Option B</option><option value="C">Correct = Option C</option><option value="D">Correct = Option D</option></select>
+        <textarea class="textarea" id="qExplanation" placeholder="Explanation" style="margin-top:16px;"></textarea>
+        <div class="action-row" style="justify-content:flex-start; margin-top:16px;"><button class="btn btn-dark" id="addQuestionBtn">Add Question</button></div>
+        <div id="questionMsg"></div>
+        <h3 style="margin-top:28px;">Delete Question</h3>
+        <div class="input-row two"><select class="select" id="delQSubject"></select><select class="select" id="delQTopic"></select></div>
+        <div class="list-box" id="questionDeleteList"></div>
+      `;
+      const qSubject = document.getElementById('qSubject');
+      const qTopic = document.getElementById('qTopic');
+      const delQSubject = document.getElementById('delQSubject');
+      const delQTopic = document.getElementById('delQTopic');
+      const fillSubjectOptions = (select) => { select.innerHTML = state.index.subjects.map((s) => `<option value="${s.id}">${s.name}</option>`).join(''); };
+      fillSubjectOptions(qSubject); fillSubjectOptions(delQSubject);
+      const syncTopicOptions = (subjectSelect, topicSelect) => {
+        const subject = state.subjectMap.get(subjectSelect.value);
+        topicSelect.innerHTML = subject.topics.map((t) => `<option value="${t.id}">${t.name}</option>`).join('');
+      };
+      const renderDeleteList = async () => {
+        const subjectId = delQSubject.value; const topicId = delQTopic.value;
+        if (!subjectId || !topicId) return;
+        const meta = state.topicMap.get(`${subjectId}:${topicId}`);
+        let data;
+        try {
+          data = JSON.parse((await githubGetText(meta.file)).text);
+        } catch (_) {
+          data = await getJSON(`./${meta.file}`);
+        }
+        const boxList = document.getElementById('questionDeleteList');
+        boxList.innerHTML = data.questions.length ? '' : '<div class="empty-state">No questions in this topic.</div>';
+        data.questions.slice(0, 50).forEach((q) => {
+          const row = el('div', 'list-item');
+          row.innerHTML = `<div><strong>${q.id}</strong><div class="muted">${q.question.slice(0, 90)}</div></div><button class="small-btn danger">Delete</button>`;
+          row.querySelector('button').addEventListener('click', async () => {
+            if (!confirm('Delete this question from GitHub?')) return;
+            try {
+              const file = await githubGetText(meta.file);
+              const json = JSON.parse(file.text);
+              json.questions = json.questions.filter((item) => item.id !== q.id);
+              await githubPutFile(meta.file, JSON.stringify(json, null, 2), `Delete question ${q.id}`);
+              const indexData = JSON.parse((await githubGetText('data/index.json')).text);
+              const subject = indexData.subjects.find((s) => s.id === subjectId);
+              const topic = subject.topics.find((t) => t.id === topicId);
+              topic.questionCount = json.questions.length;
+              await githubPutFile('data/index.json', JSON.stringify(indexData, null, 2), `Update count for ${topicId}`);
+              row.remove();
+            } catch (error) {
+              document.getElementById('questionMsg').innerHTML = `<div class="message error">${error.message}</div>`;
+            }
+          });
+          boxList.appendChild(row);
+        });
+      };
+      qSubject.addEventListener('change', () => syncTopicOptions(qSubject, qTopic));
+      delQSubject.addEventListener('change', async () => { syncTopicOptions(delQSubject, delQTopic); await renderDeleteList(); });
+      delQTopic.addEventListener('change', renderDeleteList);
+      syncTopicOptions(qSubject, qTopic); syncTopicOptions(delQSubject, delQTopic); renderDeleteList();
+
+      document.getElementById('addQuestionBtn').onclick = async () => {
+        try {
+          const subjectId = qSubject.value;
+          const topicId = qTopic.value;
+          const meta = state.topicMap.get(`${subjectId}:${topicId}`);
+          const file = await githubGetText(meta.file);
+          const json = JSON.parse(file.text);
+          const options = [document.getElementById('qA').value.trim(), document.getElementById('qB').value.trim(), document.getElementById('qC').value.trim(), document.getElementById('qD').value.trim()];
+          if (options.some((o) => !o)) throw new Error('All 4 options are required.');
+          const correctIndex = { A: 0, B: 1, C: 2, D: 3 }[document.getElementById('qCorrect').value];
+          const question = {
+            id: `${subjectId}-${topicId}-${Date.now()}`,
+            type: document.getElementById('qType').value,
+            subject: subjectId,
+            topic: topicId,
+            question: document.getElementById('qText').value.trim(),
+            options,
+            correctAnswer: options[correctIndex],
+            explanation: document.getElementById('qExplanation').value.trim(),
+            difficulty: document.getElementById('qDifficulty').value,
+            caseScenario: document.getElementById('qCase').value.trim(),
+            imageUrl: document.getElementById('qImage').value.trim()
+          };
+          if (!question.question || !question.explanation) throw new Error('Question text and explanation are required.');
+          json.questions.push(question);
+          await githubPutFile(meta.file, JSON.stringify(json, null, 2), `Add question ${question.id}`);
+          const indexData = JSON.parse((await githubGetText('data/index.json')).text);
+          const subject = indexData.subjects.find((s) => s.id === subjectId);
+          const topic = subject.topics.find((t) => t.id === topicId);
+          topic.questionCount = json.questions.length;
+          await githubPutFile('data/index.json', JSON.stringify(indexData, null, 2), `Update count for ${topicId}`);
+          document.getElementById('questionMsg').innerHTML = '<div class="message success">Question added to GitHub.</div>';
+          renderDeleteList();
+        } catch (error) {
+          document.getElementById('questionMsg').innerHTML = `<div class="message error">${error.message}</div>`;
+        }
+      };
+    }
+
+    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeAdmin(); });
   }
 
-  function initNavigation() {
-    const toggle = byId('navToggle');
-    const links = byId('navLinks');
-    if (toggle && links) toggle.addEventListener('click', () => links.classList.toggle('open'));
-    const page = document.body.dataset.page;
-    qsa('.nav-link').forEach((link) => {
-      if (link.dataset.page === page) link.classList.add('active');
-    });
+  async function boot() {
+    ensureShell();
+    await loadIndex();
+    injectAdmin();
+    if (PAGE === 'home') renderHome(state.index);
+    else if (PAGE === 'subjects') renderSubjectsPage(state.index);
+    else if (PAGE === 'topics') renderTopicsPage();
+    else if (PAGE === 'topic') await renderTopicPage();
+    else if (PAGE === 'study') await renderStudyPage();
+    else if (PAGE === 'final-exam') await renderFinalExamPage();
+    else if (PAGE === 'review') renderReviewPage();
+    else if (PAGE === 'dashboard') renderDashboardPage();
+    else if (PAGE === 'saved') renderSavedPage();
   }
 
-  async function init() {
-    initNavigation();
-    initAdminEvents();
-
-    const page = document.body.dataset.page;
-    if (page === 'home') await initHome();
-    if (page === 'subjects') await initSubjectsPage();
-    if (page === 'topics') await initTopicsPage();
-    if (page === 'topic-detail') await initTopicDetailPage();
-    if (page === 'study') await initStudyPage();
-    if (page === 'final-exam') await initFinalExamPage();
-    if (page === 'dashboard') await initDashboardPage();
-  }
-
-  return { init };
-})();
-
-document.addEventListener('DOMContentLoaded', () => {
-  App.init().catch((error) => {
+  boot().catch((error) => {
+    const root = document.getElementById('pageRoot') || document.body;
+    root.innerHTML = `<div class="container"><div class="message error">${error.message}</div></div>`;
     console.error(error);
-    const root = document.querySelector('main');
-    if (root) root.insertAdjacentHTML('afterbegin', `<div class="container"><div class="empty-state">${error.message}</div></div>`);
   });
-});
+})();
