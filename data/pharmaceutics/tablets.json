@@ -1,0 +1,220 @@
+{
+  "questions": [
+    {
+      "id": "pharmaceutics-tablets-001",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "tablets",
+      "question": "Tablets question 1: What is a key purpose of a tablet disintegrant?",
+      "options": [
+        "Promote breakup of the tablet after administration",
+        "Add antimicrobial coverage",
+        "Replace the active ingredient",
+        "Create sterile conditions"
+      ],
+      "correctAnswer": "Promote breakup of the tablet after administration",
+      "explanation": "Disintegrants facilitate breakup of the tablet into smaller fragments, which supports dissolution and drug release.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-tablets-002",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "tablets",
+      "question": "Tablets question 2: What is a key purpose of a tablet disintegrant?",
+      "options": [
+        "Promote breakup of the tablet after administration",
+        "Add antimicrobial coverage",
+        "Replace the active ingredient",
+        "Create sterile conditions"
+      ],
+      "correctAnswer": "Promote breakup of the tablet after administration",
+      "explanation": "Disintegrants facilitate breakup of the tablet into smaller fragments, which supports dissolution and drug release.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-tablets-003",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "tablets",
+      "question": "Tablets question 3: What is a key purpose of a tablet disintegrant?",
+      "options": [
+        "Promote breakup of the tablet after administration",
+        "Add antimicrobial coverage",
+        "Replace the active ingredient",
+        "Create sterile conditions"
+      ],
+      "correctAnswer": "Promote breakup of the tablet after administration",
+      "explanation": "Disintegrants facilitate breakup of the tablet into smaller fragments, which supports dissolution and drug release.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-tablets-004",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "tablets",
+      "question": "Tablets question 4: What is a key purpose of a tablet disintegrant?",
+      "options": [
+        "Promote breakup of the tablet after administration",
+        "Add antimicrobial coverage",
+        "Replace the active ingredient",
+        "Create sterile conditions"
+      ],
+      "correctAnswer": "Promote breakup of the tablet after administration",
+      "explanation": "Disintegrants facilitate breakup of the tablet into smaller fragments, which supports dissolution and drug release.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-tablets-005",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "tablets",
+      "question": "Tablets question 5: What is a key purpose of a tablet disintegrant?",
+      "options": [
+        "Promote breakup of the tablet after administration",
+        "Add antimicrobial coverage",
+        "Replace the active ingredient",
+        "Create sterile conditions"
+      ],
+      "correctAnswer": "Promote breakup of the tablet after administration",
+      "explanation": "Disintegrants facilitate breakup of the tablet into smaller fragments, which supports dissolution and drug release.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-tablets-006",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "tablets",
+      "question": "Tablets question 6: What is a key purpose of a tablet disintegrant?",
+      "options": [
+        "Promote breakup of the tablet after administration",
+        "Add antimicrobial coverage",
+        "Replace the active ingredient",
+        "Create sterile conditions"
+      ],
+      "correctAnswer": "Promote breakup of the tablet after administration",
+      "explanation": "Disintegrants facilitate breakup of the tablet into smaller fragments, which supports dissolution and drug release.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-tablets-007",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "tablets",
+      "question": "Tablets question 7: What is a key purpose of a tablet disintegrant?",
+      "options": [
+        "Promote breakup of the tablet after administration",
+        "Add antimicrobial coverage",
+        "Replace the active ingredient",
+        "Create sterile conditions"
+      ],
+      "correctAnswer": "Promote breakup of the tablet after administration",
+      "explanation": "Disintegrants facilitate breakup of the tablet into smaller fragments, which supports dissolution and drug release.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-tablets-008",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "tablets",
+      "question": "Tablets question 8: What is a key purpose of a tablet disintegrant?",
+      "options": [
+        "Promote breakup of the tablet after administration",
+        "Add antimicrobial coverage",
+        "Replace the active ingredient",
+        "Create sterile conditions"
+      ],
+      "correctAnswer": "Promote breakup of the tablet after administration",
+      "explanation": "Disintegrants facilitate breakup of the tablet into smaller fragments, which supports dissolution and drug release.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-tablets-009",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "tablets",
+      "question": "Tablets question 9: What is a key purpose of a tablet disintegrant?",
+      "options": [
+        "Promote breakup of the tablet after administration",
+        "Add antimicrobial coverage",
+        "Replace the active ingredient",
+        "Create sterile conditions"
+      ],
+      "correctAnswer": "Promote breakup of the tablet after administration",
+      "explanation": "Disintegrants facilitate breakup of the tablet into smaller fragments, which supports dissolution and drug release.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-tablets-010",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "tablets",
+      "question": "Tablets question 10: What is a key purpose of a tablet disintegrant?",
+      "options": [
+        "Promote breakup of the tablet after administration",
+        "Add antimicrobial coverage",
+        "Replace the active ingredient",
+        "Create sterile conditions"
+      ],
+      "correctAnswer": "Promote breakup of the tablet after administration",
+      "explanation": "Disintegrants facilitate breakup of the tablet into smaller fragments, which supports dissolution and drug release.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-tablets-011",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "tablets",
+      "question": "Tablets question 11: What is a key purpose of a tablet disintegrant?",
+      "options": [
+        "Promote breakup of the tablet after administration",
+        "Add antimicrobial coverage",
+        "Replace the active ingredient",
+        "Create sterile conditions"
+      ],
+      "correctAnswer": "Promote breakup of the tablet after administration",
+      "explanation": "Disintegrants facilitate breakup of the tablet into smaller fragments, which supports dissolution and drug release.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-tablets-012",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "tablets",
+      "question": "Tablets question 12: What is a key purpose of a tablet disintegrant?",
+      "options": [
+        "Promote breakup of the tablet after administration",
+        "Add antimicrobial coverage",
+        "Replace the active ingredient",
+        "Create sterile conditions"
+      ],
+      "correctAnswer": "Promote breakup of the tablet after administration",
+      "explanation": "Disintegrants facilitate breakup of the tablet into smaller fragments, which supports dissolution and drug release.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    }
+  ]
+}

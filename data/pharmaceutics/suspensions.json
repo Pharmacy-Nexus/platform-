@@ -1,0 +1,220 @@
+{
+  "questions": [
+    {
+      "id": "pharmaceutics-suspensions-001",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "suspensions",
+      "question": "Suspensions question 1: Why is flocculation sometimes desirable in a suspension?",
+      "options": [
+        "It can reduce hard cake formation and improve redispersion",
+        "It permanently dissolves all particles",
+        "It eliminates the need for preservatives",
+        "It guarantees sterility"
+      ],
+      "correctAnswer": "It can reduce hard cake formation and improve redispersion",
+      "explanation": "Controlled flocculation forms loose aggregates that settle rapidly but can be redispersed more easily than a compact cake.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-suspensions-002",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "suspensions",
+      "question": "Suspensions question 2: Why is flocculation sometimes desirable in a suspension?",
+      "options": [
+        "It can reduce hard cake formation and improve redispersion",
+        "It permanently dissolves all particles",
+        "It eliminates the need for preservatives",
+        "It guarantees sterility"
+      ],
+      "correctAnswer": "It can reduce hard cake formation and improve redispersion",
+      "explanation": "Controlled flocculation forms loose aggregates that settle rapidly but can be redispersed more easily than a compact cake.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-suspensions-003",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "suspensions",
+      "question": "Suspensions question 3: Why is flocculation sometimes desirable in a suspension?",
+      "options": [
+        "It can reduce hard cake formation and improve redispersion",
+        "It permanently dissolves all particles",
+        "It eliminates the need for preservatives",
+        "It guarantees sterility"
+      ],
+      "correctAnswer": "It can reduce hard cake formation and improve redispersion",
+      "explanation": "Controlled flocculation forms loose aggregates that settle rapidly but can be redispersed more easily than a compact cake.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-suspensions-004",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "suspensions",
+      "question": "Suspensions question 4: Why is flocculation sometimes desirable in a suspension?",
+      "options": [
+        "It can reduce hard cake formation and improve redispersion",
+        "It permanently dissolves all particles",
+        "It eliminates the need for preservatives",
+        "It guarantees sterility"
+      ],
+      "correctAnswer": "It can reduce hard cake formation and improve redispersion",
+      "explanation": "Controlled flocculation forms loose aggregates that settle rapidly but can be redispersed more easily than a compact cake.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-suspensions-005",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "suspensions",
+      "question": "Suspensions question 5: Why is flocculation sometimes desirable in a suspension?",
+      "options": [
+        "It can reduce hard cake formation and improve redispersion",
+        "It permanently dissolves all particles",
+        "It eliminates the need for preservatives",
+        "It guarantees sterility"
+      ],
+      "correctAnswer": "It can reduce hard cake formation and improve redispersion",
+      "explanation": "Controlled flocculation forms loose aggregates that settle rapidly but can be redispersed more easily than a compact cake.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-suspensions-006",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "suspensions",
+      "question": "Suspensions question 6: Why is flocculation sometimes desirable in a suspension?",
+      "options": [
+        "It can reduce hard cake formation and improve redispersion",
+        "It permanently dissolves all particles",
+        "It eliminates the need for preservatives",
+        "It guarantees sterility"
+      ],
+      "correctAnswer": "It can reduce hard cake formation and improve redispersion",
+      "explanation": "Controlled flocculation forms loose aggregates that settle rapidly but can be redispersed more easily than a compact cake.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-suspensions-007",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "suspensions",
+      "question": "Suspensions question 7: Why is flocculation sometimes desirable in a suspension?",
+      "options": [
+        "It can reduce hard cake formation and improve redispersion",
+        "It permanently dissolves all particles",
+        "It eliminates the need for preservatives",
+        "It guarantees sterility"
+      ],
+      "correctAnswer": "It can reduce hard cake formation and improve redispersion",
+      "explanation": "Controlled flocculation forms loose aggregates that settle rapidly but can be redispersed more easily than a compact cake.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-suspensions-008",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "suspensions",
+      "question": "Suspensions question 8: Why is flocculation sometimes desirable in a suspension?",
+      "options": [
+        "It can reduce hard cake formation and improve redispersion",
+        "It permanently dissolves all particles",
+        "It eliminates the need for preservatives",
+        "It guarantees sterility"
+      ],
+      "correctAnswer": "It can reduce hard cake formation and improve redispersion",
+      "explanation": "Controlled flocculation forms loose aggregates that settle rapidly but can be redispersed more easily than a compact cake.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-suspensions-009",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "suspensions",
+      "question": "Suspensions question 9: Why is flocculation sometimes desirable in a suspension?",
+      "options": [
+        "It can reduce hard cake formation and improve redispersion",
+        "It permanently dissolves all particles",
+        "It eliminates the need for preservatives",
+        "It guarantees sterility"
+      ],
+      "correctAnswer": "It can reduce hard cake formation and improve redispersion",
+      "explanation": "Controlled flocculation forms loose aggregates that settle rapidly but can be redispersed more easily than a compact cake.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-suspensions-010",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "suspensions",
+      "question": "Suspensions question 10: Why is flocculation sometimes desirable in a suspension?",
+      "options": [
+        "It can reduce hard cake formation and improve redispersion",
+        "It permanently dissolves all particles",
+        "It eliminates the need for preservatives",
+        "It guarantees sterility"
+      ],
+      "correctAnswer": "It can reduce hard cake formation and improve redispersion",
+      "explanation": "Controlled flocculation forms loose aggregates that settle rapidly but can be redispersed more easily than a compact cake.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-suspensions-011",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "suspensions",
+      "question": "Suspensions question 11: Why is flocculation sometimes desirable in a suspension?",
+      "options": [
+        "It can reduce hard cake formation and improve redispersion",
+        "It permanently dissolves all particles",
+        "It eliminates the need for preservatives",
+        "It guarantees sterility"
+      ],
+      "correctAnswer": "It can reduce hard cake formation and improve redispersion",
+      "explanation": "Controlled flocculation forms loose aggregates that settle rapidly but can be redispersed more easily than a compact cake.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmaceutics-suspensions-012",
+      "type": "mcq",
+      "subject": "pharmaceutics",
+      "topic": "suspensions",
+      "question": "Suspensions question 12: Why is flocculation sometimes desirable in a suspension?",
+      "options": [
+        "It can reduce hard cake formation and improve redispersion",
+        "It permanently dissolves all particles",
+        "It eliminates the need for preservatives",
+        "It guarantees sterility"
+      ],
+      "correctAnswer": "It can reduce hard cake formation and improve redispersion",
+      "explanation": "Controlled flocculation forms loose aggregates that settle rapidly but can be redispersed more easily than a compact cake.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    }
+  ]
+}
