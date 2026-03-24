@@ -1,41 +1,254 @@
 {
   "questions": [
     {
-      "id": "pharm-sed-001",
+      "id": "pharmacology-sedatives-hypnotics-001",
       "type": "mcq",
       "subject": "pharmacology",
       "topic": "sedatives-hypnotics",
-      "question": "Which receptor is enhanced by benzodiazepines to produce sedative and anxiolytic effects?",
-      "options": ["NMDA receptor", "GABA-A receptor", "Beta-1 receptor", "Muscarinic receptor"],
-      "correctAnswer": "GABA-A receptor",
-      "explanation": "Benzodiazepines increase the frequency of chloride channel opening at the GABA-A receptor, enhancing inhibitory neurotransmission.",
+      "question": "Sedatives question 1: Which effect is commonly associated with benzodiazepines?",
+      "options": [
+        "Anxiolysis and sedation",
+        "Severe analgesia as the main effect",
+        "Marked antibacterial action",
+        "Direct insulin release"
+      ],
+      "correctAnswer": "Anxiolysis and sedation",
+      "explanation": "Benzodiazepines commonly produce anxiolytic, sedative, hypnotic, anticonvulsant, and muscle-relaxant effects.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-sedatives-hypnotics-002",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "sedatives-hypnotics",
+      "question": "Sedatives question 2: Which effect is commonly associated with benzodiazepines?",
+      "options": [
+        "Anxiolysis and sedation",
+        "Severe analgesia as the main effect",
+        "Marked antibacterial action",
+        "Direct insulin release"
+      ],
+      "correctAnswer": "Anxiolysis and sedation",
+      "explanation": "Benzodiazepines commonly produce anxiolytic, sedative, hypnotic, anticonvulsant, and muscle-relaxant effects.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-sedatives-hypnotics-003",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "sedatives-hypnotics",
+      "question": "Sedatives question 3: Which effect is commonly associated with benzodiazepines?",
+      "options": [
+        "Anxiolysis and sedation",
+        "Severe analgesia as the main effect",
+        "Marked antibacterial action",
+        "Direct insulin release"
+      ],
+      "correctAnswer": "Anxiolysis and sedation",
+      "explanation": "Benzodiazepines commonly produce anxiolytic, sedative, hypnotic, anticonvulsant, and muscle-relaxant effects.",
       "difficulty": "easy",
       "caseScenario": "",
       "imageUrl": ""
     },
     {
-      "id": "pharm-sed-002",
-      "type": "clinical-case",
+      "id": "pharmacology-sedatives-hypnotics-004",
+      "type": "mcq",
       "subject": "pharmacology",
       "topic": "sedatives-hypnotics",
-      "question": "Which antidote can reverse severe benzodiazepine-induced sedation in selected situations?",
-      "options": ["Naloxone", "Atropine", "Flumazenil", "Physostigmine"],
-      "correctAnswer": "Flumazenil",
-      "explanation": "Flumazenil is a benzodiazepine receptor antagonist, but it must be used carefully because it can precipitate seizures in some patients.",
+      "question": "Sedatives question 4: Which effect is commonly associated with benzodiazepines?",
+      "options": [
+        "Anxiolysis and sedation",
+        "Severe analgesia as the main effect",
+        "Marked antibacterial action",
+        "Direct insulin release"
+      ],
+      "correctAnswer": "Anxiolysis and sedation",
+      "explanation": "Benzodiazepines commonly produce anxiolytic, sedative, hypnotic, anticonvulsant, and muscle-relaxant effects.",
       "difficulty": "medium",
-      "caseScenario": "A patient arrives with profound drowsiness after taking excess alprazolam.",
+      "caseScenario": "",
       "imageUrl": ""
     },
     {
-      "id": "pharm-sed-003",
-      "type": "true-false",
+      "id": "pharmacology-sedatives-hypnotics-005",
+      "type": "mcq",
       "subject": "pharmacology",
       "topic": "sedatives-hypnotics",
-      "question": "Barbiturates generally have a narrower therapeutic index than benzodiazepines.",
-      "options": ["True", "False"],
-      "correctAnswer": "True",
-      "explanation": "Barbiturates are associated with greater respiratory depression and toxicity risk, giving them a narrower therapeutic index than benzodiazepines.",
+      "question": "Sedatives question 5: Which effect is commonly associated with benzodiazepines?",
+      "options": [
+        "Anxiolysis and sedation",
+        "Severe analgesia as the main effect",
+        "Marked antibacterial action",
+        "Direct insulin release"
+      ],
+      "correctAnswer": "Anxiolysis and sedation",
+      "explanation": "Benzodiazepines commonly produce anxiolytic, sedative, hypnotic, anticonvulsant, and muscle-relaxant effects.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-sedatives-hypnotics-006",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "sedatives-hypnotics",
+      "question": "Sedatives question 6: Which effect is commonly associated with benzodiazepines?",
+      "options": [
+        "Anxiolysis and sedation",
+        "Severe analgesia as the main effect",
+        "Marked antibacterial action",
+        "Direct insulin release"
+      ],
+      "correctAnswer": "Anxiolysis and sedation",
+      "explanation": "Benzodiazepines commonly produce anxiolytic, sedative, hypnotic, anticonvulsant, and muscle-relaxant effects.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-sedatives-hypnotics-007",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "sedatives-hypnotics",
+      "question": "Sedatives question 7: Which effect is commonly associated with benzodiazepines?",
+      "options": [
+        "Anxiolysis and sedation",
+        "Severe analgesia as the main effect",
+        "Marked antibacterial action",
+        "Direct insulin release"
+      ],
+      "correctAnswer": "Anxiolysis and sedation",
+      "explanation": "Benzodiazepines commonly produce anxiolytic, sedative, hypnotic, anticonvulsant, and muscle-relaxant effects.",
       "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-sedatives-hypnotics-008",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "sedatives-hypnotics",
+      "question": "Sedatives question 8: Which effect is commonly associated with benzodiazepines?",
+      "options": [
+        "Anxiolysis and sedation",
+        "Severe analgesia as the main effect",
+        "Marked antibacterial action",
+        "Direct insulin release"
+      ],
+      "correctAnswer": "Anxiolysis and sedation",
+      "explanation": "Benzodiazepines commonly produce anxiolytic, sedative, hypnotic, anticonvulsant, and muscle-relaxant effects.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-sedatives-hypnotics-009",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "sedatives-hypnotics",
+      "question": "Sedatives question 9: Which effect is commonly associated with benzodiazepines?",
+      "options": [
+        "Anxiolysis and sedation",
+        "Severe analgesia as the main effect",
+        "Marked antibacterial action",
+        "Direct insulin release"
+      ],
+      "correctAnswer": "Anxiolysis and sedation",
+      "explanation": "Benzodiazepines commonly produce anxiolytic, sedative, hypnotic, anticonvulsant, and muscle-relaxant effects.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-sedatives-hypnotics-010",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "sedatives-hypnotics",
+      "question": "Sedatives question 10: Which effect is commonly associated with benzodiazepines?",
+      "options": [
+        "Anxiolysis and sedation",
+        "Severe analgesia as the main effect",
+        "Marked antibacterial action",
+        "Direct insulin release"
+      ],
+      "correctAnswer": "Anxiolysis and sedation",
+      "explanation": "Benzodiazepines commonly produce anxiolytic, sedative, hypnotic, anticonvulsant, and muscle-relaxant effects.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-sedatives-hypnotics-011",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "sedatives-hypnotics",
+      "question": "Sedatives question 11: Which effect is commonly associated with benzodiazepines?",
+      "options": [
+        "Anxiolysis and sedation",
+        "Severe analgesia as the main effect",
+        "Marked antibacterial action",
+        "Direct insulin release"
+      ],
+      "correctAnswer": "Anxiolysis and sedation",
+      "explanation": "Benzodiazepines commonly produce anxiolytic, sedative, hypnotic, anticonvulsant, and muscle-relaxant effects.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-sedatives-hypnotics-012",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "sedatives-hypnotics",
+      "question": "Sedatives question 12: Which effect is commonly associated with benzodiazepines?",
+      "options": [
+        "Anxiolysis and sedation",
+        "Severe analgesia as the main effect",
+        "Marked antibacterial action",
+        "Direct insulin release"
+      ],
+      "correctAnswer": "Anxiolysis and sedation",
+      "explanation": "Benzodiazepines commonly produce anxiolytic, sedative, hypnotic, anticonvulsant, and muscle-relaxant effects.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-sedatives-hypnotics-013",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "sedatives-hypnotics",
+      "question": "Sedatives question 13: Which effect is commonly associated with benzodiazepines?",
+      "options": [
+        "Anxiolysis and sedation",
+        "Severe analgesia as the main effect",
+        "Marked antibacterial action",
+        "Direct insulin release"
+      ],
+      "correctAnswer": "Anxiolysis and sedation",
+      "explanation": "Benzodiazepines commonly produce anxiolytic, sedative, hypnotic, anticonvulsant, and muscle-relaxant effects.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-sedatives-hypnotics-014",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "sedatives-hypnotics",
+      "question": "Sedatives question 14: Which effect is commonly associated with benzodiazepines?",
+      "options": [
+        "Anxiolysis and sedation",
+        "Severe analgesia as the main effect",
+        "Marked antibacterial action",
+        "Direct insulin release"
+      ],
+      "correctAnswer": "Anxiolysis and sedation",
+      "explanation": "Benzodiazepines commonly produce anxiolytic, sedative, hypnotic, anticonvulsant, and muscle-relaxant effects.",
+      "difficulty": "hard",
       "caseScenario": "",
       "imageUrl": ""
     }
