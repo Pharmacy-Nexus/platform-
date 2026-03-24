@@ -6,7 +6,12 @@
       "subject": "pharmacology",
       "topic": "antibiotics",
       "question": "Which antibiotic class inhibits bacterial cell wall synthesis by binding penicillin-binding proteins?",
-      "options": ["Macrolides", "Penicillins", "Tetracyclines", "Sulfonamides"],
+      "options": [
+        "Macrolides",
+        "Penicillins",
+        "Tetracyclines",
+        "Sulfonamides"
+      ],
       "correctAnswer": "Penicillins",
       "explanation": "Penicillins bind penicillin-binding proteins and block peptidoglycan cross-linking, weakening the bacterial cell wall.",
       "difficulty": "easy",
@@ -19,7 +24,12 @@
       "subject": "pharmacology",
       "topic": "antibiotics",
       "question": "Which antibiotic is most strongly associated with tendon injury and should be used cautiously in older adults?",
-      "options": ["Amoxicillin", "Azithromycin", "Ciprofloxacin", "Doxycycline"],
+      "options": [
+        "Amoxicillin",
+        "Azithromycin",
+        "Ciprofloxacin",
+        "Doxycycline"
+      ],
       "correctAnswer": "Ciprofloxacin",
       "explanation": "Fluoroquinolones such as ciprofloxacin are associated with tendonitis and tendon rupture, especially in older adults and those on corticosteroids.",
       "difficulty": "medium",
@@ -32,9 +42,30 @@
       "subject": "pharmacology",
       "topic": "antibiotics",
       "question": "Vancomycin is commonly used for serious Gram-positive infections including MRSA.",
-      "options": ["True", "False"],
+      "options": [
+        "True",
+        "False"
+      ],
       "correctAnswer": "True",
       "explanation": "Vancomycin is a glycopeptide antibiotic widely used for serious Gram-positive infections, including MRSA.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "antibiotics-1774328551551-5eehox",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "safcsadfcasc",
+      "options": [
+        "vdsvds",
+        "sdvDS",
+        "vdDSv",
+        "dsvDSv"
+      ],
+      "correctAnswer": "vdsvds",
+      "explanation": "db vFDSBSFDbfs",
       "difficulty": "easy",
       "caseScenario": "",
       "imageUrl": ""
