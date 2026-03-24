@@ -1,0 +1,634 @@
+{
+  "questions": [
+    {
+      "id": "pharmacology-antibiotics-001",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 1: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-002",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 2: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-003",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 3: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-004",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 4: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-005",
+      "type": "case",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 5: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "hard",
+      "caseScenario": "A patient presents with a suspected bacterial infection and the team is choosing empiric therapy.",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-006",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 6: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-007",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 7: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-008",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 8: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-009",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 9: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-010",
+      "type": "case",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 10: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "medium",
+      "caseScenario": "A patient presents with a suspected bacterial infection and the team is choosing empiric therapy.",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-011",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 11: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-012",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 12: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-013",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 13: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-014",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 14: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-015",
+      "type": "case",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 15: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "easy",
+      "caseScenario": "A patient presents with a suspected bacterial infection and the team is choosing empiric therapy.",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-016",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 16: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-017",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 17: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-018",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 18: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-019",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 19: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-020",
+      "type": "case",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 20: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "hard",
+      "caseScenario": "A patient presents with a suspected bacterial infection and the team is choosing empiric therapy.",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-021",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 21: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-022",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 22: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-023",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 23: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-024",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 24: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-025",
+      "type": "case",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 25: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "medium",
+      "caseScenario": "A patient presents with a suspected bacterial infection and the team is choosing empiric therapy.",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-026",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 26: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-027",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 27: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-028",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 28: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-029",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 29: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-030",
+      "type": "case",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 30: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "easy",
+      "caseScenario": "A patient presents with a suspected bacterial infection and the team is choosing empiric therapy.",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-031",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 31: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-032",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 32: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-033",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 33: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-034",
+      "type": "mcq",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 34: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "pharmacology-antibiotics-035",
+      "type": "case",
+      "subject": "pharmacology",
+      "topic": "antibiotics",
+      "question": "Antibiotics question 35: Which statement is most appropriate about antibacterial therapy?",
+      "options": [
+        "Therapy should consider likely organism and local resistance patterns",
+        "All antibiotics are interchangeable regardless of indication",
+        "Broad-spectrum treatment is always preferred for every patient",
+        "Monitoring is unnecessary once the drug is started"
+      ],
+      "correctAnswer": "Therapy should consider likely organism and local resistance patterns",
+      "explanation": "Antibiotic choice should be guided by the likely pathogen, infection site, patient factors, and resistance data. Unnecessary broad-spectrum therapy increases resistance and adverse effects.",
+      "difficulty": "hard",
+      "caseScenario": "A patient presents with a suspected bacterial infection and the team is choosing empiric therapy.",
+      "imageUrl": ""
+    }
+  ]
+}
