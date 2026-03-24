@@ -1,83 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Final Exam • Pharmacy Nexus</title>
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+  <script defer src="./assets/js/app.js"></script>
 </head>
 <body data-page="final-exam">
-  <header class="site-header">
-    <div class="container nav-wrap">
-      <a class="brand" href="index.html"><span class="brand-mark">PN</span><span>Pharmacy Nexus</span></a>
-      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">☰</button>
-      <nav class="nav-links" id="navLinks">
-        <a class="nav-link" data-page="home" href="index.html">Home</a>
-        <a class="nav-link" data-page="subjects" href="subjects.html">Subjects</a>
-        <a class="nav-link" data-page="study" href="study.html">Study</a>
-        <a class="nav-link" data-page="final-exam" href="final-exam.html">Final Exam</a>
-        <a class="nav-link" data-page="dashboard" href="dashboard.html">Dashboard</a>
-      </nav>
-    </div>
-  </header>
-  <main class="section">
-    <div class="container exam-shell">
-      <section class="surface exam-config" id="examConfigRoot">
-        <span class="badge">2 Final Exam Modes</span>
-        <h1>Final Exam Builder</h1>
-        <p class="text-muted">Create a timed final from multiple subjects or from one subject with selected topics.</p>
-        <div class="form-grid" style="margin-top:20px;">
-          <select id="examMode" class="select-box">
-            <option value="multiple">Mode 1: Multiple Subjects Final</option>
-            <option value="single">Mode 2: Single Subject Final</option>
-          </select>
-          <select id="examSubject" class="select-box"></select>
-          <select id="examDifficulty" class="select-box">
-            <option value="all">All Difficulties</option>
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-          </select>
-          <input id="examQuestionCount" class="text-input" type="number" min="1" value="10" placeholder="Number of questions">
-          <input id="examTimeLimit" class="text-input" type="number" min="1" value="30" placeholder="Time limit (minutes)">
-          <div class="full">
-            <div id="topicCheckboxes" class="grid cards-2 hidden"></div>
-          </div>
-        </div>
-        <div class="question-actions"><button class="btn btn-primary" id="startExamBtn">Start Final Exam</button></div>
-      </section>
-
-      <section class="surface exam-live hidden" id="examLiveRoot">
-        <div class="card-top"><h2>Final Exam in Progress</h2><span class="timer-chip" id="examTimer">00:00</span></div>
-        <div class="exam-meta"><span class="pill" id="examCounter">Question 1 of 1</span></div>
-        <div class="progress-track"><div class="progress-bar" id="examProgressBar" style="width:0%"></div></div>
-        <div class="case-box hidden" id="examCaseBox"><strong>Case Scenario</strong><p id="examCaseText"></p></div>
-        <h3 id="examQuestionText" style="margin-top:22px;">Question text</h3>
-        <div class="options" id="examOptionsRoot"></div>
-        <div class="question-actions">
-          <button class="btn btn-soft" id="examPrevBtn">Previous</button>
-          <button class="btn btn-primary" id="examNextBtn">Next</button>
-          <button class="btn btn-accent" id="examSubmitBtn">Submit Exam</button>
-        </div>
-      </section>
-
-      <section class="surface exam-review hidden" id="examReviewRoot">
-        <span class="badge">Results</span>
-        <h2 id="examResultScore">0%</h2>
-        <p class="text-muted" id="examResultMeta">0 correct out of 0</p>
-        <div id="examReviewList"></div>
-      </section>
-    </div>
-  </main>
-  <footer class="site-footer">
-    <div class="container footer-grid">
-      <div>
-        <div class="footer-contact">Contact: pharmacynexusofficial@gmail.com</div>
-        <div class="footer-copy">For feedback, collaboration, or educational contributions, feel free to contact us.</div>
-      </div>
-      <div class="text-muted small">Exam mode uses the same topic files and loads questions on demand.</div>
-    </div>
-  </footer>
-  <script src="assets/js/app.js"></script>
+  <div id="site-shell"></div>
 </body>
 </html>

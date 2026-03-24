@@ -1,81 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard • Pharmacy Nexus</title>
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+  <script defer src="./assets/js/app.js"></script>
 </head>
 <body data-page="dashboard">
-  <header class="site-header">
-    <div class="container nav-wrap">
-      <a class="brand" href="index.html"><span class="brand-mark">PN</span><span>Pharmacy Nexus</span></a>
-      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">☰</button>
-      <nav class="nav-links" id="navLinks">
-        <a class="nav-link" data-page="home" href="index.html">Home</a>
-        <a class="nav-link" data-page="subjects" href="subjects.html">Subjects</a>
-        <a class="nav-link" data-page="study" href="study.html">Study</a>
-        <a class="nav-link" data-page="final-exam" href="final-exam.html">Final Exam</a>
-        <a class="nav-link" data-page="dashboard" href="dashboard.html">Dashboard</a>
-      </nav>
-    </div>
-  </header>
-  <main class="section">
-    <div class="container">
-      <div class="page-hero">
-        <h1>Student Dashboard</h1>
-        <p>Track topic coverage, local performance, final exam history, and focused review recommendations without needing a backend database.</p>
-      </div>
-      <section class="metrics">
-        <article class="surface metric-card"><div class="metric-label">Overall Success Rate</div><div class="metric-value" id="metricSuccessRate">0%</div></article>
-        <article class="surface metric-card"><div class="metric-label">Total Solved Questions</div><div class="metric-value" id="metricSolved">0</div></article>
-        <article class="surface metric-card"><div class="metric-label">Total Study Sessions</div><div class="metric-value" id="metricSessions">0</div></article>
-        <article class="surface metric-card"><div class="metric-label">Final Exams Completed</div><div class="metric-value" id="metricExams">0</div></article>
-      </section>
-
-      <section class="grid cards-2" style="margin-top:24px;">
-        <article class="surface card">
-          <h3>Subject Progress</h3>
-          <div class="progress-list" id="subjectProgressList"></div>
-        </article>
-        <article class="surface card" id="recommendationCard">
-          <strong>Recommended Review</strong>
-          <p class="text-muted">Start studying and your personalized recommendation will show here.</p>
-        </article>
-      </section>
-
-      <section class="grid cards-2" style="margin-top:24px;">
-        <article class="surface card">
-          <h3>Strength Areas</h3>
-          <div class="activity-list" id="strengthAreas"></div>
-        </article>
-        <article class="surface card">
-          <h3>Weak Areas</h3>
-          <div class="activity-list" id="weakAreas"></div>
-        </article>
-      </section>
-
-      <section class="grid cards-2" style="margin-top:24px;">
-        <article class="surface card">
-          <h3>Recent Activity</h3>
-          <div class="activity-list" id="recentActivity"></div>
-        </article>
-        <article class="surface card">
-          <h3>Achievements</h3>
-          <div class="badge-list" id="badgeList"></div>
-        </article>
-      </section>
-    </div>
-  </main>
-  <footer class="site-footer">
-    <div class="container footer-grid">
-      <div>
-        <div class="footer-contact">Contact: pharmacynexusofficial@gmail.com</div>
-        <div class="footer-copy">For feedback, collaboration, or educational contributions, feel free to contact us.</div>
-      </div>
-      <div class="text-muted small">All dashboard metrics are stored locally in your browser.</div>
-    </div>
-  </footer>
-  <script src="assets/js/app.js"></script>
+  <div id="site-shell"></div>
 </body>
 </html>

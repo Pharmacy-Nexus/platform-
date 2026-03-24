@@ -1,71 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Study • Pharmacy Nexus</title>
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+  <script defer src="./assets/js/app.js"></script>
 </head>
 <body data-page="study">
-  <header class="site-header">
-    <div class="container nav-wrap">
-      <a class="brand" href="index.html"><span class="brand-mark">PN</span><span>Pharmacy Nexus</span></a>
-      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">☰</button>
-      <nav class="nav-links" id="navLinks">
-        <a class="nav-link" data-page="home" href="index.html">Home</a>
-        <a class="nav-link" data-page="subjects" href="subjects.html">Subjects</a>
-        <a class="nav-link" data-page="study" href="study.html">Study</a>
-        <a class="nav-link" data-page="final-exam" href="final-exam.html">Final Exam</a>
-        <a class="nav-link" data-page="dashboard" href="dashboard.html">Dashboard</a>
-      </nav>
-    </div>
-  </header>
-  <main class="section">
-    <div class="container" id="studyRoot">
-      <div class="question-layout">
-        <aside class="surface question-aside">
-          <span class="badge" id="questionType">mcq</span>
-          <h3 id="studyTitle">Study Topic</h3>
-          <p class="text-muted" id="studySubtitle">Focused Study Mode</p>
-          <div class="counter" id="questionCounter">Question 1 of 1</div>
-          <div class="progress-item" style="margin-top:18px;">
-            <div class="card-top"><strong>Topic Coverage</strong><span id="studyProgressText">0%</span></div>
-            <div class="progress-track"><div class="progress-bar" id="studyProgressBar" style="width:0%"></div></div>
-          </div>
-          <div class="pill-list" style="margin-top:18px;">
-            <span class="pill" id="questionDifficulty">easy</span>
-            <span class="pill">No timer</span>
-            <span class="pill">Reveal answer</span>
-          </div>
-          <div class="question-actions" style="margin-top:22px;">
-            <button class="btn btn-accent btn-block" id="revealAnswerBtn">Reveal Answer</button>
-            <button class="btn btn-soft btn-block" id="prevQuestionBtn">Previous</button>
-            <button class="btn btn-primary btn-block" id="nextQuestionBtn">Next</button>
-          </div>
-          <div class="notice success hidden" id="studyFinishNotice">Study session recorded. You reached the end of this topic.</div>
-        </aside>
-        <section class="surface question-panel">
-          <h2 id="questionText">Question text</h2>
-          <div class="case-box hidden" id="caseBox"><strong>Case Scenario</strong><p id="caseText"></p></div>
-          <div class="case-box hidden" id="imageWrap"><img id="questionImage" alt="Question visual"></div>
-          <div class="options" id="optionsRoot"></div>
-          <div class="answer-box hidden" id="answerBox">
-            <p><strong>Correct Answer:</strong> <span id="correctAnswer"></span></p>
-            <p class="text-muted" id="explanation"></p>
-          </div>
-        </section>
-      </div>
-    </div>
-  </main>
-  <footer class="site-footer">
-    <div class="container footer-grid">
-      <div>
-        <div class="footer-contact">Contact: pharmacynexusofficial@gmail.com</div>
-        <div class="footer-copy">For feedback, collaboration, or educational contributions, feel free to contact us.</div>
-      </div>
-      <div class="text-muted small">Study mode tracks progress locally.</div>
-    </div>
-  </footer>
-  <script src="assets/js/app.js"></script>
+  <div id="site-shell"></div>
 </body>
 </html>
