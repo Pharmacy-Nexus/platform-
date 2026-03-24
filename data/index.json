@@ -8,7 +8,7 @@
           "id": "antibiotics",
           "name": "Antibiotics",
           "file": "data/pharmacology/antibiotics.json",
-          "questionCount": 3
+          "questionCount": 4
         },
         {
           "id": "sedatives-hypnotics",
