@@ -152,8 +152,7 @@
             <strong>Contact: pharmacynexusofficial@gmail.com</strong>
             <div>For feedback, collaboration, or educational contributions, feel free to contact us.</div>
           </div>
-          <div>Hidden admin panel: press <strong>Ctrl + Shift + A</strong></div>
-        </div>
+
       </footer>
       <div class="admin-backdrop" id="adminBackdrop"></div>
     `;
