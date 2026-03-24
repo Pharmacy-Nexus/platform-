@@ -452,7 +452,7 @@ img { max-width: 100%; display: block; }
   border: 1px solid rgba(255,255,255,0.08);
 }
 .admin-tab.active { background: rgba(201,168,79,0.18); border-color: rgba(201,168,79,0.28); }
-.admin-body { padding: 24px; background: #fbfcfe; max-height: 72vh; overflow-y: auto; }
+.admin-body { padding: 24px; background: #fbfcfe; }
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -515,12 +515,17 @@ img { max-width: 100%; display: block; }
 .admin-sidebar .brand { align-items: flex-start; }
 
 
-.admin-divider {
-  height: 1px;
-  background: rgba(15,39,71,0.08);
-  margin: 22px 0 18px;
-}
-.admin-body h3 {
-  margin: 0 0 8px;
-  color: var(--navy);
+/* Admin usability fixes */
+.dialog { max-height: 92vh; }
+.admin-shell { min-height: 0; max-height: 92vh; }
+.admin-sidebar { overflow-y: auto; }
+.admin-body { padding: 24px; background: #fbfcfe; overflow-y: auto; max-height: 92vh; }
+.admin-body [data-admin-panel] { padding-right: 6px; }
+.admin-body .form-grid { align-items: start; }
+#questionOptionsGrid { width: 100%; }
+#questionOptionsGrid .text-input { width: 100%; }
+@media (max-width: 960px) {
+  .dialog { width: min(100% - 14px, 980px); max-height: 96vh; }
+  .admin-shell { max-height: 96vh; }
+  .admin-sidebar, .admin-body { max-height: none; }
 }
