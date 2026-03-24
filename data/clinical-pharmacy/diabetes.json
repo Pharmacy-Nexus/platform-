@@ -1,0 +1,292 @@
+{
+  "questions": [
+    {
+      "id": "clinical-pharmacy-diabetes-001",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "diabetes",
+      "question": "Diabetes question 1: Which measure is central to diabetes follow-up?",
+      "options": [
+        "Monitoring glycemic control regularly",
+        "Stopping all diet counseling",
+        "Avoiding medication review",
+        "Ignoring complications screening"
+      ],
+      "correctAnswer": "Monitoring glycemic control regularly",
+      "explanation": "Follow-up in diabetes includes glycemic assessment, adherence review, lifestyle support, and screening for complications.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-diabetes-002",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "diabetes",
+      "question": "Diabetes question 2: Which measure is central to diabetes follow-up?",
+      "options": [
+        "Monitoring glycemic control regularly",
+        "Stopping all diet counseling",
+        "Avoiding medication review",
+        "Ignoring complications screening"
+      ],
+      "correctAnswer": "Monitoring glycemic control regularly",
+      "explanation": "Follow-up in diabetes includes glycemic assessment, adherence review, lifestyle support, and screening for complications.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-diabetes-003",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "diabetes",
+      "question": "Diabetes question 3: Which measure is central to diabetes follow-up?",
+      "options": [
+        "Monitoring glycemic control regularly",
+        "Stopping all diet counseling",
+        "Avoiding medication review",
+        "Ignoring complications screening"
+      ],
+      "correctAnswer": "Monitoring glycemic control regularly",
+      "explanation": "Follow-up in diabetes includes glycemic assessment, adherence review, lifestyle support, and screening for complications.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-diabetes-004",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "diabetes",
+      "question": "Diabetes question 4: Which measure is central to diabetes follow-up?",
+      "options": [
+        "Monitoring glycemic control regularly",
+        "Stopping all diet counseling",
+        "Avoiding medication review",
+        "Ignoring complications screening"
+      ],
+      "correctAnswer": "Monitoring glycemic control regularly",
+      "explanation": "Follow-up in diabetes includes glycemic assessment, adherence review, lifestyle support, and screening for complications.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-diabetes-005",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "diabetes",
+      "question": "Diabetes question 5: Which measure is central to diabetes follow-up?",
+      "options": [
+        "Monitoring glycemic control regularly",
+        "Stopping all diet counseling",
+        "Avoiding medication review",
+        "Ignoring complications screening"
+      ],
+      "correctAnswer": "Monitoring glycemic control regularly",
+      "explanation": "Follow-up in diabetes includes glycemic assessment, adherence review, lifestyle support, and screening for complications.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-diabetes-006",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "diabetes",
+      "question": "Diabetes question 6: Which measure is central to diabetes follow-up?",
+      "options": [
+        "Monitoring glycemic control regularly",
+        "Stopping all diet counseling",
+        "Avoiding medication review",
+        "Ignoring complications screening"
+      ],
+      "correctAnswer": "Monitoring glycemic control regularly",
+      "explanation": "Follow-up in diabetes includes glycemic assessment, adherence review, lifestyle support, and screening for complications.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-diabetes-007",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "diabetes",
+      "question": "Diabetes question 7: Which measure is central to diabetes follow-up?",
+      "options": [
+        "Monitoring glycemic control regularly",
+        "Stopping all diet counseling",
+        "Avoiding medication review",
+        "Ignoring complications screening"
+      ],
+      "correctAnswer": "Monitoring glycemic control regularly",
+      "explanation": "Follow-up in diabetes includes glycemic assessment, adherence review, lifestyle support, and screening for complications.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-diabetes-008",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "diabetes",
+      "question": "Diabetes question 8: Which measure is central to diabetes follow-up?",
+      "options": [
+        "Monitoring glycemic control regularly",
+        "Stopping all diet counseling",
+        "Avoiding medication review",
+        "Ignoring complications screening"
+      ],
+      "correctAnswer": "Monitoring glycemic control regularly",
+      "explanation": "Follow-up in diabetes includes glycemic assessment, adherence review, lifestyle support, and screening for complications.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-diabetes-009",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "diabetes",
+      "question": "Diabetes question 9: Which measure is central to diabetes follow-up?",
+      "options": [
+        "Monitoring glycemic control regularly",
+        "Stopping all diet counseling",
+        "Avoiding medication review",
+        "Ignoring complications screening"
+      ],
+      "correctAnswer": "Monitoring glycemic control regularly",
+      "explanation": "Follow-up in diabetes includes glycemic assessment, adherence review, lifestyle support, and screening for complications.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-diabetes-010",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "diabetes",
+      "question": "Diabetes question 10: Which measure is central to diabetes follow-up?",
+      "options": [
+        "Monitoring glycemic control regularly",
+        "Stopping all diet counseling",
+        "Avoiding medication review",
+        "Ignoring complications screening"
+      ],
+      "correctAnswer": "Monitoring glycemic control regularly",
+      "explanation": "Follow-up in diabetes includes glycemic assessment, adherence review, lifestyle support, and screening for complications.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-diabetes-011",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "diabetes",
+      "question": "Diabetes question 11: Which measure is central to diabetes follow-up?",
+      "options": [
+        "Monitoring glycemic control regularly",
+        "Stopping all diet counseling",
+        "Avoiding medication review",
+        "Ignoring complications screening"
+      ],
+      "correctAnswer": "Monitoring glycemic control regularly",
+      "explanation": "Follow-up in diabetes includes glycemic assessment, adherence review, lifestyle support, and screening for complications.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-diabetes-012",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "diabetes",
+      "question": "Diabetes question 12: Which measure is central to diabetes follow-up?",
+      "options": [
+        "Monitoring glycemic control regularly",
+        "Stopping all diet counseling",
+        "Avoiding medication review",
+        "Ignoring complications screening"
+      ],
+      "correctAnswer": "Monitoring glycemic control regularly",
+      "explanation": "Follow-up in diabetes includes glycemic assessment, adherence review, lifestyle support, and screening for complications.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-diabetes-013",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "diabetes",
+      "question": "Diabetes question 13: Which measure is central to diabetes follow-up?",
+      "options": [
+        "Monitoring glycemic control regularly",
+        "Stopping all diet counseling",
+        "Avoiding medication review",
+        "Ignoring complications screening"
+      ],
+      "correctAnswer": "Monitoring glycemic control regularly",
+      "explanation": "Follow-up in diabetes includes glycemic assessment, adherence review, lifestyle support, and screening for complications.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-diabetes-014",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "diabetes",
+      "question": "Diabetes question 14: Which measure is central to diabetes follow-up?",
+      "options": [
+        "Monitoring glycemic control regularly",
+        "Stopping all diet counseling",
+        "Avoiding medication review",
+        "Ignoring complications screening"
+      ],
+      "correctAnswer": "Monitoring glycemic control regularly",
+      "explanation": "Follow-up in diabetes includes glycemic assessment, adherence review, lifestyle support, and screening for complications.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-diabetes-015",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "diabetes",
+      "question": "Diabetes question 15: Which measure is central to diabetes follow-up?",
+      "options": [
+        "Monitoring glycemic control regularly",
+        "Stopping all diet counseling",
+        "Avoiding medication review",
+        "Ignoring complications screening"
+      ],
+      "correctAnswer": "Monitoring glycemic control regularly",
+      "explanation": "Follow-up in diabetes includes glycemic assessment, adherence review, lifestyle support, and screening for complications.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-diabetes-016",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "diabetes",
+      "question": "Diabetes question 16: Which measure is central to diabetes follow-up?",
+      "options": [
+        "Monitoring glycemic control regularly",
+        "Stopping all diet counseling",
+        "Avoiding medication review",
+        "Ignoring complications screening"
+      ],
+      "correctAnswer": "Monitoring glycemic control regularly",
+      "explanation": "Follow-up in diabetes includes glycemic assessment, adherence review, lifestyle support, and screening for complications.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    }
+  ]
+}

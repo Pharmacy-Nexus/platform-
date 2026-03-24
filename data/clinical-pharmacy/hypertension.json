@@ -1,0 +1,292 @@
+{
+  "questions": [
+    {
+      "id": "clinical-pharmacy-hypertension-001",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "hypertension",
+      "question": "Hypertension question 1: Which action best supports long-term blood pressure control?",
+      "options": [
+        "Regular follow-up and adherence to therapy",
+        "Stopping therapy once readings improve",
+        "Doubling doses without review",
+        "Ignoring lifestyle modification"
+      ],
+      "correctAnswer": "Regular follow-up and adherence to therapy",
+      "explanation": "Hypertension control improves with adherence, monitoring, lifestyle modification, and individualized pharmacotherapy.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-hypertension-002",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "hypertension",
+      "question": "Hypertension question 2: Which action best supports long-term blood pressure control?",
+      "options": [
+        "Regular follow-up and adherence to therapy",
+        "Stopping therapy once readings improve",
+        "Doubling doses without review",
+        "Ignoring lifestyle modification"
+      ],
+      "correctAnswer": "Regular follow-up and adherence to therapy",
+      "explanation": "Hypertension control improves with adherence, monitoring, lifestyle modification, and individualized pharmacotherapy.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-hypertension-003",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "hypertension",
+      "question": "Hypertension question 3: Which action best supports long-term blood pressure control?",
+      "options": [
+        "Regular follow-up and adherence to therapy",
+        "Stopping therapy once readings improve",
+        "Doubling doses without review",
+        "Ignoring lifestyle modification"
+      ],
+      "correctAnswer": "Regular follow-up and adherence to therapy",
+      "explanation": "Hypertension control improves with adherence, monitoring, lifestyle modification, and individualized pharmacotherapy.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-hypertension-004",
+      "type": "case",
+      "subject": "clinical-pharmacy",
+      "topic": "hypertension",
+      "question": "Hypertension question 4: Which action best supports long-term blood pressure control?",
+      "options": [
+        "Regular follow-up and adherence to therapy",
+        "Stopping therapy once readings improve",
+        "Doubling doses without review",
+        "Ignoring lifestyle modification"
+      ],
+      "correctAnswer": "Regular follow-up and adherence to therapy",
+      "explanation": "Hypertension control improves with adherence, monitoring, lifestyle modification, and individualized pharmacotherapy.",
+      "difficulty": "medium",
+      "caseScenario": "A patient with chronic hypertension is returning for follow-up after starting medication.",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-hypertension-005",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "hypertension",
+      "question": "Hypertension question 5: Which action best supports long-term blood pressure control?",
+      "options": [
+        "Regular follow-up and adherence to therapy",
+        "Stopping therapy once readings improve",
+        "Doubling doses without review",
+        "Ignoring lifestyle modification"
+      ],
+      "correctAnswer": "Regular follow-up and adherence to therapy",
+      "explanation": "Hypertension control improves with adherence, monitoring, lifestyle modification, and individualized pharmacotherapy.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-hypertension-006",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "hypertension",
+      "question": "Hypertension question 6: Which action best supports long-term blood pressure control?",
+      "options": [
+        "Regular follow-up and adherence to therapy",
+        "Stopping therapy once readings improve",
+        "Doubling doses without review",
+        "Ignoring lifestyle modification"
+      ],
+      "correctAnswer": "Regular follow-up and adherence to therapy",
+      "explanation": "Hypertension control improves with adherence, monitoring, lifestyle modification, and individualized pharmacotherapy.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-hypertension-007",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "hypertension",
+      "question": "Hypertension question 7: Which action best supports long-term blood pressure control?",
+      "options": [
+        "Regular follow-up and adherence to therapy",
+        "Stopping therapy once readings improve",
+        "Doubling doses without review",
+        "Ignoring lifestyle modification"
+      ],
+      "correctAnswer": "Regular follow-up and adherence to therapy",
+      "explanation": "Hypertension control improves with adherence, monitoring, lifestyle modification, and individualized pharmacotherapy.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-hypertension-008",
+      "type": "case",
+      "subject": "clinical-pharmacy",
+      "topic": "hypertension",
+      "question": "Hypertension question 8: Which action best supports long-term blood pressure control?",
+      "options": [
+        "Regular follow-up and adherence to therapy",
+        "Stopping therapy once readings improve",
+        "Doubling doses without review",
+        "Ignoring lifestyle modification"
+      ],
+      "correctAnswer": "Regular follow-up and adherence to therapy",
+      "explanation": "Hypertension control improves with adherence, monitoring, lifestyle modification, and individualized pharmacotherapy.",
+      "difficulty": "hard",
+      "caseScenario": "A patient with chronic hypertension is returning for follow-up after starting medication.",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-hypertension-009",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "hypertension",
+      "question": "Hypertension question 9: Which action best supports long-term blood pressure control?",
+      "options": [
+        "Regular follow-up and adherence to therapy",
+        "Stopping therapy once readings improve",
+        "Doubling doses without review",
+        "Ignoring lifestyle modification"
+      ],
+      "correctAnswer": "Regular follow-up and adherence to therapy",
+      "explanation": "Hypertension control improves with adherence, monitoring, lifestyle modification, and individualized pharmacotherapy.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-hypertension-010",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "hypertension",
+      "question": "Hypertension question 10: Which action best supports long-term blood pressure control?",
+      "options": [
+        "Regular follow-up and adherence to therapy",
+        "Stopping therapy once readings improve",
+        "Doubling doses without review",
+        "Ignoring lifestyle modification"
+      ],
+      "correctAnswer": "Regular follow-up and adherence to therapy",
+      "explanation": "Hypertension control improves with adherence, monitoring, lifestyle modification, and individualized pharmacotherapy.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-hypertension-011",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "hypertension",
+      "question": "Hypertension question 11: Which action best supports long-term blood pressure control?",
+      "options": [
+        "Regular follow-up and adherence to therapy",
+        "Stopping therapy once readings improve",
+        "Doubling doses without review",
+        "Ignoring lifestyle modification"
+      ],
+      "correctAnswer": "Regular follow-up and adherence to therapy",
+      "explanation": "Hypertension control improves with adherence, monitoring, lifestyle modification, and individualized pharmacotherapy.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-hypertension-012",
+      "type": "case",
+      "subject": "clinical-pharmacy",
+      "topic": "hypertension",
+      "question": "Hypertension question 12: Which action best supports long-term blood pressure control?",
+      "options": [
+        "Regular follow-up and adherence to therapy",
+        "Stopping therapy once readings improve",
+        "Doubling doses without review",
+        "Ignoring lifestyle modification"
+      ],
+      "correctAnswer": "Regular follow-up and adherence to therapy",
+      "explanation": "Hypertension control improves with adherence, monitoring, lifestyle modification, and individualized pharmacotherapy.",
+      "difficulty": "easy",
+      "caseScenario": "A patient with chronic hypertension is returning for follow-up after starting medication.",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-hypertension-013",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "hypertension",
+      "question": "Hypertension question 13: Which action best supports long-term blood pressure control?",
+      "options": [
+        "Regular follow-up and adherence to therapy",
+        "Stopping therapy once readings improve",
+        "Doubling doses without review",
+        "Ignoring lifestyle modification"
+      ],
+      "correctAnswer": "Regular follow-up and adherence to therapy",
+      "explanation": "Hypertension control improves with adherence, monitoring, lifestyle modification, and individualized pharmacotherapy.",
+      "difficulty": "medium",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-hypertension-014",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "hypertension",
+      "question": "Hypertension question 14: Which action best supports long-term blood pressure control?",
+      "options": [
+        "Regular follow-up and adherence to therapy",
+        "Stopping therapy once readings improve",
+        "Doubling doses without review",
+        "Ignoring lifestyle modification"
+      ],
+      "correctAnswer": "Regular follow-up and adherence to therapy",
+      "explanation": "Hypertension control improves with adherence, monitoring, lifestyle modification, and individualized pharmacotherapy.",
+      "difficulty": "hard",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-hypertension-015",
+      "type": "mcq",
+      "subject": "clinical-pharmacy",
+      "topic": "hypertension",
+      "question": "Hypertension question 15: Which action best supports long-term blood pressure control?",
+      "options": [
+        "Regular follow-up and adherence to therapy",
+        "Stopping therapy once readings improve",
+        "Doubling doses without review",
+        "Ignoring lifestyle modification"
+      ],
+      "correctAnswer": "Regular follow-up and adherence to therapy",
+      "explanation": "Hypertension control improves with adherence, monitoring, lifestyle modification, and individualized pharmacotherapy.",
+      "difficulty": "easy",
+      "caseScenario": "",
+      "imageUrl": ""
+    },
+    {
+      "id": "clinical-pharmacy-hypertension-016",
+      "type": "case",
+      "subject": "clinical-pharmacy",
+      "topic": "hypertension",
+      "question": "Hypertension question 16: Which action best supports long-term blood pressure control?",
+      "options": [
+        "Regular follow-up and adherence to therapy",
+        "Stopping therapy once readings improve",
+        "Doubling doses without review",
+        "Ignoring lifestyle modification"
+      ],
+      "correctAnswer": "Regular follow-up and adherence to therapy",
+      "explanation": "Hypertension control improves with adherence, monitoring, lifestyle modification, and individualized pharmacotherapy.",
+      "difficulty": "medium",
+      "caseScenario": "A patient with chronic hypertension is returning for follow-up after starting medication.",
+      "imageUrl": ""
+    }
+  ]
+}
