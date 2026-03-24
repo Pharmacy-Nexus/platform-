@@ -193,7 +193,7 @@
               <div class="stat-box"><div class="label">Subjects</div><div class="value">${subjects.length}</div></div>
               <div class="stat-box"><div class="label">Topics</div><div class="value">${topicsCount}</div></div>
               <div class="stat-box"><div class="label">Study Sets</div><div class="value">30 Q</div></div>
-              <div class="stat-box"><div class="label">Storage</div><div class="value">JSON</div></div>
+              <div class="stat-box"><div class="label">Access</div><div class="value">Unlimited</div></div>
             </div>
           </div>
         </div>
