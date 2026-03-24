@@ -8,13 +8,13 @@
           "id": "antibiotics",
           "name": "Antibiotics",
           "file": "data/pharmacology/antibiotics.json",
-          "questionCount": 4
+          "questionCount": 35
         },
         {
           "id": "sedatives-hypnotics",
           "name": "Sedatives & Hypnotics",
           "file": "data/pharmacology/sedatives-hypnotics.json",
-          "questionCount": 3
+          "questionCount": 14
         }
       ]
     },
@@ -26,13 +26,13 @@
           "id": "tablets",
           "name": "Tablets",
           "file": "data/pharmaceutics/tablets.json",
-          "questionCount": 3
+          "questionCount": 12
         },
         {
           "id": "suspensions",
           "name": "Suspensions",
           "file": "data/pharmaceutics/suspensions.json",
-          "questionCount": 3
+          "questionCount": 12
         }
       ]
     },
@@ -44,20 +44,15 @@
           "id": "hypertension",
           "name": "Hypertension",
           "file": "data/clinical-pharmacy/hypertension.json",
-          "questionCount": 3
+          "questionCount": 16
         },
         {
-          "id": "diabetes-mellitus",
+          "id": "diabetes",
           "name": "Diabetes Mellitus",
-          "file": "data/clinical-pharmacy/diabetes-mellitus.json",
-          "questionCount": 3
+          "file": "data/clinical-pharmacy/diabetes.json",
+          "questionCount": 16
         }
       ]
-    },
-    {
-      "id": "gdhngngn",
-      "name": "gdhngngn",
-      "topics": []
     }
   ]
 }
