@@ -924,7 +924,7 @@
   function injectAdmin() {
     const backdrop = document.getElementById('adminBackdrop');
     document.addEventListener('keydown', (e) => {
-      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'q') {
         e.preventDefault();
         openAdmin();
       }
