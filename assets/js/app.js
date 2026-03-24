@@ -137,8 +137,6 @@
           <button class="nav-toggle" id="navToggle" type="button" aria-label="Open navigation"><span></span></button>
           <nav class="nav-menu" id="navMenu">
             <a class="nav-link ${PAGE === 'home' ? 'is-active' : ''}" href="./index.html">Home</a>
-            <a class="nav-link ${PAGE === 'subjects' || PAGE === 'topics' || PAGE === 'topic' ? 'is-active' : ''}" href="./subjects.html">Subjects</a>
-            <a class="nav-link ${PAGE === 'study' ? 'is-active' : ''}" href="./subjects.html">Study</a>
             <a class="nav-link ${PAGE === 'final-exam' ? 'is-active' : ''}" href="./final-exam.html">Final Exam</a>
             <a class="nav-link ${PAGE === 'dashboard' ? 'is-active' : ''}" href="./dashboard.html">Dashboard</a>
             <a class="nav-link ${PAGE === 'saved' ? 'is-active' : ''}" href="./saved.html">Saved</a>
