@@ -294,12 +294,7 @@
           </div>
         </div>
       </section>
-      ${continueState ? `
-      <section style="margin-top:24px;">
-        <div class="card">
-          <div class="question-top">
-            <div>
-           
+     
         </div>
       </section>` : ''}
       <section class="ticker-section" style="margin-top:26px;">
