@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pharmacy Nexus</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+  <script defer src="./assets/js/app.js"></script>
+</head>
+<body data-page="home">
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="./index.html" aria-label="Pharmacy Nexus home">
+        <span class="brand-mark">PN</span>
+        <span>Pharmacy Nexus</span>
+      </a>
+
+      <button class="nav-toggle" id="navToggle" aria-label="Open navigation" type="button">☰</button>
+
+      <nav class="nav-links" id="navLinks" aria-label="Primary navigation">
+        <a class="nav-link" data-page="home" href="./index.html">Home</a>
+        <a class="nav-link" data-page="subjects" href="./subjects.html">Subjects</a>
+        <a class="nav-link" data-page="final-exam" href="./final-exam.html">Final Exam</a>
+        <a class="nav-link" data-page="dashboard" href="./dashboard.html">Dashboard</a>
+        <a class="nav-link" href="./saved.html">Saved</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="badge">Focused Pharmacy Learning</span>
+          <h1>Your Ultimate Pharmacy Learning Platform</h1>
+          <p>
+            Study by subject, move through organized topic sets, review explanations instantly,
+            save important questions, and prepare with structured final exam practice.
+          </p>
+          <div class="meta" style="color: rgba(255,255,255,0.82); margin-top: 22px;">
+            <span>Topic-based study flow</span>
+            <span>Instant answer feedback</span>
+            <span>Saved questions &amp; notes</span>
+          </div>
+          <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:22px;">
+            <a class="btn btn-accent" href="./subjects.html">Start Learning</a>
+            <a class="btn btn-soft" href="./dashboard.html">Continue Progress</a>
+          </div>
+        </div>
+
+        <aside class="hero-card">
+          <h3>Built for Future Pharmacists</h3>
+          <p class="text-muted" style="color: rgba(255,255,255,0.8);">
+            Browse subjects, open topics, study in sets, then track your improvement across saved questions,
+            review pages, and final exam sessions.
+          </p>
+          <div class="stat-row">
+            <div class="mini-stat">
+              <span class="text-muted" style="color: rgba(255,255,255,0.7);">Subjects</span>
+              <strong data-stat="subjects">0</strong>
+            </div>
+            <div class="mini-stat">
+              <span class="text-muted" style="color: rgba(255,255,255,0.7);">Topics</span>
+              <strong data-stat="topics">0</strong>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section page-hero">
+      <div class="container">
+        <h1>Browse Subjects</h1>
+        <p>Choose a subject to open its topics and start studying with structured question sets.</p>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top: 20px;">
+      <div class="container">
+        <div class="toolbar">
+          <input
+            id="subjectSearch"
+            class="search-box"
+            type="search"
+            placeholder="Search subjects..."
+            aria-label="Search subjects"
+          />
+        </div>
+
+        <div id="subjectsGrid" class="grid cards-3"></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
