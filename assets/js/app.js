@@ -364,7 +364,7 @@
             <h3 style="margin-top:0;">Keep Going</h3>
             ${continueState ? `
             <div class="panel home-dark-panel">
-              <strong>Resume ${continueState.topicName}</strong>
+      
               <div class="muted" style="margin-top:8px;">Continue Set ${continueState.setNumber} in ${continueState.subjectName} from question ${Math.min((continueState.questionIndex || 0) + 1, Math.max(continueState.totalQuestions || 1, 1))}.</div>
               <div style="margin-top:16px;"><a class="btn btn-primary" href="${continueLink()}">Continue Studying</a></div>
             </div>` : '<div class="panel home-dark-panel"><strong>Start Learning</strong><div class="muted" style="margin-top:8px;">Open the subjects page and begin your first study set to build progress, saved questions, and review history.</div><div style="margin-top:16px;"><a class="btn btn-primary" href="./subjects.html">Browse Subjects</a></div></div>'}
