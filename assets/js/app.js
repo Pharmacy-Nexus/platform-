@@ -8,8 +8,7 @@
     saved: 'pn_saved_v3',
     adminPass: 'pn_admin_pass_v3',
     github: 'pn_github_v3',
-    review: 'pn_review_v3',
-    retry: 'pn_retry_v3'
+    review: 'pn_review_v3'
   };
 
   const state = {
@@ -108,43 +107,6 @@
     return !exists;
   }
 
-
-  function getSavedNotes() {
-    const progress = getProgress();
-    progress.savedNotes = progress.savedNotes || {};
-    return progress.savedNotes;
-  }
-
-  function getNote(questionId) {
-    return getSavedNotes()[questionId]?.note || '';
-  }
-
-  function hasNote(questionId) {
-    return !!getNote(questionId).trim();
-  }
-
-  function setNote(question, noteText) {
-    const progress = getProgress();
-    progress.savedNotes = progress.savedNotes || {};
-    const clean = (noteText || '').trim();
-    if (!clean) {
-      delete progress.savedNotes[question.id];
-    } else {
-      progress.savedNotes[question.id] = {
-        id: question.id,
-        subject: question.subject,
-        topic: question.topic,
-        question: question.question,
-        correctAnswer: question.correctAnswer,
-        explanation: question.explanation,
-        caseScenario: question.caseScenario || '',
-        imageUrl: question.imageUrl || '',
-        note: clean
-      };
-    }
-    saveProgress(progress);
-  }
-
   function getProgress() {
     return readStore(KEYS.progress, {
       studiedQuestions: 0,
@@ -157,67 +119,11 @@
       recent: [],
       strengths: {},
       weak: {},
-      savedBank: {},
-      savedNotes: {}
+      savedBank: {}
     });
   }
 
   function saveProgress(progress) { writeStore(KEYS.progress, progress); }
-
-  function getTopicStatus(subjectId, topicId, questionCount = 0) {
-    const progress = getProgress();
-    const key = `${subjectId}:${topicId}`;
-    const stats = progress.topics[key] || null;
-    const answered = Math.min(stats?.total || 0, questionCount || stats?.total || 0);
-    const accuracy = stats?.total ? Math.round((stats.correct / stats.total) * 100) : 0;
-    const completion = questionCount ? Math.min(100, Math.round((answered / questionCount) * 100)) : 0;
-
-    if (!stats || !stats.total) return { label: 'Not Started', accuracy: 0, completion: 0, tone: 'tag' };
-    if (questionCount && answered >= questionCount && accuracy >= 85) return { label: 'Mastered', accuracy, completion: 100, tone: 'badge' };
-    if (questionCount && answered >= questionCount) return { label: 'Completed', accuracy, completion: 100, tone: 'badge' };
-    return { label: 'In Progress', accuracy, completion: completion || 1, tone: 'tag' };
-  }
-
-  function getTopicStatusMarkup(subjectId, topicId, questionCount = 0) {
-    const status = getTopicStatus(subjectId, topicId, questionCount);
-    return `
-      <span class="${status.tone}">${status.label}</span>
-      ${status.accuracy ? `<span class="tag">${status.accuracy}% Accuracy</span>` : ''}
-      ${status.completion ? `<span class="tag">${status.completion}% Complete</span>` : ''}
-    `;
-  }
-
-  function getContinueState() {
-    const progress = getProgress();
-    return progress.continueStudy || null;
-  }
-
-  function setContinueState(payload) {
-    const progress = getProgress();
-    progress.continueStudy = {
-      subjectId: payload.subjectId,
-      subjectName: payload.subjectName,
-      topicId: payload.topicId,
-      topicName: payload.topicName,
-      setNumber: payload.setNumber,
-      questionIndex: payload.questionIndex || 0,
-      totalQuestions: payload.totalQuestions || 0,
-      updatedAt: Date.now()
-    };
-    saveProgress(progress);
-  }
-
-  function clearContinueState() {
-    const progress = getProgress();
-    delete progress.continueStudy;
-    saveProgress(progress);
-  }
-
-  function continueLink() {
-    const state = getContinueState();
-    if (!state) return '';
-    return pageLink('./study.html', { subject: state.subjectId, topic: state.topicId, set: state.setNumber, resume: 1 });
-  }
 
   function ensureShell() {
     const root = document.getElementById('site-shell');
@@ -231,6 +137,8 @@
           <button class="nav-toggle" id="navToggle" type="button" aria-label="Open navigation"><span></span></button>
           <nav class="nav-menu" id="navMenu">
             <a class="nav-link ${PAGE === 'home' ? 'is-active' : ''}" href="./index.html">Home</a>
+            <a class="nav-link ${PAGE === 'subjects' || PAGE === 'topics' || PAGE === 'topic' ? 'is-active' : ''}" href="./subjects.html">Subjects</a>
+            <a class="nav-link ${PAGE === 'study' ? 'is-active' : ''}" href="./subjects.html">Study</a>
             <a class="nav-link ${PAGE === 'final-exam' ? 'is-active' : ''}" href="./final-exam.html">Final Exam</a>
             <a class="nav-link ${PAGE === 'dashboard' ? 'is-active' : ''}" href="./dashboard.html">Dashboard</a>
             <a class="nav-link ${PAGE === 'saved' ? 'is-active' : ''}" href="./saved.html">Saved</a>
@@ -244,6 +152,8 @@
             <strong>Contact: pharmacynexusofficial@gmail.com</strong>
             <div>For feedback, collaboration, or educational contributions, feel free to contact us.</div>
           </div>
+          <div>Hidden admin panel: press <strong>Ctrl + Shift + A</strong></div>
+        </div>
       </footer>
       <div class="admin-backdrop" id="adminBackdrop"></div>
     `;
@@ -264,7 +174,6 @@
     const root = document.getElementById('pageRoot');
     const progress = getProgress();
     const continueState = getContinueState();
-    const topicsCount = index.subjects.reduce((acc, s) => acc + s.topics.length, 0);
     const savedCount = Object.keys(progress.savedBank || {}).length;
     const notesCount = Object.keys(progress.savedNotes || {}).length;
     const success = progress.totalSelections ? Math.round((progress.correctSelections / progress.totalSelections) * 100) : 0;
@@ -273,12 +182,6 @@
       { label: 'Notes', value: notesCount },
       { label: 'Final Exams', value: progress.finalExamsCompleted },
       { label: 'Accuracy', value: `${success}%` }
-    ];
-    const highlights = [
-      { title: 'Focused Study Sets', text: 'Study every topic in clear 30-question sets with shuffled questions and answer options each time.' },
-      { title: 'Instant Feedback', text: 'In study mode, correct answers turn green, wrong choices turn red, and explanations appear immediately.' },
-      { title: 'Saved Questions & Notes', text: 'Star important questions, write notes, and return to them quickly from your Saved page.' },
-      { title: 'Final Exam Workflow', text: 'Use timed final exams, review detailed performance, and retry only the questions you missed.' }
     ];
     const tickerItems = [
       'Study in focused 30-question sets',
@@ -295,16 +198,16 @@
           <div>
             <span class="eyebrow">Pharmacy Nexus • Guided Learning</span>
             <h1>Your Ultimate Pharmacy Learning Platform <span>Built for Future Pharmacists</span></h1>
-            <p>Move through pharmacy topics with cleaner study flow, instant feedback, saved notes, detailed review, and polished final exam practice inside one focused learning space.</p>
+            <p>Study pharmacy topics in focused sets, review every answer with clarity, save important notes, and move into final exam practice with a cleaner learning flow.</p>
             <div class="hero-actions">
               <a class="btn btn-primary" href="./subjects.html">Start Learning</a>
               ${continueState ? `<a class="btn btn-secondary" href="${continueLink()}">Continue Studying</a>` : `<a class="btn btn-secondary" href="./saved.html">Open Saved & Notes</a>`}
             </div>
           </div>
-          <div class="hero-panel hero-home-panel">
-            <h3>Your Progress Snapshot</h3>
-            <p>${continueState ? `Last active topic: <strong>${continueState.topicName}</strong> in <strong>${continueState.subjectName}</strong>.` : 'Start your first study set to unlock progress tracking, notes, and smart review across the platform.'}</p>
-            <div class="stats-grid hero-snapshot-grid">
+          <div class="hero-panel hero-home-panel compact-home-panel">
+            <h3>${continueState ? 'Continue Your Session' : 'Build Your Study Flow'}</h3>
+            <p>${continueState ? `Last active topic: <strong>${continueState.topicName}</strong> in <strong>${continueState.subjectName}</strong>. Resume Set ${continueState.setNumber} and continue from where you stopped.` : 'Start with any subject, move through topic-based sets, and let the platform keep your saved questions, notes, and progress in one place.'}</p>
+            <div class="stats-grid hero-snapshot-grid compact-snapshot-grid">
               ${snapshot.map((item) => `<div class="stat-box"><div class="label">${item.label}</div><div class="value">${item.value}</div></div>`).join('')}
             </div>
           </div>
@@ -319,18 +222,18 @@
         </div>
       </section>
 
-      <section class="home-quick-actions">
+      <section class="home-quick-actions compact-home-section">
         <div class="section-header compact">
           <div>
             <h2>Quick Actions</h2>
-            <p>Open the most important parts of the platform without searching around.</p>
+            <p>Jump straight into the next step that matters most.</p>
           </div>
         </div>
-        <div class="card-grid quick-grid">
+        <div class="card-grid quick-grid quick-grid-3">
           <article class="card quick-card">
             <div class="meta-row"><span class="badge">Start</span></div>
             <h3>Browse Subjects</h3>
-            <p class="muted">Go directly to all subjects, then open any topic and start studying in sets.</p>
+            <p class="muted">Open all subjects, choose any topic, and begin studying in focused question sets.</p>
             <div class="action-row" style="justify-content:flex-start;"><a class="btn btn-dark" href="./subjects.html">Browse Subjects</a></div>
           </article>
           <article class="card quick-card">
@@ -342,56 +245,24 @@
           <article class="card quick-card">
             <div class="meta-row"><span class="badge">Exam</span></div>
             <h3>Enter Final Exam Mode</h3>
-            <p class="muted">Launch a timed exam, keep answers hidden, and review your performance with detailed feedback after submission.</p>
+            <p class="muted">Launch a timed exam, keep answers hidden, and review your performance after submission.</p>
             <div class="action-row" style="justify-content:flex-start;"><a class="btn btn-dark" href="./final-exam.html">Start Final Exam</a></div>
           </article>
-          <article class="card quick-card">
-            <div class="meta-row"><span class="badge">Saved</span><span class="tag">${savedCount} items</span></div>
-            <h3>Open Saved & Notes</h3>
-            <p class="muted">Review starred questions, revisit your personal notes, and filter important revision points quickly.</p>
-            <div class="action-row" style="justify-content:flex-start;"><a class="btn btn-dark" href="./saved.html">Open Saved</a></div>
-          </article>
-        </div>
-      </section>
-
-      <section class="home-highlights">
-        <div class="section-header compact">
-          <div>
-            <h2>Why Pharmacy Nexus</h2>
-            <p>Everything is designed to help students move from topic study to confident exam review without noise.</p>
-          </div>
-        </div>
-        <div class="card-grid feature-grid">
-          ${highlights.map((item) => `<article class="card feature-card"><div class="feature-icon"></div><h3>${item.title}</h3><p class="muted">${item.text}</p></article>`).join('')}
-        </div>
-      </section>
-
-      <section class="home-flow-section">
-        <div class="section-header compact">
-          <div>
-            <h2>How It Works</h2>
-            <p>One simple study path, from first topic to final review.</p>
-          </div>
-        </div>
-        <div class="home-flow-grid">
-          <article class="card flow-card"><div class="flow-step">01</div><h3>Choose a Subject</h3><p class="muted">Start from the subjects page, open any topic, and see its full question count and study sets.</p></article>
-          <article class="card flow-card"><div class="flow-step">02</div><h3>Study in Sets</h3><p class="muted">Work through 30-question sets with instant answer feedback, explanations, saved questions, and notes.</p></article>
-          <article class="card flow-card"><div class="flow-step">03</div><h3>Review and Improve</h3><p class="muted">Use review pages, retry wrong questions, saved notes, dashboard progress, and final exam mode to reinforce weak areas.</p></article>
         </div>
       </section>
 
       ${continueState || progress.recent.length ? `
-      <section class="home-progress-section">
+      <section class="home-progress-section compact-home-section">
         <div class="section-header compact">
           <div>
             <h2>Progress Snapshot</h2>
-            <p>Keep track of where you stopped and what deserves your attention next.</p>
+            <p>Your most relevant recent activity, without extra noise.</p>
           </div>
         </div>
-        <div class="analysis-grid">
+        <div class="analysis-grid compact-analysis-grid">
           <div class="card">
             <h3 style="margin-top:0;">Latest Activity</h3>
-            ${progress.recent.length ? progress.recent.slice(0, 4).map((item) => `<div class="list-item"><div><strong>${item.name}</strong><div class="muted">${item.subject}</div></div><div><strong>${item.score}</strong><div class="muted">${item.date}</div></div></div>`).join('') : '<div class="muted">No recent activity yet.</div>'}
+            ${progress.recent.length ? progress.recent.slice(0, 3).map((item) => `<div class="list-item"><div><strong>${item.name}</strong><div class="muted">${item.subject}</div></div><div><strong>${item.score}</strong><div class="muted">${item.date}</div></div></div>`).join('') : '<div class="muted">No recent activity yet.</div>'}
           </div>
           <div class="card">
             <h3 style="margin-top:0;">Keep Going</h3>
@@ -451,12 +322,10 @@
       grid.innerHTML = filtered.length ? '' : '<div class="empty-state">No topics matched your search.</div>';
       filtered.forEach((topic) => {
         const setCount = Math.ceil(topic.questionCount / SET_SIZE);
-        const statusMarkup = getTopicStatusMarkup(subject.id, topic.id, topic.questionCount);
         const card = el('article', 'card');
         card.innerHTML = `
           <div class="meta-row"><span class="badge">${topic.questionCount} Questions</span><span class="tag">${setCount} Sets</span></div>
           <h3>${topic.name}</h3>
-          <div class="meta-row" style="margin-bottom:10px;">${statusMarkup}</div>
           <p class="muted">Study in shuffled sets with instant feedback and end-of-set review.</p>
           <div class="action-row" style="margin-top:22px;justify-content:flex-start;">
             <a class="btn btn-dark" href="${pageLink('./topic.html', { subject: subject.id, topic: topic.id })}">Study</a>
@@ -484,28 +353,13 @@
     const diff = { easy: 0, medium: 0, hard: 0 };
     questions.forEach((q) => { diff[q.difficulty] = (diff[q.difficulty] || 0) + 1; });
     const setCount = Math.ceil(questions.length / SET_SIZE);
-    const topicStatus = getTopicStatus(subjectId, topicId, questions.length);
     root.innerHTML = `
-      <div class="section-header"><div><h2>${topic.name}</h2><p>${subject.name} • ${questions.length} questions • choose a study set below.</p><div class="meta-row" style="margin-top:10px;">${getTopicStatusMarkup(subjectId, topicId, questions.length)}</div></div></div>
-      <div class="summary-grid four input-row four">
+      <div class="section-header"><div><h2>${topic.name}</h2><p>${subject.name} • ${questions.length} questions • choose a study set below.</p></div></div>
+      <div class="summary-grid three input-row three">
         <div class="card summary-card"><div class="muted">Easy</div><div class="big">${diff.easy || 0}</div></div>
         <div class="card summary-card"><div class="muted">Medium</div><div class="big">${diff.medium || 0}</div></div>
         <div class="card summary-card"><div class="muted">Hard</div><div class="big">${diff.hard || 0}</div></div>
-        <div class="card summary-card"><div class="muted">Status</div><div class="big" style="font-size:1.1rem;">${topicStatus.label}</div></div>
       </div>
-      ${(() => { const c = getContinueState(); return c && c.subjectId === subjectId && c.topicId === topicId ? `
-      <section style="margin-top:26px;">
-        <div class="card">
-          <div class="question-top">
-            <div>
-              <div class="meta-row"><span class="badge">Continue This Topic</span><span class="tag">Set ${c.setNumber}</span></div>
-              <h3 style="margin:10px 0 6px;">Resume ${topic.name}</h3>
-              <p class="muted">You last stopped at question ${Math.min((c.questionIndex || 0) + 1, Math.max(c.totalQuestions || 1, 1))} in this topic.</p>
-            </div>
-            <a class="btn btn-dark" href="${continueLink()}">Resume</a>
-          </div>
-        </div>
-      </section>` : ''; })()}
       <section style="margin-top:26px;">
         <div class="card">
           <h3 style="margin-top:0;">Study Sets</h3>
@@ -561,109 +415,41 @@
     saveProgress(progress);
   }
 
-
-  function updateRetryProgress(payload) {
-    const progress = getProgress();
-    progress.studiedQuestions += payload.questionsSeen;
-    progress.studySessions += 1;
-    progress.correctSelections += payload.correct;
-    progress.totalSelections += payload.total;
-    payload.rows.forEach((row) => {
-      const subjectId = row.question.subject;
-      const topicKey = `${row.question.subject}:${row.question.topic}`;
-      progress.subjects[subjectId] = progress.subjects[subjectId] || { attempts: 0, correct: 0, total: 0 };
-      progress.subjects[subjectId].correct += row.isCorrect ? 1 : 0;
-      progress.subjects[subjectId].total += 1;
-      progress.subjects[subjectId].attempts += 1;
-      progress.topics[topicKey] = progress.topics[topicKey] || { attempts: 0, correct: 0, total: 0, topicName: row.question.topic, subjectName: row.question.subject };
-      progress.topics[topicKey].correct += row.isCorrect ? 1 : 0;
-      progress.topics[topicKey].total += 1;
-      progress.topics[topicKey].attempts += 1;
-    });
-    progress.recent.unshift({
-      type: 'study',
-      name: payload.name || 'Retry Wrong Questions',
-      subject: payload.subject || 'Mixed',
-      score: `${payload.correct}/${payload.total}`,
-      date: formatDate(new Date())
-    });
-    progress.recent = progress.recent.slice(0, 12);
-    saveProgress(progress);
-  }
-
   async function renderStudyPage() {
     const p = params();
-    const retryMode = p.get('retry') === '1';
     const subjectId = p.get('subject');
     const topicId = p.get('topic');
     const setNumber = Number(p.get('set') || '1');
     const root = document.getElementById('pageRoot');
-
-    let prepared = [];
-    let subject = null;
-    let topic = null;
-    let panelTag = '';
-    let panelTitle = '';
-    let panelMuted = '';
-    let backHref = './dashboard.html';
-    let backLabel = 'Back';
-
-    if (retryMode) {
-      const retryData = readStore(KEYS.retry, null);
-      const retryQuestions = retryData?.questions || [];
-      if (!retryQuestions.length) {
-        root.innerHTML = '<div class="empty-state">No wrong-question retry session found yet.</div>';
-        return;
-      }
-      prepared = shuffle(retryQuestions).map((q) => ({ ...q, options: shuffle([...(q.options || [])]) }));
-      panelTag = 'Retry Session';
-      panelTitle = retryData.title || 'Retry Wrong Questions';
-      panelMuted = `${prepared.length} incorrect questions selected from your last review`;
-      backHref = './review.html';
-      backLabel = 'Back to Review';
-    } else {
-      subject = state.subjectMap.get(subjectId);
-      topic = state.topicMap.get(`${subjectId}:${topicId}`);
-      if (!subject || !topic) {
-        root.innerHTML = '<div class="empty-state">Topic not found.</div>';
-        return;
-      }
-      const data = await loadTopic(subjectId, topicId);
-      prepared = prepareStudySet(data.questions || [], setNumber);
-      if (!prepared.length) {
-        root.innerHTML = '<div class="empty-state">This set does not contain questions.</div>';
-        return;
-      }
-      panelTag = `Study Set ${setNumber}`;
-      panelTitle = topic.name;
-      panelMuted = subject.name;
-      backHref = pageLink('./topic.html', { subject: subjectId, topic: topicId });
-      backLabel = 'Back to Topic';
+    const subject = state.subjectMap.get(subjectId);
+    const topic = state.topicMap.get(`${subjectId}:${topicId}`);
+    if (!subject || !topic) {
+      root.innerHTML = '<div class="empty-state">Topic not found.</div>';
+      return;
     }
-
+    const data = await loadTopic(subjectId, topicId);
+    const prepared = prepareStudySet(data.questions || [], setNumber);
+    if (!prepared.length) {
+      root.innerHTML = '<div class="empty-state">This set does not contain questions.</div>';
+      return;
+    }
     let index = 0;
-    if (!retryMode) {
-      const continueState = getContinueState();
-      if (p.get('resume') === '1' && continueState && continueState.subjectId === subjectId && continueState.topicId === topicId && Number(continueState.setNumber) === setNumber) {
-        index = Math.min(Number(continueState.questionIndex) || 0, Math.max(prepared.length - 1, 0));
-      }
-    }
     const answers = {};
 
     root.innerHTML = `
       <div class="study-shell">
         <aside class="side-panel">
           <div class="sidebar-card">
-            <div class="tag">${panelTag}</div>
-            <h3>${panelTitle}</h3>
-            <p class="muted">${panelMuted}</p>
+            <div class="tag">Study Set ${setNumber}</div>
+            <h3>${topic.name}</h3>
+            <p class="muted">${subject.name}</p>
             <div style="margin:14px 0 10px;" class="progress-bar"><div class="progress-fill" id="setProgressFill"></div></div>
             <div class="muted" id="setProgressText"></div>
           </div>
           <div class="sidebar-card">
             <h4>Rules</h4>
             <p class="muted">First choice locks immediately. Correct answer turns green, wrong choice turns red, and explanation appears right away.</p>
-            <a class="btn btn-light" href="${backHref}">${backLabel}</a>
+            <a class="btn btn-light" href="${pageLink('./topic.html', { subject: subjectId, topic: topicId })}">Back to Topic</a>
           </div>
         </aside>
         <section class="question-card" id="studyCard"></section>
@@ -676,32 +462,17 @@
 
     function drawQuestion() {
       const q = prepared[index];
-      if (!retryMode) {
-        setContinueState({
-          subjectId,
-          subjectName: subject.name,
-          topicId,
-          topicName: topic.name,
-          setNumber,
-          questionIndex: index,
-          totalQuestions: prepared.length
-        });
-      }
       const answered = answers[q.id];
       const saved = isSaved(q.id);
-      const note = getNote(q.id);
       progressFill.style.width = `${((index + 1) / prepared.length) * 100}%`;
       progressText.textContent = `Question ${index + 1} of ${prepared.length}`;
       card.innerHTML = `
         <div class="question-top">
           <div>
-            <div class="meta-row"><span class="badge">${q.difficulty.toUpperCase()}</span><span class="tag">${q.type}</span>${hasNote(q.id) ? '<span class="tag">Noted</span>' : ''}</div>
+            <div class="meta-row"><span class="badge">${q.difficulty.toUpperCase()}</span><span class="tag">${q.type}</span></div>
             <h2 class="question-title">${q.question}</h2>
           </div>
-          <div class="question-tools">
-            <button class="btn btn-light btn-note" id="toggleNoteBtn" type="button">${note ? 'Edit Note' : 'Add Note'}</button>
-            <button class="star-btn ${saved ? 'is-saved' : ''}" id="saveBtn" title="Save question">★</button>
-          </div>
+          <button class="star-btn ${saved ? 'is-saved' : ''}" id="saveBtn" title="Save question">★</button>
         </div>
         ${q.caseScenario ? `<div class="case-box"><strong>Case</strong><div class="muted" style="margin-top:8px;">${q.caseScenario}</div></div>` : ''}
         ${q.imageUrl ? `<div style="margin-top:18px;"><img src="${q.imageUrl}" alt="Question visual" style="border-radius:22px; border:1px solid var(--border);"></div>` : ''}
@@ -709,14 +480,6 @@
         <div class="explanation-box ${answered ? 'is-visible' : ''}" id="explanationBox">
           <strong>Explanation</strong>
           <div class="muted" style="margin-top:8px;">${answered ? q.explanation : ''}</div>
-        </div>
-        <div class="note-panel" id="noteBox" style="display:none;">
-          <strong>Question Note</strong>
-          <textarea class="textarea" id="noteInput" placeholder="Write your note here..." style="margin-top:10px;">${note}</textarea>
-          <div class="action-row" style="justify-content:flex-start; margin-top:12px;">
-            <button class="btn btn-dark" id="saveNoteBtn" type="button">Save Note</button>
-            <button class="btn btn-light" id="cancelNoteBtn" type="button">Cancel</button>
-          </div>
         </div>
         <div class="action-row">
           <button class="btn btn-light" id="prevBtn" ${index === 0 ? 'disabled' : ''}>Previous</button>
@@ -746,17 +509,6 @@
         const on = toggleSaved(q);
         document.getElementById('saveBtn').classList.toggle('is-saved', on);
       });
-      const noteBox = document.getElementById('noteBox');
-      document.getElementById('toggleNoteBtn').addEventListener('click', () => {
-        noteBox.style.display = noteBox.style.display === 'none' ? 'block' : 'none';
-      });
-      document.getElementById('saveNoteBtn').addEventListener('click', () => {
-        setNote(q, document.getElementById('noteInput').value);
-        drawQuestion();
-      });
-      document.getElementById('cancelNoteBtn').addEventListener('click', () => {
-        noteBox.style.display = 'none';
-      });
       document.getElementById('prevBtn').addEventListener('click', () => { if (index > 0) { index -= 1; drawQuestion(); } });
       document.getElementById('nextBtn').addEventListener('click', () => {
         if (index === prepared.length - 1) {
@@ -776,36 +528,17 @@
         isCorrect: !!answers[q.id]?.correct
       }));
       const correct = rows.filter((row) => row.isCorrect).length;
-      if (retryMode) {
-        updateRetryProgress({
-          rows,
-          correct,
-          total: rows.length,
-          questionsSeen: rows.length,
-          name: 'Retry Wrong Questions',
-          subject: 'Mixed'
-        });
-        writeStore(KEYS.review, {
-          type: 'study',
-          title: 'Retry Wrong Questions Review',
-          summary: { score: correct, total: rows.length, subject: 'Mixed', topic: 'Wrong Questions' },
-          rows,
-          actions: { back: './dashboard.html', backLabel: 'Back to Dashboard' }
-        });
-      } else {
-        updateStudyProgress({
-          subjectId, topicId: `${subjectId}:${topicId}`, topicName: topic.name, subjectName: subject.name,
-          correct, total: rows.length, questionsSeen: rows.length
-        });
-        clearContinueState();
-        writeStore(KEYS.review, {
-          type: 'study',
-          title: `${topic.name} • Set ${setNumber}`,
-          summary: { score: correct, total: rows.length, subject: subject.name, topic: topic.name },
-          rows,
-          actions: { back: pageLink('./topic.html', { subject: subjectId, topic: topicId }), backLabel: 'Back to Topic' }
-        });
-      }
+      updateStudyProgress({
+        subjectId, topicId: `${subjectId}:${topicId}`, topicName: topic.name, subjectName: subject.name,
+        correct, total: rows.length, questionsSeen: rows.length
+      });
+      writeStore(KEYS.review, {
+        type: 'study',
+        title: `${topic.name} • Set ${setNumber}`,
+        summary: { score: correct, total: rows.length, subject: subject.name, topic: topic.name },
+        rows,
+        actions: { back: pageLink('./topic.html', { subject: subjectId, topic: topicId }), backLabel: 'Back to Topic' }
+      });
       window.location.href = './review.html';
     }
 
@@ -1095,68 +828,30 @@
       ${analysis}
       <div class="review-list" id="reviewList"></div>
       <div class="action-row" style="margin-top:22px; justify-content:flex-start;">
-        ${rows.some((row) => !row.isCorrect) ? '<button class="btn btn-primary" id="retryWrongBtn" type="button">Retry Wrong Questions</button>' : ''}
         <a class="btn btn-light" href="${data.actions.back}">${data.actions.backLabel}</a>
         <a class="btn btn-dark" href="./dashboard.html">Go to Dashboard</a>
       </div>
     `;
     const list = document.getElementById('reviewList');
-    const retryWrongBtn = document.getElementById('retryWrongBtn');
-    if (retryWrongBtn) {
-      retryWrongBtn.addEventListener('click', () => {
-        const wrongQuestions = rows.filter((row) => !row.isCorrect).map((row) => row.question);
-        writeStore(KEYS.retry, {
-          title: data.title,
-          type: data.type,
-          questions: wrongQuestions,
-          sourceBack: data.actions.back,
-          sourceBackLabel: data.actions.backLabel
-        });
-        window.location.href = './study.html?retry=1';
-      });
-    }
     rows.forEach((row, idx) => {
       const saved = isSaved(row.question.id);
-      const note = getNote(row.question.id);
       const card = el('article', 'review-card');
       card.innerHTML = `
         <div class="question-top">
           <div>
-            <div class="meta-row"><div class="review-status ${row.isCorrect ? 'correct' : 'wrong'}">${row.isCorrect ? 'Correct' : 'Incorrect'}</div>${note ? '<span class="tag">Noted</span>' : ''}</div>
+            <div class="review-status ${row.isCorrect ? 'correct' : 'wrong'}">${row.isCorrect ? 'Correct' : 'Incorrect'}</div>
             <h3 style="margin:10px 0 8px;">${idx + 1}. ${row.question.question}</h3>
           </div>
-          <div class="question-tools">
-            <button class="btn btn-light btn-note note-toggle-btn" type="button">${note ? 'Edit Note' : 'Add Note'}</button>
-            <button class="star-btn ${saved ? 'is-saved' : ''}">★</button>
-          </div>
+          <button class="star-btn ${saved ? 'is-saved' : ''}">★</button>
         </div>
         ${row.question.caseScenario ? `<div class="case-box"><strong>Case</strong><div class="muted" style="margin-top:8px;">${row.question.caseScenario}</div></div>` : ''}
         <div class="review-answer"><strong>Your answer:</strong> ${row.selected}</div>
         <div class="review-answer"><strong>Correct answer:</strong> ${row.correct}</div>
         <div class="review-answer"><strong>Explanation:</strong> ${row.question.explanation}</div>
-        <div class="note-panel review-note-box" style="display:none; margin-top:14px;">
-          <strong>Question Note</strong>
-          <textarea class="textarea review-note-input" style="margin-top:10px;" placeholder="Write your note here...">${note}</textarea>
-          <div class="action-row" style="justify-content:flex-start; margin-top:12px;">
-            <button class="btn btn-dark save-review-note" type="button">Save Note</button>
-            <button class="btn btn-light cancel-review-note" type="button">Cancel</button>
-          </div>
-        </div>
       `;
       card.querySelector('.star-btn').addEventListener('click', (e) => {
         const on = toggleSaved(row.question);
         e.currentTarget.classList.toggle('is-saved', on);
-      });
-      const reviewNoteBox = card.querySelector('.review-note-box');
-      card.querySelector('.note-toggle-btn').addEventListener('click', () => {
-        reviewNoteBox.style.display = reviewNoteBox.style.display === 'none' ? 'block' : 'none';
-      });
-      card.querySelector('.save-review-note').addEventListener('click', () => {
-        setNote(row.question, card.querySelector('.review-note-input').value);
-        renderReviewPage();
-      });
-      card.querySelector('.cancel-review-note').addEventListener('click', () => {
-        reviewNoteBox.style.display = 'none';
       });
       list.appendChild(card);
     });
@@ -1188,17 +883,6 @@
         <div class="card summary-card"><div class="muted">Study Sessions</div><div class="big">${progress.studySessions}</div></div>
         <div class="card summary-card"><div class="muted">Final Exams Completed</div><div class="big">${progress.finalExamsCompleted}</div></div>
       </div>
-      ${(() => { const c = getContinueState(); return c ? `
-      <div class="card" style="margin-top:24px;">
-        <div class="question-top">
-          <div>
-            <div class="meta-row"><span class="badge">Continue Studying</span><span class="tag">Set ${c.setNumber}</span></div>
-            <h3 style="margin:10px 0 6px;">${c.topicName}</h3>
-            <p class="muted">${c.subjectName} • Resume from question ${Math.min((c.questionIndex || 0) + 1, Math.max(c.totalQuestions || 1, 1))}</p>
-          </div>
-          <a class="btn btn-dark" href="${continueLink()}">Resume</a>
-        </div>
-      </div>` : ''; })()}
       <div class="dashboard-grid" style="margin-top:24px;">
         <div class="analysis-grid">
           <div class="card"><h3 style="margin-top:0;">Strength Areas</h3>${strengths.length ? strengths.map((row) => `<div class="metric-row"><span>${row.topicName}</span><strong>${row.pct}%</strong></div>`).join('') : '<div class="muted">No data yet.</div>'}</div>
@@ -1215,160 +899,37 @@
 
   function renderSavedPage() {
     const progress = getProgress();
-    const savedMap = progress.savedBank || {};
-    const notesMap = progress.savedNotes || {};
-    const mergedMap = {};
-
-    Object.values(savedMap).forEach((q) => {
-      mergedMap[q.id] = { ...q, isSaved: true, note: notesMap[q.id]?.note || '' };
-    });
-    Object.values(notesMap).forEach((q) => {
-      mergedMap[q.id] = {
-        ...(mergedMap[q.id] || q),
-        ...q,
-        isSaved: !!savedMap[q.id],
-        note: q.note || ''
-      };
-    });
-
-    const allItems = Object.values(mergedMap);
+    const saved = Object.values(progress.savedBank || {});
     const root = document.getElementById('pageRoot');
-    const subjects = [...new Set(allItems.map((q) => q.subject).filter(Boolean))];
-    const topics = [...new Set(allItems.map((q) => q.topic).filter(Boolean))];
-
     root.innerHTML = `
-      <div class="section-header"><div><h2>Saved Questions</h2><p>Your starred questions and notes are stored locally in this browser for quick review later.</p></div></div>
-      <div class="card" style="margin-bottom:20px;">
-        <div class="action-row saved-filter-row" style="justify-content:flex-start; gap:10px; margin-top:0; margin-bottom:16px; flex-wrap:wrap;">
-          <button class="btn btn-dark saved-filter-btn is-active" data-filter="all" type="button">All</button>
-          <button class="btn btn-light saved-filter-btn" data-filter="starred" type="button">Starred</button>
-          <button class="btn btn-light saved-filter-btn" data-filter="notes" type="button">Notes</button>
-          <button class="btn btn-light saved-filter-btn" data-filter="both" type="button">Starred + Notes</button>
-        </div>
-        <div class="input-row three">
-          <select class="select" id="savedSubjectFilter">
-            <option value="all">All Subjects</option>
-            ${subjects.map((s) => `<option value="${s}">${s}</option>`).join('')}
-          </select>
-          <select class="select" id="savedTopicFilter">
-            <option value="all">All Topics</option>
-            ${topics.map((t) => `<option value="${t}">${t}</option>`).join('')}
-          </select>
-          <input class="input" id="savedSearch" placeholder="Search saved questions or notes..." />
-        </div>
-      </div>
+      <div class="section-header"><div><h2>Saved Questions</h2><p>Your starred questions are stored locally in this browser for quick review later.</p></div></div>
       <div class="saved-grid" id="savedGrid"></div>
     `;
-
     const grid = document.getElementById('savedGrid');
-    const filterButtons = [...document.querySelectorAll('.saved-filter-btn')];
-    const subjectFilter = document.getElementById('savedSubjectFilter');
-    const topicFilter = document.getElementById('savedTopicFilter');
-    const searchInput = document.getElementById('savedSearch');
-    let activeFilter = 'all';
-
-    function draw() {
-      const subjectValue = subjectFilter.value;
-      const topicValue = topicFilter.value;
-      const term = searchInput.value.trim().toLowerCase();
-      let rows = [...allItems];
-
-      if (activeFilter === 'starred') rows = rows.filter((q) => q.isSaved);
-      if (activeFilter === 'notes') rows = rows.filter((q) => (q.note || '').trim());
-      if (activeFilter === 'both') rows = rows.filter((q) => q.isSaved && (q.note || '').trim());
-      if (subjectValue !== 'all') rows = rows.filter((q) => q.subject === subjectValue);
-      if (topicValue !== 'all') rows = rows.filter((q) => q.topic === topicValue);
-      if (term) {
-        rows = rows.filter((q) =>
-          q.question.toLowerCase().includes(term) ||
-          (q.note || '').toLowerCase().includes(term) ||
-          (q.explanation || '').toLowerCase().includes(term)
-        );
-      }
-
-      grid.innerHTML = '';
-      if (!rows.length) {
-        grid.innerHTML = '<div class="empty-state">No matching saved questions or notes found.</div>';
-        return;
-      }
-
-      rows.forEach((q) => {
-        const card = el('article', 'card');
-        card.innerHTML = `
-          <div class="question-top">
-            <div>
-              <div class="meta-row"><span class="badge">${q.subject}</span><span class="tag">${q.topic}</span>${q.note ? '<span class="tag">Noted</span>' : ''}</div>
-              <h3 style="margin:0;">${q.question}</h3>
-            </div>
-            <div class="question-tools">
-              <button class="btn btn-light btn-note saved-note-toggle" type="button">${q.note ? 'Edit Note' : 'Add Note'}</button>
-              <button class="star-btn ${q.isSaved ? 'is-saved' : ''}" type="button">★</button>
-            </div>
-          </div>
-          <div class="review-answer"><strong>Correct answer:</strong> ${q.correctAnswer}</div>
-          <div class="review-answer"><strong>Explanation:</strong> ${q.explanation}</div>
-          ${q.note ? `<div class="case-box" style="margin-top:14px;"><strong>Your note</strong><div class="muted" style="margin-top:8px;">${q.note}</div></div>` : ''}
-          <div class="note-panel saved-note-box" style="display:none; margin-top:14px;">
-            <strong>Question Note</strong>
-            <textarea class="textarea saved-note-input" style="margin-top:10px;" placeholder="Write your note here...">${q.note || ''}</textarea>
-            <div class="action-row" style="justify-content:flex-start; margin-top:12px;">
-              <button class="btn btn-dark saved-note-save" type="button">Save Note</button>
-              <button class="btn btn-light saved-note-cancel" type="button">Cancel</button>
-              ${q.note ? '<button class="btn btn-danger saved-note-delete" type="button">Delete Note</button>' : ''}
-            </div>
-          </div>
-          <div class="action-row" style="justify-content:flex-start; margin-top:16px;">
-            <a class="btn btn-light" href="${pageLink('./topic.html', { subject: q.subject, topic: q.topic })}">Open Topic</a>
-          </div>
-        `;
-
-        card.querySelector('.star-btn').addEventListener('click', (e) => {
-          const on = toggleSaved(q);
-          q.isSaved = on;
-          e.currentTarget.classList.toggle('is-saved', on);
-          draw();
-        });
-
-        const noteBox = card.querySelector('.saved-note-box');
-        card.querySelector('.saved-note-toggle').addEventListener('click', () => {
-          noteBox.style.display = noteBox.style.display === 'none' ? 'block' : 'none';
-        });
-        card.querySelector('.saved-note-save').addEventListener('click', () => {
-          setNote(q, card.querySelector('.saved-note-input').value);
-          draw();
-        });
-        card.querySelector('.saved-note-cancel').addEventListener('click', () => {
-          noteBox.style.display = 'none';
-        });
-        const deleteBtn = card.querySelector('.saved-note-delete');
-        if (deleteBtn) {
-          deleteBtn.addEventListener('click', () => {
-            setNote(q, '');
-            draw();
-          });
-        }
-
-        grid.appendChild(card);
-      });
+    if (!saved.length) {
+      grid.innerHTML = '<div class="empty-state">No saved questions yet. Tap the star icon inside study or review pages.</div>';
+      return;
     }
-
-    filterButtons.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        activeFilter = btn.dataset.filter;
-        filterButtons.forEach((b) => {
-          b.classList.remove('is-active', 'btn-dark');
-          b.classList.add('btn-light');
-        });
-        btn.classList.add('is-active', 'btn-dark');
-        btn.classList.remove('btn-light');
-        draw();
+    saved.forEach((q) => {
+      const card = el('article', 'card');
+      card.innerHTML = `
+        <div class="question-top">
+          <div>
+            <div class="meta-row"><span class="badge">${q.subject}</span><span class="tag">${q.topic}</span></div>
+            <h3 style="margin:0;">${q.question}</h3>
+          </div>
+          <button class="star-btn is-saved">★</button>
+        </div>
+        <div class="review-answer"><strong>Correct answer:</strong> ${q.correctAnswer}</div>
+        <div class="review-answer"><strong>Explanation:</strong> ${q.explanation}</div>
+      `;
+      card.querySelector('.star-btn').addEventListener('click', (e) => {
+        const on = toggleSaved(q);
+        if (!on) card.remove();
+        if (!document.getElementById('savedGrid').children.length) grid.innerHTML = '<div class="empty-state">No saved questions left.</div>';
       });
+      grid.appendChild(card);
     });
-
-    subjectFilter.addEventListener('change', draw);
-    topicFilter.addEventListener('change', draw);
-    searchInput.addEventListener('input', draw);
-    draw();
   }
 
   function githubHeaders(token) {
@@ -1426,7 +987,7 @@
   function injectAdmin() {
     const backdrop = document.getElementById('adminBackdrop');
     document.addEventListener('keydown', (e) => {
-      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'q') {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
         e.preventDefault();
         openAdmin();
       }
