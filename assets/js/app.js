@@ -262,57 +262,144 @@
 
   function renderHome(index) {
     const root = document.getElementById('pageRoot');
-    const subjects = index.subjects;
-    const topicsCount = subjects.reduce((acc, s) => acc + s.topics.length, 0);
+    const progress = getProgress();
+    const continueState = getContinueState();
+    const topicsCount = index.subjects.reduce((acc, s) => acc + s.topics.length, 0);
+    const savedCount = Object.keys(progress.savedBank || {}).length;
+    const notesCount = Object.keys(progress.savedNotes || {}).length;
+    const success = progress.totalSelections ? Math.round((progress.correctSelections / progress.totalSelections) * 100) : 0;
+    const snapshot = [
+      { label: 'Saved Questions', value: savedCount },
+      { label: 'Notes', value: notesCount },
+      { label: 'Final Exams', value: progress.finalExamsCompleted },
+      { label: 'Accuracy', value: `${success}%` }
+    ];
+    const highlights = [
+      { title: 'Focused Study Sets', text: 'Study every topic in clear 30-question sets with shuffled questions and answer options each time.' },
+      { title: 'Instant Feedback', text: 'In study mode, correct answers turn green, wrong choices turn red, and explanations appear immediately.' },
+      { title: 'Saved Questions & Notes', text: 'Star important questions, write notes, and return to them quickly from your Saved page.' },
+      { title: 'Final Exam Workflow', text: 'Use timed final exams, review detailed performance, and retry only the questions you missed.' }
+    ];
+    const tickerItems = [
+      'Study in focused 30-question sets',
+      'Get instant feedback and explanations',
+      'Save important questions and notes',
+      'Resume exactly where you stopped',
+      'Practice with timed final exam modes',
+      'Review weak areas and retry missed questions'
+    ];
+
     root.innerHTML = `
-      <section class="hero">
-        <div class="hero-grid">
+      <section class="hero hero-home">
+        <div class="hero-grid hero-home-grid">
           <div>
-            <span class="eyebrow">Pharmacy Nexus • Structured Learning</span>
+            <span class="eyebrow">Pharmacy Nexus • Guided Learning</span>
             <h1>Your Ultimate Pharmacy Learning Platform <span>Built for Future Pharmacists</span></h1>
-            <p>Move subject by subject, topic by topic, study in clear 30-question sets, review every attempt in detail, and finish with a polished final exam workflow.</p>
+            <p>Move through pharmacy topics with cleaner study flow, instant feedback, saved notes, detailed review, and polished final exam practice inside one focused learning space.</p>
             <div class="hero-actions">
-              <a class="btn btn-primary" href="./subjects.html">Explore Subjects</a>
-              <a class="btn btn-secondary" href="./final-exam.html">Go to Final Exam</a>
+              <a class="btn btn-primary" href="./subjects.html">Start Learning</a>
+              ${continueState ? `<a class="btn btn-secondary" href="${continueLink()}">Continue Studying</a>` : `<a class="btn btn-secondary" href="./saved.html">Open Saved & Notes</a>`}
             </div>
           </div>
-          <div class="hero-panel">
-            <h3>Focused. Clean. Expandable.</h3>
-            <p>Study sets, instant feedback, saved questions, final exam review, dashboard tracking, and hidden admin management inside one lightweight static build.</p>
-            <div class="stats-grid">
-              <div class="stat-box"><div class="label">Subjects</div><div class="value">${subjects.length}</div></div>
-              <div class="stat-box"><div class="label">Topics</div><div class="value">${topicsCount}</div></div>
-              <div class="stat-box"><div class="label">Study Sets</div><div class="value">30 Q</div></div>
-              <div class="stat-box"><div class="label">Access</div><div class="value">Unlimited</div></div>
+          <div class="hero-panel hero-home-panel">
+            <h3>Your Progress Snapshot</h3>
+            <p>${continueState ? `Last active topic: <strong>${continueState.topicName}</strong> in <strong>${continueState.subjectName}</strong>.` : 'Start your first study set to unlock progress tracking, notes, and smart review across the platform.'}</p>
+            <div class="stats-grid hero-snapshot-grid">
+              ${snapshot.map((item) => `<div class="stat-box"><div class="label">${item.label}</div><div class="value">${item.value}</div></div>`).join('')}
             </div>
           </div>
         </div>
       </section>
-      ${(() => { const c = getContinueState(); return c ? `
-      <section style="margin-top:24px;">
-        <div class="card">
-          <div class="question-top">
-            <div>
-              <div class="meta-row"><span class="badge">Continue Studying</span><span class="tag">Set ${c.setNumber}</span></div>
-              <h3 style="margin:10px 0 6px;">${c.topicName}</h3>
-              <p class="muted">${c.subjectName} • Resume from question ${Math.min((c.questionIndex || 0) + 1, Math.max(c.totalQuestions || 1, 1))}</p>
-            </div>
-            <a class="btn btn-dark" href="${continueLink()}">Resume</a>
+
+      <section class="ticker-section">
+        <div class="ticker-shell">
+          <div class="ticker-track">
+            ${[...tickerItems, ...tickerItems].map((item) => `<span class="ticker-item">${item}</span>`).join('')}
           </div>
         </div>
-      </section>` : ''; })()}
-      <section style="margin-top:34px;">
-        <div class="section-header">
+      </section>
+
+      <section class="home-quick-actions">
+        <div class="section-header compact">
           <div>
-            <h2>Subjects Only</h2>
-            <p>Topics stay inside their subject pages to keep the homepage clean and focused.</p>
+            <h2>Quick Actions</h2>
+            <p>Open the most important parts of the platform without searching around.</p>
           </div>
         </div>
-        <div class="panel" style="margin-bottom:18px;"><input class="input" id="subjectSearch" placeholder="Search subjects..." /></div>
-        <div class="card-grid" id="subjectsGrid"></div>
+        <div class="card-grid quick-grid">
+          <article class="card quick-card">
+            <div class="meta-row"><span class="badge">Start</span></div>
+            <h3>Browse Subjects</h3>
+            <p class="muted">Go directly to all subjects, then open any topic and start studying in sets.</p>
+            <div class="action-row" style="justify-content:flex-start;"><a class="btn btn-dark" href="./subjects.html">Browse Subjects</a></div>
+          </article>
+          <article class="card quick-card">
+            <div class="meta-row"><span class="badge">Resume</span></div>
+            <h3>${continueState ? continueState.topicName : 'Continue Studying'}</h3>
+            <p class="muted">${continueState ? `Resume Set ${continueState.setNumber} in ${continueState.subjectName} from where you stopped.` : 'Return to your latest study session as soon as you begin using the platform.'}</p>
+            <div class="action-row" style="justify-content:flex-start;"><a class="btn btn-dark" href="${continueState ? continueLink() : './subjects.html'}">${continueState ? 'Resume Now' : 'Start a Set'}</a></div>
+          </article>
+          <article class="card quick-card">
+            <div class="meta-row"><span class="badge">Exam</span></div>
+            <h3>Enter Final Exam Mode</h3>
+            <p class="muted">Launch a timed exam, keep answers hidden, and review your performance with detailed feedback after submission.</p>
+            <div class="action-row" style="justify-content:flex-start;"><a class="btn btn-dark" href="./final-exam.html">Start Final Exam</a></div>
+          </article>
+          <article class="card quick-card">
+            <div class="meta-row"><span class="badge">Saved</span><span class="tag">${savedCount} items</span></div>
+            <h3>Open Saved & Notes</h3>
+            <p class="muted">Review starred questions, revisit your personal notes, and filter important revision points quickly.</p>
+            <div class="action-row" style="justify-content:flex-start;"><a class="btn btn-dark" href="./saved.html">Open Saved</a></div>
+          </article>
+        </div>
       </section>
+
+      <section class="home-highlights">
+        <div class="section-header compact">
+          <div>
+            <h2>Why Pharmacy Nexus</h2>
+            <p>Everything is designed to help students move from topic study to confident exam review without noise.</p>
+          </div>
+        </div>
+        <div class="card-grid feature-grid">
+          ${highlights.map((item) => `<article class="card feature-card"><div class="feature-icon"></div><h3>${item.title}</h3><p class="muted">${item.text}</p></article>`).join('')}
+        </div>
+      </section>
+
+      <section class="home-flow-section">
+        <div class="section-header compact">
+          <div>
+            <h2>How It Works</h2>
+            <p>One simple study path, from first topic to final review.</p>
+          </div>
+        </div>
+        <div class="home-flow-grid">
+          <article class="card flow-card"><div class="flow-step">01</div><h3>Choose a Subject</h3><p class="muted">Start from the subjects page, open any topic, and see its full question count and study sets.</p></article>
+          <article class="card flow-card"><div class="flow-step">02</div><h3>Study in Sets</h3><p class="muted">Work through 30-question sets with instant answer feedback, explanations, saved questions, and notes.</p></article>
+          <article class="card flow-card"><div class="flow-step">03</div><h3>Review and Improve</h3><p class="muted">Use review pages, retry wrong questions, saved notes, dashboard progress, and final exam mode to reinforce weak areas.</p></article>
+        </div>
+      </section>
+
+      ${continueState || progress.recent.length ? `
+      <section class="home-progress-section">
+        <div class="section-header compact">
+          <div>
+            <h2>Progress Snapshot</h2>
+            <p>Keep track of where you stopped and what deserves your attention next.</p>
+          </div>
+        </div>
+        <div class="analysis-grid">
+          <div class="card">
+            <h3 style="margin-top:0;">Latest Activity</h3>
+            ${progress.recent.length ? progress.recent.slice(0, 4).map((item) => `<div class="list-item"><div><strong>${item.name}</strong><div class="muted">${item.subject}</div></div><div><strong>${item.score}</strong><div class="muted">${item.date}</div></div></div>`).join('') : '<div class="muted">No recent activity yet.</div>'}
+          </div>
+          <div class="card">
+            <h3 style="margin-top:0;">Keep Going</h3>
+            ${continueState ? `<div class="panel"><strong>Resume ${continueState.topicName}</strong><div class="muted" style="margin-top:8px;">Continue Set ${continueState.setNumber} in ${continueState.subjectName} from question ${Math.min((continueState.questionIndex || 0) + 1, Math.max(continueState.totalQuestions || 1, 1))}.</div><div class="action-row" style="justify-content:flex-start; margin-top:16px;"><a class="btn btn-dark" href="${continueLink()}">Continue Studying</a></div></div>` : `<div class="panel"><strong>Start your first session</strong><div class="muted" style="margin-top:8px;">Open Subjects and begin with any topic to unlock your personal study flow.</div><div class="action-row" style="justify-content:flex-start; margin-top:16px;"><a class="btn btn-dark" href="./subjects.html">Go to Subjects</a></div></div>`}
+          </div>
+        </div>
+      </section>` : ''}
     `;
-    renderSubjectCards(subjects, document.getElementById('subjectsGrid'), document.getElementById('subjectSearch'));
   }
 
   function renderSubjectCards(subjects, target, searchInput) {
