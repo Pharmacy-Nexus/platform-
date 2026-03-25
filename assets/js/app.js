@@ -8,7 +8,8 @@
     saved: 'pn_saved_v3',
     adminPass: 'pn_admin_pass_v3',
     github: 'pn_github_v3',
-    review: 'pn_review_v3'
+    review: 'pn_review_v3',
+    retry: 'pn_retry_v3'
   };
 
   const state = {
@@ -446,28 +447,92 @@
     saveProgress(progress);
   }
 
+
+  function updateRetryProgress(payload) {
+    const progress = getProgress();
+    progress.studiedQuestions += payload.questionsSeen;
+    progress.studySessions += 1;
+    progress.correctSelections += payload.correct;
+    progress.totalSelections += payload.total;
+    payload.rows.forEach((row) => {
+      const subjectId = row.question.subject;
+      const topicKey = `${row.question.subject}:${row.question.topic}`;
+      progress.subjects[subjectId] = progress.subjects[subjectId] || { attempts: 0, correct: 0, total: 0 };
+      progress.subjects[subjectId].correct += row.isCorrect ? 1 : 0;
+      progress.subjects[subjectId].total += 1;
+      progress.subjects[subjectId].attempts += 1;
+      progress.topics[topicKey] = progress.topics[topicKey] || { attempts: 0, correct: 0, total: 0, topicName: row.question.topic, subjectName: row.question.subject };
+      progress.topics[topicKey].correct += row.isCorrect ? 1 : 0;
+      progress.topics[topicKey].total += 1;
+      progress.topics[topicKey].attempts += 1;
+    });
+    progress.recent.unshift({
+      type: 'study',
+      name: payload.name || 'Retry Wrong Questions',
+      subject: payload.subject || 'Mixed',
+      score: `${payload.correct}/${payload.total}`,
+      date: formatDate(new Date())
+    });
+    progress.recent = progress.recent.slice(0, 12);
+    saveProgress(progress);
+  }
+
   async function renderStudyPage() {
     const p = params();
+    const retryMode = p.get('retry') === '1';
     const subjectId = p.get('subject');
     const topicId = p.get('topic');
     const setNumber = Number(p.get('set') || '1');
     const root = document.getElementById('pageRoot');
-    const subject = state.subjectMap.get(subjectId);
-    const topic = state.topicMap.get(`${subjectId}:${topicId}`);
-    if (!subject || !topic) {
-      root.innerHTML = '<div class="empty-state">Topic not found.</div>';
-      return;
+
+    let prepared = [];
+    let subject = null;
+    let topic = null;
+    let panelTag = '';
+    let panelTitle = '';
+    let panelMuted = '';
+    let backHref = './dashboard.html';
+    let backLabel = 'Back';
+
+    if (retryMode) {
+      const retryData = readStore(KEYS.retry, null);
+      const retryQuestions = retryData?.questions || [];
+      if (!retryQuestions.length) {
+        root.innerHTML = '<div class="empty-state">No wrong-question retry session found yet.</div>';
+        return;
+      }
+      prepared = shuffle(retryQuestions).map((q) => ({ ...q, options: shuffle([...(q.options || [])]) }));
+      panelTag = 'Retry Session';
+      panelTitle = retryData.title || 'Retry Wrong Questions';
+      panelMuted = `${prepared.length} incorrect questions selected from your last review`;
+      backHref = './review.html';
+      backLabel = 'Back to Review';
+    } else {
+      subject = state.subjectMap.get(subjectId);
+      topic = state.topicMap.get(`${subjectId}:${topicId}`);
+      if (!subject || !topic) {
+        root.innerHTML = '<div class="empty-state">Topic not found.</div>';
+        return;
+      }
+      const data = await loadTopic(subjectId, topicId);
+      prepared = prepareStudySet(data.questions || [], setNumber);
+      if (!prepared.length) {
+        root.innerHTML = '<div class="empty-state">This set does not contain questions.</div>';
+        return;
+      }
+      panelTag = `Study Set ${setNumber}`;
+      panelTitle = topic.name;
+      panelMuted = subject.name;
+      backHref = pageLink('./topic.html', { subject: subjectId, topic: topicId });
+      backLabel = 'Back to Topic';
     }
-    const data = await loadTopic(subjectId, topicId);
-    const prepared = prepareStudySet(data.questions || [], setNumber);
-    if (!prepared.length) {
-      root.innerHTML = '<div class="empty-state">This set does not contain questions.</div>';
-      return;
-    }
+
     let index = 0;
-    const continueState = getContinueState();
-    if (p.get('resume') === '1' && continueState && continueState.subjectId === subjectId && continueState.topicId === topicId && Number(continueState.setNumber) === setNumber) {
-      index = Math.min(Number(continueState.questionIndex) || 0, Math.max(prepared.length - 1, 0));
+    if (!retryMode) {
+      const continueState = getContinueState();
+      if (p.get('resume') === '1' && continueState && continueState.subjectId === subjectId && continueState.topicId === topicId && Number(continueState.setNumber) === setNumber) {
+        index = Math.min(Number(continueState.questionIndex) || 0, Math.max(prepared.length - 1, 0));
+      }
     }
     const answers = {};
 
@@ -475,16 +540,16 @@
       <div class="study-shell">
         <aside class="side-panel">
           <div class="sidebar-card">
-            <div class="tag">Study Set ${setNumber}</div>
-            <h3>${topic.name}</h3>
-            <p class="muted">${subject.name}</p>
+            <div class="tag">${panelTag}</div>
+            <h3>${panelTitle}</h3>
+            <p class="muted">${panelMuted}</p>
             <div style="margin:14px 0 10px;" class="progress-bar"><div class="progress-fill" id="setProgressFill"></div></div>
             <div class="muted" id="setProgressText"></div>
           </div>
           <div class="sidebar-card">
             <h4>Rules</h4>
             <p class="muted">First choice locks immediately. Correct answer turns green, wrong choice turns red, and explanation appears right away.</p>
-            <a class="btn btn-light" href="${pageLink('./topic.html', { subject: subjectId, topic: topicId })}">Back to Topic</a>
+            <a class="btn btn-light" href="${backHref}">${backLabel}</a>
           </div>
         </aside>
         <section class="question-card" id="studyCard"></section>
@@ -497,15 +562,17 @@
 
     function drawQuestion() {
       const q = prepared[index];
-      setContinueState({
-        subjectId,
-        subjectName: subject.name,
-        topicId,
-        topicName: topic.name,
-        setNumber,
-        questionIndex: index,
-        totalQuestions: prepared.length
-      });
+      if (!retryMode) {
+        setContinueState({
+          subjectId,
+          subjectName: subject.name,
+          topicId,
+          topicName: topic.name,
+          setNumber,
+          questionIndex: index,
+          totalQuestions: prepared.length
+        });
+      }
       const answered = answers[q.id];
       const saved = isSaved(q.id);
       const note = getNote(q.id);
@@ -595,18 +662,36 @@
         isCorrect: !!answers[q.id]?.correct
       }));
       const correct = rows.filter((row) => row.isCorrect).length;
-      updateStudyProgress({
-        subjectId, topicId: `${subjectId}:${topicId}`, topicName: topic.name, subjectName: subject.name,
-        correct, total: rows.length, questionsSeen: rows.length
-      });
-      clearContinueState();
-      writeStore(KEYS.review, {
-        type: 'study',
-        title: `${topic.name} • Set ${setNumber}`,
-        summary: { score: correct, total: rows.length, subject: subject.name, topic: topic.name },
-        rows,
-        actions: { back: pageLink('./topic.html', { subject: subjectId, topic: topicId }), backLabel: 'Back to Topic' }
-      });
+      if (retryMode) {
+        updateRetryProgress({
+          rows,
+          correct,
+          total: rows.length,
+          questionsSeen: rows.length,
+          name: 'Retry Wrong Questions',
+          subject: 'Mixed'
+        });
+        writeStore(KEYS.review, {
+          type: 'study',
+          title: 'Retry Wrong Questions Review',
+          summary: { score: correct, total: rows.length, subject: 'Mixed', topic: 'Wrong Questions' },
+          rows,
+          actions: { back: './dashboard.html', backLabel: 'Back to Dashboard' }
+        });
+      } else {
+        updateStudyProgress({
+          subjectId, topicId: `${subjectId}:${topicId}`, topicName: topic.name, subjectName: subject.name,
+          correct, total: rows.length, questionsSeen: rows.length
+        });
+        clearContinueState();
+        writeStore(KEYS.review, {
+          type: 'study',
+          title: `${topic.name} • Set ${setNumber}`,
+          summary: { score: correct, total: rows.length, subject: subject.name, topic: topic.name },
+          rows,
+          actions: { back: pageLink('./topic.html', { subject: subjectId, topic: topicId }), backLabel: 'Back to Topic' }
+        });
+      }
       window.location.href = './review.html';
     }
 
@@ -896,11 +981,26 @@
       ${analysis}
       <div class="review-list" id="reviewList"></div>
       <div class="action-row" style="margin-top:22px; justify-content:flex-start;">
+        ${rows.some((row) => !row.isCorrect) ? '<button class="btn btn-primary" id="retryWrongBtn" type="button">Retry Wrong Questions</button>' : ''}
         <a class="btn btn-light" href="${data.actions.back}">${data.actions.backLabel}</a>
         <a class="btn btn-dark" href="./dashboard.html">Go to Dashboard</a>
       </div>
     `;
     const list = document.getElementById('reviewList');
+    const retryWrongBtn = document.getElementById('retryWrongBtn');
+    if (retryWrongBtn) {
+      retryWrongBtn.addEventListener('click', () => {
+        const wrongQuestions = rows.filter((row) => !row.isCorrect).map((row) => row.question);
+        writeStore(KEYS.retry, {
+          title: data.title,
+          type: data.type,
+          questions: wrongQuestions,
+          sourceBack: data.actions.back,
+          sourceBackLabel: data.actions.backLabel
+        });
+        window.location.href = './study.html?retry=1';
+      });
+    }
     rows.forEach((row, idx) => {
       const saved = isSaved(row.question.id);
       const note = getNote(row.question.id);
