@@ -303,8 +303,7 @@
               <h3 style="margin:10px 0 6px;">${continueState.topicName}</h3>
               <p class="muted">${continueState.subjectName} • Resume from question ${Math.min((continueState.questionIndex || 0) + 1, Math.max(continueState.totalQuestions || 1, 1))}</p>
             </div>
-            <a class="btn btn-dark" href="${continueLink()}">Resume</a>
-          </div>
+           
         </div>
       </section>` : ''}
       <section class="ticker-section" style="margin-top:26px;">
