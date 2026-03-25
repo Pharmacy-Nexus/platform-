@@ -285,22 +285,13 @@
           <div class="hero-panel">
             <h3>Focused. Clean. Expandable.</h3>
             <p>Study sets, instant feedback, saved questions, final exam review, dashboard tracking, and hidden admin management inside one lightweight static build.</p>
-            <div class="hero-visual">
-  <div class="hero-grid">
-  <div>
-    <span class="eyebrow">Pharmacy Nexus • Structured Learning</span>
-    <h1>Your Ultimate Pharmacy Learning Platform <span>Built for Future Pharmacists</span></h1>
-    <p>Move subject by subject, topic by topic, study in clear 30-question sets, review every attempt in detail, and finish with a polished final exam workflow.</p>
-    <div class="hero-actions">
-      <a class="btn btn-primary" href="./subjects.html">Explore Subjects</a>
-      <a class="btn btn-secondary" href="./final-exam.html">Go to Final Exam</a>
-    </div>
-  </div>
-
-  <div class="hero-visual">
-    <img src="./assets/images/hero-pharmacy-visual.png" alt="Pharmacy Nexus hero illustration" />
-  </div>
-</div>
+            <div class="stats-grid">
+              <div class="stat-box"><div class="label">Subjects</div><div class="value">${subjects.length}</div></div>
+              <div class="stat-box"><div class="label">Topics</div><div class="value">${topicsCount}</div></div>
+              <div class="stat-box"><div class="label">Saved Questions</div><div class="value">${savedCount}</div></div>
+              <div class="stat-box"><div class="label">Accuracy</div><div class="value">${accuracy}%</div></div>
+            </div>
+          </div>
         </div>
       </section>
       ${continueState ? `
