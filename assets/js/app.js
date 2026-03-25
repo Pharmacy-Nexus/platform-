@@ -266,11 +266,10 @@
     const topicsCount = subjects.reduce((acc, s) => acc + s.topics.length, 0);
     const progress = getProgress();
     const continueState = getContinueState();
+    const recent = progress.recent.slice(0, 4);
     const savedCount = Object.keys(progress.savedBank || {}).length;
     const notesCount = Object.keys(progress.savedNotes || {}).length;
-    const success = progress.totalSelections ? Math.round((progress.correctSelections / progress.totalSelections) * 100) : 0;
-    const recent = progress.recent || [];
-
+    const accuracy = progress.totalSelections ? Math.round((progress.correctSelections / progress.totalSelections) * 100) : 0;
     root.innerHTML = `
       <section class="hero">
         <div class="hero-grid">
@@ -284,18 +283,17 @@
             </div>
           </div>
           <div class="hero-panel">
-            <h3>Your Progress Snapshot</h3>
-            <p>${progress.studiedQuestions ? 'Keep building your progress through saved questions, notes, review pages, and timed final exams.' : 'Start your first study set to unlock progress tracking, notes, and smart review across the platform.'}</p>
+            <h3>Focused. Clean. Expandable.</h3>
+            <p>Study sets, instant feedback, saved questions, final exam review, dashboard tracking, and hidden admin management inside one lightweight static build.</p>
             <div class="stats-grid">
               <div class="stat-box"><div class="label">Subjects</div><div class="value">${subjects.length}</div></div>
               <div class="stat-box"><div class="label">Topics</div><div class="value">${topicsCount}</div></div>
-              <div class="stat-box"><div class="label">Saved</div><div class="value">${savedCount}</div></div>
-              <div class="stat-box"><div class="label">Accuracy</div><div class="value">${success}%</div></div>
+              <div class="stat-box"><div class="label">Saved Questions</div><div class="value">${savedCount}</div></div>
+              <div class="stat-box"><div class="label">Accuracy</div><div class="value">${accuracy}%</div></div>
             </div>
           </div>
         </div>
       </section>
-
       ${continueState ? `
       <section style="margin-top:24px;">
         <div class="card">
@@ -309,77 +307,67 @@
           </div>
         </div>
       </section>` : ''}
-
-      <section style="margin-top:24px;">
-        <div class="panel" style="overflow:hidden; white-space:nowrap;">
-          <marquee behavior="scroll" direction="left" scrollamount="5">
-            <span style="margin-right:26px;">• Study in focused 30-question sets</span>
-            <span style="margin-right:26px;">• Get instant answer feedback and explanations</span>
-            <span style="margin-right:26px;">• Save important questions and notes</span>
-            <span style="margin-right:26px;">• Retry only the questions you missed</span>
-            <span style="margin-right:26px;">• Track performance through dashboard and final exams</span>
-          </marquee>
+      <section class="ticker-section" style="margin-top:26px;">
+        <div class="ticker-shell">
+          <div class="ticker-track">
+            <span>• Study in focused 30-question sets</span>
+            <span>• Get instant answer feedback and explanations</span>
+            <span>• Save important questions and notes</span>
+            <span>• Retry only the questions you missed</span>
+            <span>• Practice with timed final exams</span>
+            <span>• Study in focused 30-question sets</span>
+            <span>• Get instant answer feedback and explanations</span>
+            <span>• Save important questions and notes</span>
+            <span>• Retry only the questions you missed</span>
+            <span>• Practice with timed final exams</span>
+          </div>
         </div>
       </section>
-
-      <section style="margin-top:34px;">
+      <section style="margin-top:30px;">
         <div class="section-header">
           <div>
             <h2>How It Works</h2>
             <p>One simple study path, from first topic to final review.</p>
           </div>
         </div>
-        <div class="card-grid">
-          <article class="card soft">
-            <div class="meta-row"><span class="badge">01</span></div>
+        <div class="card-grid home-flow-grid">
+          <article class="card home-dark-card">
+            <div class="home-step-number">01</div>
             <h3>Choose a Subject</h3>
-            <p class="muted">Start from the subjects page, open any topic, and see its question count and study sets.</p>
+            <p class="muted">Start from the subjects page, open any topic, and see its full question count and study sets.</p>
           </article>
-          <article class="card soft">
-            <div class="meta-row"><span class="badge">02</span></div>
+          <article class="card home-dark-card">
+            <div class="home-step-number">02</div>
             <h3>Study in Sets</h3>
-            <p class="muted">Work through shuffled 30-question sets with instant feedback, explanations, saved questions, and notes.</p>
+            <p class="muted">Work through 30-question sets with instant answer feedback, explanations, saved questions, and notes.</p>
           </article>
-          <article class="card soft">
-            <div class="meta-row"><span class="badge">03</span></div>
+          <article class="card home-dark-card">
+            <div class="home-step-number">03</div>
             <h3>Review and Improve</h3>
             <p class="muted">Use review pages, retry wrong questions, dashboard progress, and final exam mode to reinforce weak areas.</p>
           </article>
         </div>
       </section>
-
-      <section style="margin-top:34px; margin-bottom:10px;">
+      <section style="margin-top:30px;">
         <div class="section-header">
           <div>
             <h2>Progress Snapshot</h2>
             <p>Keep track of where you stopped and what deserves your attention next.</p>
           </div>
         </div>
-        <div class="input-row two">
-          <div class="card">
+        <div class="analysis-grid home-progress-grid">
+          <div class="card home-dark-card">
             <h3 style="margin-top:0;">Latest Activity</h3>
-            ${recent.length ? recent.slice(0, 4).map((item) => `
-              <div class="list-item">
-                <div><strong>${item.name}</strong><div class="muted">${item.subject}</div></div>
-                <div><strong>${item.score}</strong><div class="muted">${item.date}</div></div>
-              </div>
-            `).join('') : '<div class="muted">No study activity yet. Start your first set to build your progress history.</div>'}
+            ${recent.length ? recent.map((item) => `<div class="list-item home-dark-item"><div><strong>${item.name}</strong><div class="muted">${item.subject}</div></div><div><strong>${item.score}</strong><div class="muted">${item.date}</div></div></div>`).join('') : '<div class="empty-state">No recent activity yet.</div>'}
           </div>
-          <div class="card">
+          <div class="card home-dark-card">
             <h3 style="margin-top:0;">Keep Going</h3>
             ${continueState ? `
-              <div class="panel">
-                <strong>Resume ${continueState.topicName}</strong>
-                <div class="muted" style="margin-top:8px;">Continue Set ${continueState.setNumber} in ${continueState.subjectName} from question ${Math.min((continueState.questionIndex || 0) + 1, Math.max(continueState.totalQuestions || 1, 1))}.</div>
-                <div class="action-row" style="justify-content:flex-start; margin-top:14px;"><a class="btn btn-dark" href="${continueLink()}">Continue Studying</a></div>
-              </div>
-            ` : `
-              <div class="panel">
-                <strong>Ready to begin?</strong>
-                <div class="muted" style="margin-top:8px;">Open the subjects page, choose a topic, and start your first 30-question set.</div>
-                <div class="action-row" style="justify-content:flex-start; margin-top:14px;"><a class="btn btn-dark" href="./subjects.html">Browse Subjects</a></div>
-              </div>
-            `}
+            <div class="panel home-dark-panel">
+              <strong>Resume ${continueState.topicName}</strong>
+              <div class="muted" style="margin-top:8px;">Continue Set ${continueState.setNumber} in ${continueState.subjectName} from question ${Math.min((continueState.questionIndex || 0) + 1, Math.max(continueState.totalQuestions || 1, 1))}.</div>
+              <div style="margin-top:16px;"><a class="btn btn-primary" href="${continueLink()}">Continue Studying</a></div>
+            </div>` : '<div class="panel home-dark-panel"><strong>Start Learning</strong><div class="muted" style="margin-top:8px;">Open the subjects page and begin your first study set to build progress, saved questions, and review history.</div><div style="margin-top:16px;"><a class="btn btn-primary" href="./subjects.html">Browse Subjects</a></div></div>'}
             <div class="metric-list" style="margin-top:18px;">
               <div class="metric-row"><span>Saved Questions</span><strong>${savedCount}</strong></div>
               <div class="metric-row"><span>Notes</span><strong>${notesCount}</strong></div>
