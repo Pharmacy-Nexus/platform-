@@ -299,10 +299,6 @@
         <div class="card">
           <div class="question-top">
             <div>
-              <div class="meta-row"><span class="badge">Continue Studying</span><span class="tag">Set ${continueState.setNumber}</span></div>
-              <h3 style="margin:10px 0 6px;">${continueState.topicName}</h3>
-              <p class="muted">${continueState.subjectName} • Resume from question ${Math.min((continueState.questionIndex || 0) + 1, Math.max(continueState.totalQuestions || 1, 1))}</p>
-            </div>
            
         </div>
       </section>` : ''}
