@@ -295,7 +295,6 @@
         </div>
       </section>
       
-      </section>` : ''}
       <section class="ticker-section" style="margin-top:26px;">
         <div class="ticker-shell">
           <div class="ticker-track">
