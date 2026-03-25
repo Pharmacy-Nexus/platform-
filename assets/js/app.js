@@ -9,7 +9,8 @@
     adminPass: 'pn_admin_pass_v3',
     github: 'pn_github_v3',
     review: 'pn_review_v3',
-    retry: 'pn_retry_v3'
+    retry: 'pn_retry_v3',
+    daily: 'pn_daily_v1'
   };
 
   const state = {
@@ -263,15 +264,19 @@
   function renderHome(index) {
     const root = document.getElementById('pageRoot');
     const subjects = index.subjects;
-    const topicsCount = subjects.reduce((acc, s) => acc + s.topics.length, 0);
     const progress = getProgress();
     const continueState = getContinueState();
     const recent = progress.recent.slice(0, 4);
     const savedCount = Object.keys(progress.savedBank || {}).length;
     const notesCount = Object.keys(progress.savedNotes || {}).length;
     const accuracy = progress.totalSelections ? Math.round((progress.correctSelections / progress.totalSelections) * 100) : 0;
+
     root.innerHTML = `
-      <section class="hero">
+      <section class="hero hero-graphic-shell">
+        <span class="hero-chem hero-chem-a">C₂₀H₂₅N₃O</span>
+        <span class="hero-chem hero-chem-b">C₈H₉NO₂</span>
+        <span class="hero-orb hero-orb-a"></span>
+        <span class="hero-orb hero-orb-b"></span>
         <div class="hero-grid">
           <div>
             <span class="eyebrow">Pharmacy Nexus • Structured Learning</span>
@@ -286,15 +291,15 @@
             <h3>Focused. Clean. Expandable.</h3>
             <p>Study sets, instant feedback, saved questions, final exam review, dashboard tracking, and hidden admin management inside one lightweight static build.</p>
             <div class="stats-grid">
-              <div class="stat-box"><div class="label">Subjects</div><div class="value">${subjects.length}</div></div>
-              <div class="stat-box"><div class="label">Topics</div><div class="value">${topicsCount}</div></div>
               <div class="stat-box"><div class="label">Saved Questions</div><div class="value">${savedCount}</div></div>
+              <div class="stat-box"><div class="label">Notes</div><div class="value">${notesCount}</div></div>
+              <div class="stat-box"><div class="label">Final Exams</div><div class="value">${progress.finalExamsCompleted}</div></div>
               <div class="stat-box"><div class="label">Accuracy</div><div class="value">${accuracy}%</div></div>
             </div>
           </div>
         </div>
       </section>
-      
+
       <section class="ticker-section" style="margin-top:26px;">
         <div class="ticker-shell">
           <div class="ticker-track">
@@ -311,6 +316,47 @@
           </div>
         </div>
       </section>
+
+      <section class="home-daily-section" style="margin-top:30px;">
+        <div class="section-header">
+          <div>
+            <h2>Daily Challenge</h2>
+            <p>Pick one or more subjects and launch a fast 5-question challenge from your existing question bank.</p>
+          </div>
+        </div>
+        <div class="card home-dark-card daily-challenge-card">
+          <div class="daily-accent daily-accent-a"></div>
+          <div class="daily-accent daily-accent-b"></div>
+          <div class="daily-header-row">
+            <div>
+              <div class="meta-row">
+                <span class="badge">5 Questions</span>
+                <span class="tag">Quick Practice</span>
+              </div>
+              <h3 style="margin: 8px 0 6px;">Build Today’s Challenge</h3>
+              <p class="muted">Choose any combination of subjects. We will pull 5 shuffled questions from your existing data.</p>
+            </div>
+            <div class="daily-icons" aria-hidden="true">
+              <span class="daily-icon-pill"></span>
+              <span class="daily-icon-ring"></span>
+              <span class="daily-icon-cross"></span>
+            </div>
+          </div>
+          <div class="daily-subject-picks" id="dailySubjectPicks">
+            ${subjects.map((subject) => `
+              <label class="daily-pick">
+                <input type="checkbox" value="${subject.id}" />
+                <span>${subject.name}</span>
+              </label>
+            `).join('')}
+          </div>
+          <div class="action-row" style="justify-content:flex-start; margin-top:20px;">
+            <button class="btn btn-primary" id="dailyChallengeBtn" type="button">Start Daily Challenge</button>
+          </div>
+          <div id="dailyChallengeMsg"></div>
+        </div>
+      </section>
+
       <section style="margin-top:30px;">
         <div class="section-header">
           <div>
@@ -319,23 +365,27 @@
           </div>
         </div>
         <div class="card-grid home-flow-grid">
-          <article class="card home-dark-card">
+          <article class="card home-dark-card home-graphic-card">
             <div class="home-step-number">01</div>
+            <div class="flow-icon chemistry-line"></div>
             <h3>Choose a Subject</h3>
             <p class="muted">Start from the subjects page, open any topic, and see its full question count and study sets.</p>
           </article>
-          <article class="card home-dark-card">
+          <article class="card home-dark-card home-graphic-card">
             <div class="home-step-number">02</div>
+            <div class="flow-icon capsule-icon"></div>
             <h3>Study in Sets</h3>
             <p class="muted">Work through 30-question sets with instant answer feedback, explanations, saved questions, and notes.</p>
           </article>
-          <article class="card home-dark-card">
+          <article class="card home-dark-card home-graphic-card">
             <div class="home-step-number">03</div>
+            <div class="flow-icon flask-icon"></div>
             <h3>Review and Improve</h3>
             <p class="muted">Use review pages, retry wrong questions, dashboard progress, and final exam mode to reinforce weak areas.</p>
           </article>
         </div>
       </section>
+
       <section style="margin-top:30px;">
         <div class="section-header">
           <div>
@@ -344,15 +394,16 @@
           </div>
         </div>
         <div class="analysis-grid home-progress-grid">
-          <div class="card home-dark-card">
+          <div class="card home-dark-card home-graphic-card">
+            <span class="panel-graphic formula-float">C₁₇H₁₉NO₃</span>
             <h3 style="margin-top:0;">Latest Activity</h3>
             ${recent.length ? recent.map((item) => `<div class="list-item home-dark-item"><div><strong>${item.name}</strong><div class="muted">${item.subject}</div></div><div><strong>${item.score}</strong><div class="muted">${item.date}</div></div></div>`).join('') : '<div class="empty-state">No recent activity yet.</div>'}
           </div>
-          <div class="card home-dark-card">
+          <div class="card home-dark-card home-graphic-card">
+            <span class="panel-graphic botanical-float"></span>
             <h3 style="margin-top:0;">Keep Going</h3>
             ${continueState ? `
             <div class="panel home-dark-panel">
-      
               <div class="muted" style="margin-top:8px;">Continue Set ${continueState.setNumber} in ${continueState.subjectName} from question ${Math.min((continueState.questionIndex || 0) + 1, Math.max(continueState.totalQuestions || 1, 1))}.</div>
               <div style="margin-top:16px;"><a class="btn btn-primary" href="${continueLink()}">Continue Studying</a></div>
             </div>` : '<div class="panel home-dark-panel"><strong>Start Learning</strong><div class="muted" style="margin-top:8px;">Open the subjects page and begin your first study set to build progress, saved questions, and review history.</div><div style="margin-top:16px;"><a class="btn btn-primary" href="./subjects.html">Browse Subjects</a></div></div>'}
@@ -365,6 +416,26 @@
         </div>
       </section>
     `;
+
+    const dailyBtn = document.getElementById('dailyChallengeBtn');
+    const dailyMsg = document.getElementById('dailyChallengeMsg');
+    dailyBtn?.addEventListener('click', async () => {
+      const checked = [...document.querySelectorAll('#dailySubjectPicks input:checked')].map((input) => input.value);
+      if (!checked.length) {
+        dailyMsg.innerHTML = '<div class="message error">Select at least one subject to start your challenge.</div>';
+        return;
+      }
+      dailyBtn.disabled = true;
+      dailyBtn.textContent = 'Preparing...';
+      dailyMsg.innerHTML = '';
+      try {
+        await startDailyChallenge(checked);
+      } catch (error) {
+        dailyMsg.innerHTML = `<div class="message error">${error.message}</div>`;
+        dailyBtn.disabled = false;
+        dailyBtn.textContent = 'Start Daily Challenge';
+      }
+    });
   }
 
   function renderSubjectCards(subjects, target, searchInput) {
@@ -556,9 +627,38 @@
     saveProgress(progress);
   }
 
+
+  async function startDailyChallenge(subjectIds) {
+    const ids = (subjectIds || []).filter(Boolean);
+    if (!ids.length) throw new Error('Select at least one subject for your challenge.');
+    let pool = [];
+    for (const subjectId of ids) {
+      const subject = state.subjectMap.get(subjectId);
+      if (!subject) continue;
+      for (const topic of subject.topics) {
+        const data = await loadTopic(subjectId, topic.id);
+        pool.push(...(data.questions || []));
+      }
+    }
+    if (!pool.length) throw new Error('No questions were found for the selected subjects.');
+    const questions = shuffle(pool).slice(0, Math.min(5, pool.length)).map((q) => ({
+      ...q,
+      options: shuffle([...(q.options || [])])
+    }));
+    const selectedNames = ids.map((id) => state.subjectMap.get(id)?.name).filter(Boolean);
+    writeStore(KEYS.daily, {
+      date: new Date().toISOString(),
+      subjects: ids,
+      subjectNames: selectedNames,
+      questions
+    });
+    window.location.href = './study.html?daily=1';
+  }
+
   async function renderStudyPage() {
     const p = params();
     const retryMode = p.get('retry') === '1';
+    const dailyMode = p.get('daily') === '1';
     const subjectId = p.get('subject');
     const topicId = p.get('topic');
     const setNumber = Number(p.get('set') || '1');
@@ -573,7 +673,20 @@
     let backHref = './dashboard.html';
     let backLabel = 'Back';
 
-    if (retryMode) {
+    if (dailyMode) {
+      const dailyData = readStore(KEYS.daily, null);
+      const dailyQuestions = dailyData?.questions || [];
+      if (!dailyQuestions.length) {
+        root.innerHTML = '<div class="empty-state">No daily challenge found yet. Start one from the home page.</div>';
+        return;
+      }
+      prepared = dailyQuestions.map((q) => ({ ...q, options: shuffle([...(q.options || [])]) }));
+      panelTag = 'Daily Challenge';
+      panelTitle = '5 Question Challenge';
+      panelMuted = (dailyData.subjectNames || []).join(' • ') || 'Selected subjects';
+      backHref = './index.html';
+      backLabel = 'Back to Home';
+    } else if (retryMode) {
       const retryData = readStore(KEYS.retry, null);
       const retryQuestions = retryData?.questions || [];
       if (!retryQuestions.length) {
@@ -607,7 +720,7 @@
     }
 
     let index = 0;
-    if (!retryMode) {
+    if (!retryMode && !dailyMode) {
       const continueState = getContinueState();
       if (p.get('resume') === '1' && continueState && continueState.subjectId === subjectId && continueState.topicId === topicId && Number(continueState.setNumber) === setNumber) {
         index = Math.min(Number(continueState.questionIndex) || 0, Math.max(prepared.length - 1, 0));
@@ -641,7 +754,7 @@
 
     function drawQuestion() {
       const q = prepared[index];
-      if (!retryMode) {
+      if (!retryMode && !dailyMode) {
         setContinueState({
           subjectId,
           subjectName: subject.name,
@@ -741,7 +854,23 @@
         isCorrect: !!answers[q.id]?.correct
       }));
       const correct = rows.filter((row) => row.isCorrect).length;
-      if (retryMode) {
+      if (dailyMode) {
+        updateRetryProgress({
+          rows,
+          correct,
+          total: rows.length,
+          questionsSeen: rows.length,
+          name: 'Daily Challenge',
+          subject: 'Mixed'
+        });
+        writeStore(KEYS.review, {
+          type: 'study',
+          title: 'Daily Challenge Review',
+          summary: { score: correct, total: rows.length, subject: 'Selected Subjects', topic: 'Daily Challenge' },
+          rows,
+          actions: { back: './index.html', backLabel: 'Back to Home' }
+        });
+      } else if (retryMode) {
         updateRetryProgress({
           rows,
           correct,
