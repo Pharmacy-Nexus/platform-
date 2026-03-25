@@ -298,16 +298,16 @@
       <section class="ticker-section" style="margin-top:26px;">
         <div class="ticker-shell">
           <div class="ticker-track">
-            <span>• Study in focused 30-question sets</span>
-            <span>• Get instant answer feedback and explanations</span>
-            <span>• Save important questions and notes</span>
-            <span>• Retry only the questions you missed</span>
-            <span>• Practice with timed final exams</span>
-            <span>• Study in focused 30-question sets</span>
-            <span>• Get instant answer feedback and explanations</span>
-            <span>• Save important questions and notes</span>
-            <span>• Retry only the questions you missed</span>
-            <span>• Practice with timed final exams</span>
+            <span> Study in focused 30-question sets</span>
+            <span> Get instant answer feedback and explanations</span>
+            <span> Save important questions and notes</span>
+            <span> Retry only the questions you missed</span>
+            <span> Practice with timed final exams</span>
+            <span> Study in focused 30-question sets</span>
+            <span> Get instant answer feedback and explanations</span>
+            <span> Save important questions and notes</span>
+            <span> Retry only the questions you missed</span>
+            <span> Practice with timed final exams</span>
           </div>
         </div>
       </section>
