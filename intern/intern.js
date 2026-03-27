@@ -38,37 +38,20 @@ function shuffle(arr) {
 }
 
 async function fetchTopics() {
-  const fallbackTopics = ['cardio', 'renal', 'infectious', 'endocrine'];
+  const { data, error } = await supabase
+    .from('intern_topics')
+    .select('name')
+    .eq('is_active', true)
+    .order('name', { ascending: true });
 
-  try {
-    // 1) حاول من جدول التوبيكس
-    const { data: topicsData, error: topicsError } = await supabase
-      .from('intern_topics')
-      .select('name')
-      .eq('is_active', true)
-      .order('name', { ascending: true });
-
-    if (!topicsError && topicsData && topicsData.length) {
-      return topicsData.map(item => String(item.name).trim().toLowerCase());
-    }
-
-    // 2) fallback من جدول الأسئلة
-    const { data: questionsData, error: questionsError } = await supabase
-      .from('intern_questions')
-      .select('topic')
-      .eq('is_active', true);
-
-    if (!questionsError && questionsData && questionsData.length) {
-      return [...new Set(questionsData.map(item => String(item.topic).trim().toLowerCase()))];
-    }
-
-    // 3) fallback نهائي ثابت
-    return fallbackTopics;
-  } catch (err) {
-    console.error("fetchTopics fallback error:", err);
-    return fallbackTopics;
+  if (error) {
+    console.error("fetchTopics error:", error);
+    throw new Error("Failed to load topics.");
   }
+
+  return (data || []).map(item => String(item.name).trim().toLowerCase());
 }
+
 async function fetchExam(payload) {
   const { topics = [], count = 10, difficulty = "all" } = payload;
 
