@@ -44,15 +44,14 @@ async function fetchTopics() {
     .eq('is_active', true)
     .order('name', { ascending: true });
 
-  console.log("TOPICS DATA:", data);
-  console.log("TOPICS ERROR:", error);
-
   if (error) {
+    console.error("fetchTopics error:", error);
     throw new Error("Failed to load topics.");
   }
 
   return (data || []).map(item => String(item.name).trim().toLowerCase());
 }
+
 async function fetchExam(payload) {
   const { topics = [], count = 10, difficulty = "all" } = payload;
 
