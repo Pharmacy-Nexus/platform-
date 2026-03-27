@@ -426,9 +426,6 @@ function backToSetup() {
 
 async function init() {
   try {
-    state.topics = await fetchTopics();
-    renderTopics(state.topics);
-
     el("topicSearch").addEventListener("input", (e) => {
       filterTopicsUI(e.target.value);
     });
@@ -444,5 +441,3 @@ async function init() {
     el("setupMessage").innerHTML = `<p class="muted">${escapeHtml(e.message)}</p>`;
   }
 }
-
-init();
