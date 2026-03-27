@@ -38,18 +38,29 @@ function shuffle(arr) {
 }
 
 async function fetchTopics() {
-  const { data, error } = await supabase
+  // 1) حاول يجيب من جدول التوبيكس
+  const { data: topicsData, error: topicsError } = await supabase
     .from('intern_topics')
     .select('name')
     .eq('is_active', true)
     .order('name', { ascending: true });
 
-  if (error) {
-    console.error("fetchTopics error:", error);
+  if (!topicsError && topicsData && topicsData.length) {
+    return topicsData.map(item => String(item.name).trim().toLowerCase());
+  }
+
+  // 2) لو فشل أو رجع فاضي، fallback من جدول الأسئلة
+  const { data: questionsData, error: questionsError } = await supabase
+    .from('intern_questions')
+    .select('topic')
+    .eq('is_active', true);
+
+  if (questionsError) {
+    console.error("fetchTopics fallback error:", questionsError);
     throw new Error("Failed to load topics.");
   }
 
-  return (data || []).map(item => String(item.name).trim().toLowerCase());
+  return [...new Set((questionsData || []).map(item => String(item.topic).trim().toLowerCase()))];
 }
 
 async function fetchExam(payload) {
