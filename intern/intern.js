@@ -39,16 +39,17 @@ function shuffle(arr) {
 
 async function fetchTopics() {
   const { data, error } = await supabase
-    .from('intern_questions')
-    .select('topic')
-    .eq('is_active', true);
+    .from('intern_topics')
+    .select('name')
+    .eq('is_active', true)
+    .order('name', { ascending: true });
 
   if (error) {
     console.error("fetchTopics error:", error);
     throw new Error("Failed to load topics.");
   }
 
-  return [...new Set((data || []).map(item => String(item.topic).trim().toLowerCase()))];
+  return (data || []).map(item => String(item.name).trim().toLowerCase());
 }
 
 async function fetchExam(payload) {
@@ -84,8 +85,9 @@ async function fetchExam(payload) {
       id: q.id,
       topic: q.topic,
       difficulty: q.difficulty,
-      type: q.type,
+      type: q.question_type,
       caseScenario: q.case_scenario || "",
+      imageUrl: q.image_url || "",
       question: q.question,
       options: shuffle(q.options || []),
       correctAnswer: q.correct_answer,
@@ -166,6 +168,32 @@ function stopTimer() {
   }
 }
 
+function renderQuestionBody(q) {
+  let html = '';
+
+  if (q.type === 'case_mcq' && q.caseScenario) {
+    html += `
+      <div class="case-box">
+        <strong>Case</strong>
+        <div style="margin-top:8px;">${escapeHtml(q.caseScenario)}</div>
+      </div>
+    `;
+  }
+
+  if (q.type === 'image_mcq' && q.imageUrl) {
+    html += `
+      <div class="case-box">
+        <strong>Image</strong>
+        <div style="margin-top:12px;">
+          <img src="${escapeHtml(q.imageUrl)}" alt="Question image" style="max-width:100%; border-radius:12px;" />
+        </div>
+      </div>
+    `;
+  }
+
+  return html;
+}
+
 function renderQuestion() {
   const q = state.questions[state.current];
   if (!q) return;
@@ -181,7 +209,7 @@ function renderQuestion() {
       <div>
         <div class="pill">${escapeHtml(state.mode === "practice" ? "Practice Mode" : "Real Exam Mode")}</div>
         <h2>${state.current + 1}) ${escapeHtml(q.question)}</h2>
-        <p class="muted">${escapeHtml(q.topic)} • ${escapeHtml(q.difficulty)}</p>
+        <p class="muted">${escapeHtml(q.topic)} • ${escapeHtml(q.difficulty)} • ${escapeHtml(q.type)}</p>
       </div>
 
       <button id="bookmarkBtn" class="bookmark-btn ${bookmarked ? "active" : ""}" type="button">
@@ -189,12 +217,7 @@ function renderQuestion() {
       </button>
     </div>
 
-    ${q.caseScenario ? `
-      <div class="case-box">
-        <strong>Case</strong>
-        <div style="margin-top:8px;">${escapeHtml(q.caseScenario)}</div>
-      </div>
-    ` : ""}
+    ${renderQuestionBody(q)}
 
     <div id="optionList" class="option-list"></div>
     <div id="practiceExtras"></div>
@@ -308,7 +331,8 @@ function renderReview() {
   el("reviewList").innerHTML = state.reviewRows.map((row, i) => `
     <div class="review-card">
       <h3>${i + 1}) ${escapeHtml(row.question.question)}</h3>
-      ${row.question.caseScenario ? `<div class="case-box">${escapeHtml(row.question.caseScenario)}</div>` : ""}
+      ${row.question.type === 'case_mcq' && row.question.caseScenario ? `<div class="case-box">${escapeHtml(row.question.caseScenario)}</div>` : ""}
+      ${row.question.type === 'image_mcq' && row.question.imageUrl ? `<div class="case-box"><img src="${escapeHtml(row.question.imageUrl)}" alt="Question image" style="max-width:100%; border-radius:12px;" /></div>` : ""}
       <p><strong>Your Answer:</strong> ${escapeHtml(row.selected)}</p>
       <p><strong>Correct Answer:</strong> ${escapeHtml(row.correct)}</p>
       <p class="${row.isCorrect ? "status-correct" : "status-wrong"}">
