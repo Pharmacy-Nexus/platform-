@@ -10,7 +10,9 @@
   topicsCache: 'pn_intern_topics_cache_v1',
   session: 'pn_intern_session_v1',
   practiceReview: 'pn_intern_practice_review_v1',
-  practiceRetry: 'pn_intern_practice_retry_v1'
+  practiceRetry: 'pn_intern_practice_retry_v1',
+  examReview: 'pn_intern_exam_review_v1',
+  examRetry: 'pn_intern_exam_retry_v1'
 },
       supabase: {
         url: '',
