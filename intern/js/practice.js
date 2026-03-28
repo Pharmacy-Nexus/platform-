@@ -155,6 +155,25 @@
     renderQuestionScreen();
   }
 
+  function loadRetrySessionIfExists() {
+    const params = new URLSearchParams(window.location.search);
+    const isRetryMode = params.get('retry') === '1';
+
+    if (!isRetryMode) return false;
+
+    const retryData = InternCore.readStore(InternCore.config.storageKeys.practiceRetry, null);
+    if (!retryData || !Array.isArray(retryData.questions) || !retryData.questions.length) {
+      return false;
+    }
+
+    practiceState.questions = retryData.questions;
+    practiceState.answers = {};
+    practiceState.currentIndex = 0;
+
+    renderQuestionScreen();
+    return true;
+  }
+
   function getCorrectOption(question) {
     return question.options.find((option) => option.is_correct) || null;
   }
@@ -163,7 +182,6 @@
     const root = InternCore.qs('#internPageRoot');
     const question = practiceState.questions[practiceState.currentIndex];
     const answer = practiceState.answers[question.id];
-    const correctOption = getCorrectOption(question);
 
     root.innerHTML = `
       <div class="study-shell">
@@ -296,34 +314,21 @@
     });
   }
 
- function finishPracticeSession() {
-  const rows = practiceState.questions.map((question) => {
-    const answer = practiceState.answers[question.id] || null;
-    const correctOption = getCorrectOption(question);
+  function finishPracticeSession() {
+    const rows = practiceState.questions.map((question) => {
+      const answer = practiceState.answers[question.id] || null;
+      const correctOption = getCorrectOption(question);
 
-    return {
-      question,
-      selected: answer ? answer.selectedText : 'No answer selected',
-      selectedOptionId: answer ? answer.selectedOptionId : null,
-      correct: correctOption ? correctOption.text : '',
-      isCorrect: answer ? answer.isCorrect : false,
-      explanation: question.explanation,
-      summary: question.summary
-    };
-  });
-
-  const score = rows.filter((row) => row.isCorrect).length;
-
-  InternCore.writeStore(InternCore.config.storageKeys.practiceReview, {
-    title: 'Intern Practice Review',
-    score,
-    total: rows.length,
-    rows,
-    createdAt: new Date().toISOString()
-  });
-
-  window.location.href = './practice-review.html';
-}
+      return {
+        question,
+        selected: answer ? answer.selectedText : 'No answer selected',
+        selectedOptionId: answer ? answer.selectedOptionId : null,
+        correct: correctOption ? correctOption.text : '',
+        isCorrect: answer ? answer.isCorrect : false,
+        explanation: question.explanation,
+        summary: question.summary
+      };
+    });
 
     const score = rows.filter((row) => row.isCorrect).length;
 
@@ -335,29 +340,13 @@
       createdAt: new Date().toISOString()
     });
 
-    const root = InternCore.qs('#internPageRoot');
-    root.innerHTML = `
-      <section class="card center">
-        <div class="meta-row" style="justify-content:center;">
-          <span class="badge">Practice Completed</span>
-        </div>
-        <h2>Your score: ${score} / ${rows.length}</h2>
-        <p class="muted">The review page will be the next step. For now, your session data has been saved locally.</p>
-
-        <div class="action-row" style="justify-content:center; margin-top:24px;">
-          <button class="btn btn-primary" id="openPracticeReviewBtn" type="button">Open Review Later</button>
-          <a class="btn btn-light" href="./practice.html">Start New Practice</a>
-        </div>
-      </section>
-    `;
-
-    InternCore.qs('#openPracticeReviewBtn').addEventListener('click', () => {
-      alert('Next step: we will build practice-review.html and connect this saved review data to it.');
-    });
+    window.location.href = './practice-review.html';
   }
 
   async function initPracticePage() {
     InternCore.createShell();
+
+    if (loadRetrySessionIfExists()) return;
 
     const topics = await InternAPI.getTopics();
     practiceState.topics = topics.map((topic) => ({
