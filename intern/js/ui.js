@@ -90,7 +90,8 @@
               <div class="mode-feature">Weakness analysis by topic</div>
             </div>
 
-            <a class="btn btn-primary" href="./exam.html">Open Real Exam Mode</a>
+           <a class="btn btn-primary" href="./pages/practice.html">Start Practice Mode</a>
+           <a class="btn btn-secondary" href="./pages/exam.html">Start Real Exam</a>
           </article>
         </div>
       </section>
