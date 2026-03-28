@@ -14,8 +14,8 @@
               track weak areas, and manage large topic banks for pharmacist licensure preparation.
             </p>
             <div class="hero-actions">
-              <a class="btn btn-primary" href="./practice.html">Start Practice Mode</a>
-              <a class="btn btn-secondary" href="./exam.html">Start Real Exam</a>
+              <a class="btn btn-primary" href="./pages/practice.html">Start Practice Mode</a>
+              <a class="btn btn-secondary" href="./pages/exam.html">Start Real Exam</a>
             </div>
           </div>
 
@@ -72,7 +72,7 @@
               <div class="mode-feature">Review page + retry wrong questions</div>
             </div>
 
-            <a class="btn btn-dark" href="./practice.html">Open Practice Mode</a>
+            <a class="btn btn-dark" href="./pages/practice.html">Open Practice Mode</a>
           </article>
 
           <article class="mode-card real">
@@ -90,8 +90,7 @@
               <div class="mode-feature">Weakness analysis by topic</div>
             </div>
 
-           <a class="btn btn-primary" href="./pages/practice.html">Start Practice Mode</a>
-           <a class="btn btn-secondary" href="./pages/exam.html">Start Real Exam</a>
+            <a class="btn btn-primary" href="./pages/exam.html">Open Real Exam Mode</a>
           </article>
         </div>
       </section>
