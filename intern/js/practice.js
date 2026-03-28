@@ -296,21 +296,34 @@
     });
   }
 
-  function finishPracticeSession() {
-    const rows = practiceState.questions.map((question) => {
-      const answer = practiceState.answers[question.id] || null;
-      const correctOption = getCorrectOption(question);
+ function finishPracticeSession() {
+  const rows = practiceState.questions.map((question) => {
+    const answer = practiceState.answers[question.id] || null;
+    const correctOption = getCorrectOption(question);
 
-      return {
-        question,
-        selected: answer ? answer.selectedText : 'No answer selected',
-        selectedOptionId: answer ? answer.selectedOptionId : null,
-        correct: correctOption ? correctOption.text : '',
-        isCorrect: answer ? answer.isCorrect : false,
-        explanation: question.explanation,
-        summary: question.summary
-      };
-    });
+    return {
+      question,
+      selected: answer ? answer.selectedText : 'No answer selected',
+      selectedOptionId: answer ? answer.selectedOptionId : null,
+      correct: correctOption ? correctOption.text : '',
+      isCorrect: answer ? answer.isCorrect : false,
+      explanation: question.explanation,
+      summary: question.summary
+    };
+  });
+
+  const score = rows.filter((row) => row.isCorrect).length;
+
+  InternCore.writeStore(InternCore.config.storageKeys.practiceReview, {
+    title: 'Intern Practice Review',
+    score,
+    total: rows.length,
+    rows,
+    createdAt: new Date().toISOString()
+  });
+
+  window.location.href = './practice-review.html';
+}
 
     const score = rows.filter((row) => row.isCorrect).length;
 
