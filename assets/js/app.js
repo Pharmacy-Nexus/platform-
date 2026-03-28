@@ -233,6 +233,7 @@
           <nav class="nav-menu" id="navMenu">
             <a class="nav-link ${PAGE === 'home' ? 'is-active' : ''}" href="./index.html">Home</a>
             <a class="nav-link ${PAGE === 'final-exam' ? 'is-active' : ''}" href="./final-exam.html">Final Exam</a>
+            <a class="nav-link" href="./intern/index.html">Intern</a>
             <a class="nav-link ${PAGE === 'dashboard' ? 'is-active' : ''}" href="./dashboard.html">Dashboard</a>
             <a class="nav-link ${PAGE === 'saved' ? 'is-active' : ''}" href="./saved.html">Saved</a>
           </nav>
