@@ -5,10 +5,11 @@
     config: {
       appName: 'Pharmacy Nexus Intern',
       setSizeDefault: 20,
-      storageKeys: {
-        config: 'pn_intern_config_v1',
-        topicsCache: 'pn_intern_topics_cache_v1',
-        session: 'pn_intern_session_v1'
+     storageKeys: {
+  config: 'pn_intern_config_v1',
+  topicsCache: 'pn_intern_topics_cache_v1',
+  session: 'pn_intern_session_v1',
+  practiceReview: 'pn_intern_practice_review_v1'
       },
       supabase: {
         url: '',
