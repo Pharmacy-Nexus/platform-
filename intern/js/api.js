@@ -228,23 +228,31 @@
     return copy;
   }
 
+  function prepareQuestions(topicIds, count) {
+    const filtered = demoQuestions.filter((question) => {
+      if (!topicIds.length) return true;
+      return topicIds.includes(question.topic_id);
+    });
+
+    return shuffle(filtered)
+      .slice(0, Math.min(count, filtered.length))
+      .map((question) => ({
+        ...question,
+        options: shuffle(question.options)
+      }));
+  }
+
   const InternAPI = {
     async getTopics() {
       return demoTopics;
     },
 
     async getPracticeQuestions({ topicIds = [], count = 10 }) {
-      const filtered = demoQuestions.filter((question) => {
-        if (!topicIds.length) return true;
-        return topicIds.includes(question.topic_id);
-      });
+      return prepareQuestions(topicIds, count);
+    },
 
-      return shuffle(filtered)
-        .slice(0, Math.min(count, filtered.length))
-        .map((question) => ({
-          ...question,
-          options: shuffle(question.options)
-        }));
+    async getExamQuestions({ topicIds = [], count = 20 }) {
+      return prepareQuestions(topicIds, count);
     }
   };
 
