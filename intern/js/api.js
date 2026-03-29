@@ -175,7 +175,3 @@
 
   window.InternAPI = InternAPI;
 })();
-  };
-
-  window.InternAPI = InternAPI;
-})();
