@@ -5,6 +5,7 @@
     config: {
       appName: 'Pharmacy Nexus Intern',
       setSizeDefault: 20,
+      adminPassword: 'PN-Intern-2026',
       storageKeys: {
         config: 'pn_intern_config_v1',
         topicsCache: 'pn_intern_topics_cache_v1',
@@ -12,7 +13,8 @@
         practiceReview: 'pn_intern_practice_review_v1',
         practiceRetry: 'pn_intern_practice_retry_v1',
         examReview: 'pn_intern_exam_review_v1',
-        examRetry: 'pn_intern_exam_retry_v1'
+        examRetry: 'pn_intern_exam_retry_v1',
+        adminUnlocked: 'pn_intern_admin_unlocked_v1'
       }
     },
 
@@ -48,6 +50,10 @@
 
     writeStore(key, value) {
       localStorage.setItem(key, JSON.stringify(value));
+    },
+
+    removeStore(key) {
+      localStorage.removeItem(key);
     },
 
     formatNumber(value) {
@@ -98,19 +104,56 @@
       return window.location.pathname.includes('/intern/pages/') ? './admin.html' : './pages/admin.html';
     },
 
-bindAdminShortcut() {
-  document.addEventListener('keydown', (event) => {
-    const isShortcut =
-      event.ctrlKey &&
-      event.shiftKey &&
-      (event.code === 'Digit9' || event.code === 'Numpad9');
+    getInternDashboardLink() {
+      return window.location.pathname.includes('/intern/pages/') ? './dashboard.html' : './pages/dashboard.html';
+    },
 
-    if (isShortcut) {
-      event.preventDefault();
-      window.location.href = this.getAdminLink();
-    }
-  });
-},
+    isAdminUnlocked() {
+      return this.readStore(this.config.storageKeys.adminUnlocked, false) === true;
+    },
+
+    unlockAdmin() {
+      this.writeStore(this.config.storageKeys.adminUnlocked, true);
+    },
+
+    lockAdmin() {
+      this.removeStore(this.config.storageKeys.adminUnlocked);
+    },
+
+    promptAdminUnlock() {
+      const entered = window.prompt('Enter admin password');
+      if (!entered) return false;
+
+      if (entered === this.config.adminPassword) {
+        this.unlockAdmin();
+        return true;
+      }
+
+      window.alert('Incorrect password.');
+      return false;
+    },
+
+    ensureAdminAccess() {
+      if (this.isAdminUnlocked()) return true;
+      return this.promptAdminUnlock();
+    },
+
+    bindAdminShortcut() {
+      document.addEventListener('keydown', (event) => {
+        const shortcutOne =
+          event.ctrlKey &&
+          event.shiftKey &&
+          (event.code === 'Digit9' || event.code === 'Numpad9');
+
+        if (shortcutOne) {
+          event.preventDefault();
+          const allowed = this.ensureAdminAccess();
+          if (allowed) {
+            window.location.href = this.getAdminLink();
+          }
+        }
+      });
+    },
 
     createShell() {
       const root = document.getElementById('intern-shell');
@@ -125,6 +168,7 @@ bindAdminShortcut() {
             <nav class="nav-menu" style="display:flex;">
               <a class="nav-link" href="${this.getMainHomeLink()}">Home</a>
               <a class="nav-link is-active" href="${this.getInternHomeLink()}">Intern</a>
+              <a class="nav-link" href="${this.getInternDashboardLink()}">Intern Dashboard</a>
               <a class="nav-link" href="${this.getMainDashboardLink()}">Dashboard</a>
               <a class="nav-link" href="${this.getMainSavedLink()}">Saved</a>
             </nav>
@@ -133,13 +177,25 @@ bindAdminShortcut() {
 
         <main class="main-section">
           <div class="container">
-            <div class="intern-topbar">
+            <div class="intern-topbar" style="display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap;">
               <a class="intern-back-link" href="${this.getMainHomeLink()}">← Back to main platform</a>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <a class="btn btn-light" href="${this.getInternDashboardLink()}">Intern Dashboard</a>
+                ${this.isAdminUnlocked() ? '<button class="btn btn-light" id="lockAdminBtn" type="button">Lock Admin</button>' : ''}
+              </div>
             </div>
             <div id="internPageRoot"></div>
           </div>
         </main>
       `;
+
+      const lockBtn = this.qs('#lockAdminBtn');
+      if (lockBtn) {
+        lockBtn.addEventListener('click', () => {
+          this.lockAdmin();
+          window.alert('Admin locked.');
+        });
+      }
 
       this.bindAdminShortcut();
     }
