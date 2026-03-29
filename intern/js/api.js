@@ -244,6 +244,24 @@
       return data;
     },
 
+    async updateTopic(topicId, { title, slug, description, sortOrder = 0, isActive = true }) {
+      const { data, error } = await InternSupabase
+        .from('intern_topics')
+        .update({
+          title,
+          slug,
+          description,
+          sort_order: sortOrder,
+          is_active: isActive
+        })
+        .eq('id', topicId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
     async deleteTopic(topicId) {
       const { error } = await InternSupabase
         .from('intern_topics')
@@ -285,7 +303,58 @@
       return data;
     },
 
+    async updateQuestion(questionId, {
+      topicId,
+      type,
+      difficulty,
+      questionText,
+      caseText = '',
+      imageUrl = '',
+      explanation = '',
+      summary = '',
+      isActive = true
+    }) {
+      const { data, error } = await InternSupabase
+        .from('intern_questions')
+        .update({
+          topic_id: topicId,
+          type,
+          difficulty,
+          question_text: questionText,
+          case_text: caseText,
+          image_url: imageUrl,
+          explanation,
+          summary,
+          is_active: isActive
+        })
+        .eq('id', questionId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
     async createQuestionOptions(options) {
+      const { data, error } = await InternSupabase
+        .from('intern_question_options')
+        .insert(options)
+        .select();
+
+      if (error) throw error;
+      return data || [];
+    },
+
+    async replaceQuestionOptions(questionId, options) {
+      const { error: deleteError } = await InternSupabase
+        .from('intern_question_options')
+        .delete()
+        .eq('question_id', questionId);
+
+      if (deleteError) throw deleteError;
+
+      if (!options.length) return [];
+
       const { data, error } = await InternSupabase
         .from('intern_question_options')
         .insert(options)
