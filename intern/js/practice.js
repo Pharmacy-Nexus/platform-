@@ -121,39 +121,33 @@
   }
 
   async function startPracticeSession() {
-    const selectedTopicIds = practiceState.topics
-      .filter((topic) => topic.selected)
-      .map((topic) => topic.id);
+   const questions = await InternAPI.getPracticeQuestions({
+  topicIds: selectedTopicIds,
+  count
+});
 
-    const count = Number(InternCore.qs('#questionCountInput').value || '10');
-    const msg = InternCore.qs('#practiceSetupMessage');
+if (!questions.length) {
+  msg.innerHTML = `<div class="message error">No questions were found for the selected topics.</div>`;
+  return;
+}
 
-    if (!selectedTopicIds.length) {
-      msg.innerHTML = `<div class="message error">Please select at least one topic.</div>`;
-      return;
-    }
+const session = await InternAPI.createExamSession({
+  mode: 'practice',
+  selectedTopicIds,
+  questionCount: questions.length,
+  timerMinutes: null
+});
 
-    if (!count || count < 1) {
-      msg.innerHTML = `<div class="message error">Please enter a valid number of questions.</div>`;
-      return;
-    }
+InternCore.setSession({
+  type: 'practice',
+  sessionId: session.id
+});
 
-    const questions = await InternAPI.getPracticeQuestions({
-      topicIds: selectedTopicIds,
-      count
-    });
+practiceState.questions = questions;
+practiceState.answers = {};
+practiceState.currentIndex = 0;
 
-    if (!questions.length) {
-      msg.innerHTML = `<div class="message error">No questions were found for the selected topics.</div>`;
-      return;
-    }
-
-    practiceState.questions = questions;
-    practiceState.answers = {};
-    practiceState.currentIndex = 0;
-
-    renderQuestionScreen();
-  }
+renderQuestionScreen();
 
   function loadRetrySessionIfExists() {
     const params = new URLSearchParams(window.location.search);
