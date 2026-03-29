@@ -4,7 +4,9 @@
   const adminState = {
     topics: [],
     questions: [],
-    selectedTopicId: ''
+    selectedTopicId: '',
+    editingTopicId: null,
+    editingQuestionId: null
   };
 
   function slugify(value) {
@@ -38,7 +40,11 @@
 
       <section class="analysis-grid">
         <article class="card">
-          <h3 style="margin-top:0;">Add Topic</h3>
+          <h3 style="margin-top:0;">Topic Manager</h3>
+          <div class="meta-row">
+            <span class="badge" id="topicFormModeBadge">Create Topic</span>
+          </div>
+
           <div class="input-row two">
             <div>
               <label class="muted">Topic title</label>
@@ -72,12 +78,16 @@
           <div id="adminTopicMessage"></div>
 
           <div class="action-row" style="justify-content:flex-start;">
-            <button class="btn btn-primary" id="createTopicBtn" type="button">Create Topic</button>
+            <button class="btn btn-primary" id="saveTopicBtn" type="button">Save Topic</button>
+            <button class="btn btn-light hidden" id="cancelTopicEditBtn" type="button">Cancel Edit</button>
           </div>
         </article>
 
         <article class="card">
-          <h3 style="margin-top:0;">Add Question</h3>
+          <h3 style="margin-top:0;">Question Manager</h3>
+          <div class="meta-row">
+            <span class="badge" id="questionFormModeBadge">Create Question</span>
+          </div>
 
           <div class="input-row two">
             <div>
@@ -161,7 +171,8 @@
           <div id="adminQuestionMessage"></div>
 
           <div class="action-row" style="justify-content:flex-start;">
-            <button class="btn btn-primary" id="createQuestionBtn" type="button">Create Question</button>
+            <button class="btn btn-primary" id="saveQuestionBtn" type="button">Save Question</button>
+            <button class="btn btn-light hidden" id="cancelQuestionEditBtn" type="button">Cancel Edit</button>
           </div>
         </article>
       </section>
@@ -180,7 +191,7 @@
         <div class="section-header">
           <div>
             <h2>Questions Browser</h2>
-            <p>Choose a topic to view and delete questions.</p>
+            <p>Choose a topic to view, edit, or delete questions.</p>
           </div>
         </div>
 
@@ -202,10 +213,87 @@
     `;
   }
 
+  function resetTopicForm() {
+    adminState.editingTopicId = null;
+    InternCore.qs('#adminTopicTitle').value = '';
+    InternCore.qs('#adminTopicSlug').value = '';
+    InternCore.qs('#adminTopicSlug').dataset.userEdited = '';
+    InternCore.qs('#adminTopicDescription').value = '';
+    InternCore.qs('#adminTopicSortOrder').value = '0';
+    InternCore.qs('#adminTopicStatus').value = 'true';
+    InternCore.qs('#topicFormModeBadge').textContent = 'Create Topic';
+    InternCore.qs('#cancelTopicEditBtn').classList.add('hidden');
+  }
+
+  function resetQuestionForm() {
+    adminState.editingQuestionId = null;
+    InternCore.qs('#adminQuestionText').value = '';
+    InternCore.qs('#adminCaseText').value = '';
+    InternCore.qs('#adminImageUrl').value = '';
+    InternCore.qs('#adminExplanation').value = '';
+    InternCore.qs('#adminSummary').value = '';
+    InternCore.qs('#adminQuestionType').value = 'mcq';
+    InternCore.qs('#adminQuestionDifficulty').value = 'medium';
+    InternCore.qs('#adminQuestionStatus').value = 'true';
+    InternCore.qs('#adminCorrectOption').value = '0';
+    InternCore.qsa('.admin-option-input').forEach((input) => { input.value = ''; });
+    InternCore.qs('#questionFormModeBadge').textContent = 'Create Question';
+    InternCore.qs('#cancelQuestionEditBtn').classList.add('hidden');
+    updateQuestionFormByType();
+  }
+
+  function fillTopicForm(topic) {
+    adminState.editingTopicId = topic.id;
+    InternCore.qs('#adminTopicTitle').value = topic.title || '';
+    InternCore.qs('#adminTopicSlug').value = topic.slug || '';
+    InternCore.qs('#adminTopicSlug').dataset.userEdited = 'true';
+    InternCore.qs('#adminTopicDescription').value = topic.description || '';
+    InternCore.qs('#adminTopicSortOrder').value = topic.sort_order ?? 0;
+    InternCore.qs('#adminTopicStatus').value = String(!!topic.is_active);
+    InternCore.qs('#topicFormModeBadge').textContent = 'Edit Topic';
+    InternCore.qs('#cancelTopicEditBtn').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function fillQuestionForm(question) {
+    adminState.editingQuestionId = question.id;
+    InternCore.qs('#adminQuestionTopic').value = question.topic_id;
+    InternCore.qs('#adminQuestionType').value = question.type || 'mcq';
+    InternCore.qs('#adminQuestionDifficulty').value = question.difficulty || 'medium';
+    InternCore.qs('#adminQuestionStatus').value = String(!!question.is_active);
+    InternCore.qs('#adminQuestionText').value = question.question_text || '';
+    InternCore.qs('#adminCaseText').value = question.case_text || '';
+    InternCore.qs('#adminImageUrl').value = question.image_url || '';
+    InternCore.qs('#adminExplanation').value = question.explanation || '';
+    InternCore.qs('#adminSummary').value = question.summary || '';
+
+    const inputs = InternCore.qsa('.admin-option-input');
+    inputs.forEach((input) => { input.value = ''; });
+
+    (question.options || []).forEach((option, index) => {
+      if (inputs[index]) inputs[index].value = option.text || '';
+    });
+
+    const correctIndex = Math.max(
+      0,
+      (question.options || []).findIndex((option) => option.is_correct)
+    );
+
+    updateQuestionFormByType();
+
+    if (question.type === 'true_false') {
+      InternCore.qs('#adminCorrectOption').value = String(correctIndex >= 0 ? correctIndex : 0);
+    } else {
+      InternCore.qs('#adminCorrectOption').value = String(correctIndex >= 0 ? correctIndex : 0);
+    }
+
+    InternCore.qs('#questionFormModeBadge').textContent = 'Edit Question';
+    InternCore.qs('#cancelQuestionEditBtn').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   function updateQuestionFormByType() {
     const type = InternCore.qs('#adminQuestionType')?.value;
-    const caseField = InternCore.qs('#adminCaseText')?.closest('div[style*="margin-top:16px;"]');
-    const imageField = InternCore.qs('#adminImageUrl')?.closest('div[style*="margin-top:16px;"]');
     const optionInputs = InternCore.qsa('.admin-option-input');
 
     if (type === 'true_false') {
@@ -213,37 +301,25 @@
         if (index === 0) input.value = 'True';
         if (index === 1) input.value = 'False';
         if (index > 1) input.value = '';
-        input.disabled = index > 1 ? true : false;
+        input.disabled = index > 1;
       });
 
-      if (InternCore.qs('#adminCorrectOption')) {
-        InternCore.qs('#adminCorrectOption').innerHTML = `
-          <option value="0">True</option>
-          <option value="1">False</option>
-        `;
-      }
+      InternCore.qs('#adminCorrectOption').innerHTML = `
+        <option value="0">True</option>
+        <option value="1">False</option>
+      `;
     } else {
       optionInputs.forEach((input, index) => {
         input.disabled = false;
         input.placeholder = `Option ${index + 1}`;
       });
 
-      if (InternCore.qs('#adminCorrectOption')) {
-        InternCore.qs('#adminCorrectOption').innerHTML = `
-          <option value="0">Option 1</option>
-          <option value="1">Option 2</option>
-          <option value="2">Option 3</option>
-          <option value="3">Option 4</option>
-        `;
-      }
-    }
-
-    if (caseField) {
-      caseField.style.display = type === 'case' ? 'block' : 'block';
-    }
-
-    if (imageField) {
-      imageField.style.display = type === 'image_mcq' ? 'block' : 'block';
+      InternCore.qs('#adminCorrectOption').innerHTML = `
+        <option value="0">Option 1</option>
+        <option value="1">Option 2</option>
+        <option value="2">Option 3</option>
+        <option value="3">Option 4</option>
+      `;
     }
   }
 
@@ -254,7 +330,7 @@
 
     const optionsHtml = adminState.topics.length
       ? adminState.topics.map((topic) => `
-          <option value="${topic.id}">${topic.title}</option>
+          <option value="${topic.id}">${escapeHtml(topic.title)}</option>
         `).join('')
       : '<option value="">No topics found</option>';
 
@@ -281,13 +357,14 @@
                 <div class="meta-row">
                   <span class="badge">${topic.is_active ? 'Active' : 'Inactive'}</span>
                   <span class="tag">Sort: ${topic.sort_order}</span>
-                  <span class="tag">${topic.slug}</span>
+                  <span class="tag">${escapeHtml(topic.slug)}</span>
                   <span class="tag">${topic.questions_count} Questions</span>
                 </div>
                 <h3 style="margin:10px 0 8px;">${escapeHtml(topic.title)}</h3>
                 <div class="muted">${escapeHtml(topic.description || 'No description provided.')}</div>
               </div>
               <div class="small-actions">
+                <button class="small-btn admin-edit-topic-btn" data-topic-id="${topic.id}" type="button">Edit Topic</button>
                 <button class="small-btn danger admin-delete-topic-btn" data-topic-id="${topic.id}" data-topic-title="${escapeHtml(topic.title)}" type="button">Delete Topic</button>
               </div>
             </div>
@@ -296,11 +373,17 @@
       </div>
     `;
 
+    InternCore.qsa('.admin-edit-topic-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const topic = adminState.topics.find((item) => item.id === btn.dataset.topicId);
+        if (topic) fillTopicForm(topic);
+      });
+    });
+
     InternCore.qsa('.admin-delete-topic-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const topicId = btn.dataset.topicId;
         const topicTitle = btn.dataset.topicTitle;
-
         const ok = window.confirm(`Delete topic "${topicTitle}"?\nThis will also delete its questions.`);
         if (!ok) return;
 
@@ -309,6 +392,7 @@
           await loadTopics();
           adminState.questions = [];
           drawQuestionsList();
+          if (adminState.editingTopicId === topicId) resetTopicForm();
         } catch (error) {
           console.error(error);
           alert('Failed to delete topic.');
@@ -339,13 +423,14 @@
             <div class="question-top">
               <div>
                 <div class="meta-row">
-                  <span class="badge">${question.type}</span>
-                  <span class="tag">${question.difficulty}</span>
+                  <span class="badge">${escapeHtml(question.type)}</span>
+                  <span class="tag">${escapeHtml(question.difficulty)}</span>
                   <span class="tag">${question.is_active ? 'Active' : 'Inactive'}</span>
                 </div>
                 <h3 style="margin:10px 0 8px;">${index + 1}. ${escapeHtml(question.question_text)}</h3>
               </div>
               <div class="small-actions">
+                <button class="small-btn admin-edit-question-btn" data-question-id="${question.id}" type="button">Edit Question</button>
                 <button class="small-btn danger admin-delete-question-btn" data-question-id="${question.id}" type="button">Delete Question</button>
               </div>
             </div>
@@ -380,6 +465,13 @@
       </div>
     `;
 
+    InternCore.qsa('.admin-edit-question-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const question = adminState.questions.find((item) => item.id === btn.dataset.questionId);
+        if (question) fillQuestionForm(question);
+      });
+    });
+
     InternCore.qsa('.admin-delete-question-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const questionId = btn.dataset.questionId;
@@ -390,6 +482,7 @@
           await InternAPI.deleteQuestion(questionId);
           await loadQuestionsByTopic(adminState.selectedTopicId);
           await loadTopics();
+          if (adminState.editingQuestionId === questionId) resetQuestionForm();
         } catch (error) {
           console.error(error);
           alert('Failed to delete question.');
@@ -412,7 +505,8 @@
   function bindTopicForm() {
     const titleInput = InternCore.qs('#adminTopicTitle');
     const slugInput = InternCore.qs('#adminTopicSlug');
-    const createBtn = InternCore.qs('#createTopicBtn');
+    const saveBtn = InternCore.qs('#saveTopicBtn');
+    const cancelBtn = InternCore.qs('#cancelTopicEditBtn');
     const msg = InternCore.qs('#adminTopicMessage');
 
     titleInput?.addEventListener('input', () => {
@@ -425,7 +519,12 @@
       slugInput.dataset.userEdited = slugInput.value.trim() ? 'true' : '';
     });
 
-    createBtn?.addEventListener('click', async () => {
+    cancelBtn?.addEventListener('click', () => {
+      resetTopicForm();
+      msg.innerHTML = '';
+    });
+
+    saveBtn?.addEventListener('click', async () => {
       const title = titleInput.value.trim();
       const slug = slugInput.value.trim() || slugify(title);
       const description = InternCore.qs('#adminTopicDescription').value.trim();
@@ -443,40 +542,50 @@
       }
 
       try {
-        await InternAPI.createTopic({
-          title,
-          slug,
-          description,
-          sortOrder,
-          isActive
-        });
+        if (adminState.editingTopicId) {
+          await InternAPI.updateTopic(adminState.editingTopicId, {
+            title,
+            slug,
+            description,
+            sortOrder,
+            isActive
+          });
+          msg.innerHTML = `<div class="message success">Topic updated successfully.</div>`;
+        } else {
+          await InternAPI.createTopic({
+            title,
+            slug,
+            description,
+            sortOrder,
+            isActive
+          });
+          msg.innerHTML = `<div class="message success">Topic created successfully.</div>`;
+        }
 
-        msg.innerHTML = `<div class="message success">Topic created successfully.</div>`;
-
-        titleInput.value = '';
-        slugInput.value = '';
-        slugInput.dataset.userEdited = '';
-        InternCore.qs('#adminTopicDescription').value = '';
-        InternCore.qs('#adminTopicSortOrder').value = '0';
-        InternCore.qs('#adminTopicStatus').value = 'true';
-
+        resetTopicForm();
         await loadTopics();
       } catch (error) {
         console.error(error);
-        msg.innerHTML = `<div class="message error">Failed to create topic. It may already exist.</div>`;
+        msg.innerHTML = `<div class="message error">Failed to save topic.</div>`;
       }
     });
   }
 
   function bindQuestionForm() {
-    const btn = InternCore.qs('#createQuestionBtn');
+    const saveBtn = InternCore.qs('#saveQuestionBtn');
+    const cancelBtn = InternCore.qs('#cancelQuestionEditBtn');
     const msg = InternCore.qs('#adminQuestionMessage');
     const typeSelect = InternCore.qs('#adminQuestionType');
 
     typeSelect?.addEventListener('change', updateQuestionFormByType);
     updateQuestionFormByType();
 
-    btn?.addEventListener('click', async () => {
+    cancelBtn?.addEventListener('click', () => {
+      resetQuestionForm();
+      msg.innerHTML = '';
+    });
+
+    saveBtn?.addEventListener('click', async () => {
       const topicId = InternCore.qs('#adminQuestionTopic').value;
       const type = InternCore.qs('#adminQuestionType').value;
       const difficulty = InternCore.qs('#adminQuestionDifficulty').value;
@@ -517,45 +626,66 @@
       }
 
       try {
-        const question = await InternAPI.createQuestion({
-          topicId,
-          type,
-          difficulty,
-          questionText,
-          caseText,
-          imageUrl,
-          explanation,
-          summary,
-          isActive
-        });
+        let question;
 
-        const optionsPayload = cleanedOptions.map((text, index) => ({
-          question_id: question.id,
-          option_text: text,
-          is_correct: index === correctIndex,
-          sort_order: index + 1
-        }));
+        if (adminState.editingQuestionId) {
+          question = await InternAPI.updateQuestion(adminState.editingQuestionId, {
+            topicId,
+            type,
+            difficulty,
+            questionText,
+            caseText,
+            imageUrl,
+            explanation,
+            summary,
+            isActive
+          });
 
-        await InternAPI.createQuestionOptions(optionsPayload);
+          const optionsPayload = cleanedOptions.map((text, index) => ({
+            question_id: question.id,
+            option_text: text,
+            is_correct: index === correctIndex,
+            sort_order: index + 1
+          }));
 
-        msg.innerHTML = `<div class="message success">Question created successfully.</div>`;
+          await InternAPI.replaceQuestionOptions(question.id, optionsPayload);
+          msg.innerHTML = `<div class="message success">Question updated successfully.</div>`;
+        } else {
+          question = await InternAPI.createQuestion({
+            topicId,
+            type,
+            difficulty,
+            questionText,
+            caseText,
+            imageUrl,
+            explanation,
+            summary,
+            isActive
+          });
 
-        InternCore.qs('#adminQuestionText').value = '';
-        InternCore.qs('#adminCaseText').value = '';
-        InternCore.qs('#adminImageUrl').value = '';
-        InternCore.qs('#adminExplanation').value = '';
-        InternCore.qs('#adminSummary').value = '';
-        InternCore.qs('#adminCorrectOption').value = '0';
-        InternCore.qsa('.admin-option-input').forEach((input) => { input.value = ''; });
+          const optionsPayload = cleanedOptions.map((text, index) => ({
+            question_id: question.id,
+            option_text: text,
+            is_correct: index === correctIndex,
+            sort_order: index + 1
+          }));
 
+          await InternAPI.createQuestionOptions(optionsPayload);
+          msg.innerHTML = `<div class="message success">Question created successfully.</div>`;
+        }
+
+        resetQuestionForm();
         await loadTopics();
 
-        if (adminState.selectedTopicId === topicId) {
+        if (adminState.selectedTopicId === topicId || !adminState.selectedTopicId) {
+          adminState.selectedTopicId = topicId;
           await loadQuestionsByTopic(topicId);
+          const browseSelect = InternCore.qs('#adminBrowseTopic');
+          if (browseSelect) browseSelect.value = topicId;
         }
       } catch (error) {
         console.error(error);
-        msg.innerHTML = `<div class="message error">Failed to create question.</div>`;
+        msg.innerHTML = `<div class="message error">Failed to save question.</div>`;
       }
     });
   }
@@ -592,6 +722,8 @@
       bindQuestionForm();
       bindQuestionsBrowser();
       drawQuestionsList();
+      resetTopicForm();
+      resetQuestionForm();
     } catch (error) {
       console.error(error);
       const root = InternCore.qs('#internPageRoot');
