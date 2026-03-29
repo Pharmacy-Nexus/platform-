@@ -712,35 +712,40 @@
     });
   }
 
-  async function initAdminPage() {
-    InternCore.createShell();
-    renderAdminPage();
-
-    try {
-      await loadTopics();
-      bindTopicForm();
-      bindQuestionForm();
-      bindQuestionsBrowser();
-      drawQuestionsList();
-      resetTopicForm();
-      resetQuestionForm();
-    } catch (error) {
-      console.error(error);
-      const root = InternCore.qs('#internPageRoot');
-      root.innerHTML = `
-        <section class="card center">
-          <div class="meta-row" style="justify-content:center;">
-            <span class="badge">Error</span>
-          </div>
-          <h2>Failed to load admin panel.</h2>
-          <p class="muted">Please check your Supabase connection and table permissions.</p>
-          <div class="action-row" style="justify-content:center; margin-top:24px;">
-            <a class="btn btn-light" href="../index.html">Back</a>
-          </div>
-        </section>
-      `;
-    }
+ async function initAdminPage() {
+  if (!InternCore.ensureAdminAccess()) {
+    window.location.href = '../index.html';
+    return;
   }
+
+  InternCore.createShell();
+  renderAdminPage();
+
+  try {
+    await loadTopics();
+    bindTopicForm();
+    bindQuestionForm();
+    bindQuestionsBrowser();
+    drawQuestionsList();
+    resetTopicForm();
+    resetQuestionForm();
+  } catch (error) {
+    console.error(error);
+    const root = InternCore.qs('#internPageRoot');
+    root.innerHTML = `
+      <section class="card center">
+        <div class="meta-row" style="justify-content:center;">
+          <span class="badge">Error</span>
+        </div>
+        <h2>Failed to load admin panel.</h2>
+        <p class="muted">Please check your Supabase connection and table permissions.</p>
+        <div class="action-row" style="justify-content:center; margin-top:24px;">
+          <a class="btn btn-light" href="../index.html">Back</a>
+        </div>
+      </section>
+    `;
+  }
+}
 
   document.addEventListener('DOMContentLoaded', initAdminPage);
 })();
