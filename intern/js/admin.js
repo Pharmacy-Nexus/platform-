@@ -6,7 +6,10 @@
     questions: [],
     selectedTopicId: '',
     editingTopicId: null,
-    editingQuestionId: null
+    editingQuestionId: null,
+    searchTerm: '',
+    filterType: 'all',
+    filterDifficulty: 'all'
   };
 
   function slugify(value) {
@@ -191,7 +194,7 @@
         <div class="section-header">
           <div>
             <h2>Questions Browser</h2>
-            <p>Choose a topic to view, edit, or delete questions.</p>
+            <p>Choose a topic, then search and filter questions.</p>
           </div>
         </div>
 
@@ -205,6 +208,33 @@
               <button class="btn btn-dark" id="loadQuestionsBtn" type="button">Load Questions</button>
             </div>
           </div>
+
+          <div class="input-row three" style="margin-top:16px;">
+            <div>
+              <label class="muted">Search question text</label>
+              <input class="input" id="adminQuestionSearch" placeholder="Search..." />
+            </div>
+            <div>
+              <label class="muted">Filter by type</label>
+              <select class="select" id="adminFilterType">
+                <option value="all">All types</option>
+                <option value="mcq">MCQ</option>
+                <option value="true_false">True / False</option>
+                <option value="image_mcq">Image with MCQ</option>
+                <option value="case">Case</option>
+              </select>
+            </div>
+            <div>
+              <label class="muted">Filter by difficulty</label>
+              <select class="select" id="adminFilterDifficulty">
+                <option value="all">All difficulty</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
+          </div>
+
           <div id="adminQuestionsMessage"></div>
         </div>
 
@@ -274,19 +304,14 @@
       if (inputs[index]) inputs[index].value = option.text || '';
     });
 
+    updateQuestionFormByType();
+
     const correctIndex = Math.max(
       0,
       (question.options || []).findIndex((option) => option.is_correct)
     );
 
-    updateQuestionFormByType();
-
-    if (question.type === 'true_false') {
-      InternCore.qs('#adminCorrectOption').value = String(correctIndex >= 0 ? correctIndex : 0);
-    } else {
-      InternCore.qs('#adminCorrectOption').value = String(correctIndex >= 0 ? correctIndex : 0);
-    }
-
+    InternCore.qs('#adminCorrectOption').value = String(correctIndex >= 0 ? correctIndex : 0);
     InternCore.qs('#questionFormModeBadge').textContent = 'Edit Question';
     InternCore.qs('#cancelQuestionEditBtn').classList.remove('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -401,6 +426,23 @@
     });
   }
 
+  function getFilteredQuestions() {
+    return adminState.questions.filter((question) => {
+      const matchesSearch = !adminState.searchTerm ||
+        question.question_text.toLowerCase().includes(adminState.searchTerm.toLowerCase()) ||
+        (question.explanation || '').toLowerCase().includes(adminState.searchTerm.toLowerCase()) ||
+        (question.summary || '').toLowerCase().includes(adminState.searchTerm.toLowerCase());
+
+      const matchesType =
+        adminState.filterType === 'all' || question.type === adminState.filterType;
+
+      const matchesDifficulty =
+        adminState.filterDifficulty === 'all' || question.difficulty === adminState.filterDifficulty;
+
+      return matchesSearch && matchesType && matchesDifficulty;
+    });
+  }
+
   function drawQuestionsList() {
     const container = InternCore.qs('#adminQuestionsList');
 
@@ -411,14 +453,16 @@
       return;
     }
 
-    if (!adminState.questions.length) {
-      container.innerHTML = `<div class="intern-empty">No questions found for this topic yet.</div>`;
+    const filteredQuestions = getFilteredQuestions();
+
+    if (!filteredQuestions.length) {
+      container.innerHTML = `<div class="intern-empty">No questions matched the current filters.</div>`;
       return;
     }
 
     container.innerHTML = `
       <div class="review-list">
-        ${adminState.questions.map((question, index) => `
+        ${filteredQuestions.map((question, index) => `
           <article class="review-card">
             <div class="question-top">
               <div>
@@ -677,12 +721,11 @@
         resetQuestionForm();
         await loadTopics();
 
-        if (adminState.selectedTopicId === topicId || !adminState.selectedTopicId) {
-          adminState.selectedTopicId = topicId;
-          await loadQuestionsByTopic(topicId);
-          const browseSelect = InternCore.qs('#adminBrowseTopic');
-          if (browseSelect) browseSelect.value = topicId;
-        }
+        adminState.selectedTopicId = topicId;
+        await loadQuestionsByTopic(topicId);
+
+        const browseSelect = InternCore.qs('#adminBrowseTopic');
+        if (browseSelect) browseSelect.value = topicId;
       } catch (error) {
         console.error(error);
         msg.innerHTML = `<div class="message error">Failed to save question.</div>`;
@@ -693,6 +736,9 @@
   function bindQuestionsBrowser() {
     const btn = InternCore.qs('#loadQuestionsBtn');
     const msg = InternCore.qs('#adminQuestionsMessage');
+    const searchInput = InternCore.qs('#adminQuestionSearch');
+    const typeFilter = InternCore.qs('#adminFilterType');
+    const difficultyFilter = InternCore.qs('#adminFilterDifficulty');
 
     btn?.addEventListener('click', async () => {
       const topicId = InternCore.qs('#adminBrowseTopic').value;
@@ -710,42 +756,57 @@
         msg.innerHTML = `<div class="message error">Failed to load questions.</div>`;
       }
     });
+
+    searchInput?.addEventListener('input', (event) => {
+      adminState.searchTerm = event.target.value.trim();
+      drawQuestionsList();
+    });
+
+    typeFilter?.addEventListener('change', (event) => {
+      adminState.filterType = event.target.value;
+      drawQuestionsList();
+    });
+
+    difficultyFilter?.addEventListener('change', (event) => {
+      adminState.filterDifficulty = event.target.value;
+      drawQuestionsList();
+    });
   }
 
- async function initAdminPage() {
-  if (!InternCore.ensureAdminAccess()) {
-    window.location.href = '../index.html';
-    return;
-  }
+  async function initAdminPage() {
+    if (!InternCore.ensureAdminAccess()) {
+      window.location.href = '../index.html';
+      return;
+    }
 
-  InternCore.createShell();
-  renderAdminPage();
+    InternCore.createShell();
+    renderAdminPage();
 
-  try {
-    await loadTopics();
-    bindTopicForm();
-    bindQuestionForm();
-    bindQuestionsBrowser();
-    drawQuestionsList();
-    resetTopicForm();
-    resetQuestionForm();
-  } catch (error) {
-    console.error(error);
-    const root = InternCore.qs('#internPageRoot');
-    root.innerHTML = `
-      <section class="card center">
-        <div class="meta-row" style="justify-content:center;">
-          <span class="badge">Error</span>
-        </div>
-        <h2>Failed to load admin panel.</h2>
-        <p class="muted">Please check your Supabase connection and table permissions.</p>
-        <div class="action-row" style="justify-content:center; margin-top:24px;">
-          <a class="btn btn-light" href="../index.html">Back</a>
-        </div>
-      </section>
-    `;
+    try {
+      await loadTopics();
+      bindTopicForm();
+      bindQuestionForm();
+      bindQuestionsBrowser();
+      drawQuestionsList();
+      resetTopicForm();
+      resetQuestionForm();
+    } catch (error) {
+      console.error(error);
+      const root = InternCore.qs('#internPageRoot');
+      root.innerHTML = `
+        <section class="card center">
+          <div class="meta-row" style="justify-content:center;">
+            <span class="badge">Error</span>
+          </div>
+          <h2>Failed to load admin panel.</h2>
+          <p class="muted">Please check your Supabase connection and table permissions.</p>
+          <div class="action-row" style="justify-content:center; margin-top:24px;">
+            <a class="btn btn-light" href="../index.html">Back</a>
+          </div>
+        </section>
+      `;
+    }
   }
-}
 
   document.addEventListener('DOMContentLoaded', initAdminPage);
 })();
