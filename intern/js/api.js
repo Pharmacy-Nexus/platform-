@@ -1,6 +1,11 @@
 (function () {
   'use strict';
 
+  if (!window.InternSupabase) {
+    console.error('InternSupabase is not initialized. Check supabase-client.js and script order.');
+    return;
+  }
+
   function shuffle(items) {
     const copy = [...items];
     for (let i = copy.length - 1; i > 0; i -= 1) {
@@ -27,7 +32,10 @@
     const grouped = new Map();
 
     options.forEach((option) => {
-      if (!grouped.has(option.question_id)) grouped.set(option.question_id, []);
+      if (!grouped.has(option.question_id)) {
+        grouped.set(option.question_id, []);
+      }
+
       grouped.get(option.question_id).push({
         id: option.id,
         text: option.option_text,
@@ -48,6 +56,37 @@
       summary: question.summary || '',
       options: shuffle(grouped.get(question.id) || [])
     }));
+  }
+
+  async function getQuestionsByTopics({ topicIds = [], count = 10 }) {
+    let query = InternSupabase
+      .from('intern_questions')
+      .select(`
+        id,
+        topic_id,
+        type,
+        difficulty,
+        question_text,
+        case_text,
+        image_url,
+        explanation,
+        summary,
+        intern_topics(title)
+      `)
+      .eq('is_active', true);
+
+    if (topicIds.length) {
+      query = query.in('topic_id', topicIds);
+    }
+
+    const { data: questions, error } = await query.limit(Math.max(count * 3, count));
+    if (error) throw error;
+
+    const shuffledQuestions = shuffle(questions || []).slice(0, count);
+    const questionIds = shuffledQuestions.map((question) => question.id);
+    const options = await fetchQuestionOptions(questionIds);
+
+    return attachOptionsToQuestions(shuffledQuestions, options);
   }
 
   const InternAPI = {
@@ -71,65 +110,11 @@
     },
 
     async getPracticeQuestions({ topicIds = [], count = 10 }) {
-      let query = InternSupabase
-        .from('intern_questions')
-        .select(`
-          id,
-          topic_id,
-          type,
-          difficulty,
-          question_text,
-          case_text,
-          image_url,
-          explanation,
-          summary,
-          intern_topics(title)
-        `)
-        .eq('is_active', true);
-
-      if (topicIds.length) {
-        query = query.in('topic_id', topicIds);
-      }
-
-      const { data: questions, error } = await query.limit(Math.max(count * 3, count));
-      if (error) throw error;
-
-      const shuffledQuestions = shuffle(questions || []).slice(0, count);
-      const questionIds = shuffledQuestions.map((q) => q.id);
-      const options = await fetchQuestionOptions(questionIds);
-
-      return attachOptionsToQuestions(shuffledQuestions, options);
+      return getQuestionsByTopics({ topicIds, count });
     },
 
     async getExamQuestions({ topicIds = [], count = 20 }) {
-      let query = InternSupabase
-        .from('intern_questions')
-        .select(`
-          id,
-          topic_id,
-          type,
-          difficulty,
-          question_text,
-          case_text,
-          image_url,
-          explanation,
-          summary,
-          intern_topics(title)
-        `)
-        .eq('is_active', true);
-
-      if (topicIds.length) {
-        query = query.in('topic_id', topicIds);
-      }
-
-      const { data: questions, error } = await query.limit(Math.max(count * 3, count));
-      if (error) throw error;
-
-      const shuffledQuestions = shuffle(questions || []).slice(0, count);
-      const questionIds = shuffledQuestions.map((q) => q.id);
-      const options = await fetchQuestionOptions(questionIds);
-
-      return attachOptionsToQuestions(shuffledQuestions, options);
+      return getQuestionsByTopics({ topicIds, count });
     },
 
     async createExamSession({ mode, selectedTopicIds, questionCount, timerMinutes = null }) {
@@ -183,8 +168,13 @@
         .single();
 
       if (error) throw error;
+
       return data;
     }
+  };
+
+  window.InternAPI = InternAPI;
+})();
   };
 
   window.InternAPI = InternAPI;
