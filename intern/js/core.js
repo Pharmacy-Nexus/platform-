@@ -98,14 +98,19 @@
       return window.location.pathname.includes('/intern/pages/') ? './admin.html' : './pages/admin.html';
     },
 
-    bindAdminShortcut() {
-      document.addEventListener('keydown', (event) => {
-        if (event.ctrlKey && event.shiftKey && event.key === '9') {
-          event.preventDefault();
-          window.location.href = this.getAdminLink();
-        }
-      });
-    },
+bindAdminShortcut() {
+  document.addEventListener('keydown', (event) => {
+    const isShortcut =
+      event.ctrlKey &&
+      event.shiftKey &&
+      (event.code === 'Digit9' || event.code === 'Numpad9');
+
+    if (isShortcut) {
+      event.preventDefault();
+      window.location.href = this.getAdminLink();
+    }
+  });
+},
 
     createShell() {
       const root = document.getElementById('intern-shell');
