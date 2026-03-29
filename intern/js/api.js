@@ -39,7 +39,8 @@
       grouped.get(option.question_id).push({
         id: option.id,
         text: option.option_text,
-        is_correct: option.is_correct
+        is_correct: option.is_correct,
+        sort_order: option.sort_order
       });
     });
 
@@ -54,7 +55,9 @@
       image_url: question.image_url || '',
       explanation: question.explanation || '',
       summary: question.summary || '',
-      options: shuffle(grouped.get(question.id) || [])
+      is_active: question.is_active,
+      created_at: question.created_at,
+      options: grouped.get(question.id) || []
     }));
   }
 
@@ -71,6 +74,8 @@
         image_url,
         explanation,
         summary,
+        is_active,
+        created_at,
         intern_topics(title)
       `)
       .eq('is_active', true);
@@ -86,7 +91,7 @@
     const questionIds = shuffledQuestions.map((question) => question.id);
     const options = await fetchQuestionOptions(questionIds);
 
-    return attachOptionsToQuestions(shuffledQuestions, options);
+    return attachOptionsToQuestions(shuffledQuestions, shuffle(options));
   }
 
   const InternAPI = {
@@ -107,6 +112,57 @@
         description: topic.description || '',
         questions_count: Number(topic.questions_count || 0)
       }));
+    },
+
+    async getAllTopics() {
+      const { data, error } = await InternSupabase
+        .from('intern_topics_with_counts')
+        .select('*')
+        .order('sort_order', { ascending: true })
+        .order('title', { ascending: true });
+
+      if (error) throw error;
+
+      return (data || []).map((topic) => ({
+        id: topic.id,
+        title: topic.title,
+        slug: topic.slug,
+        description: topic.description || '',
+        is_active: topic.is_active,
+        sort_order: topic.sort_order,
+        created_at: topic.created_at,
+        questions_count: Number(topic.questions_count || 0)
+      }));
+    },
+
+    async getQuestionsByTopic(topicId) {
+      if (!topicId) return [];
+
+      const { data: questions, error } = await InternSupabase
+        .from('intern_questions')
+        .select(`
+          id,
+          topic_id,
+          type,
+          difficulty,
+          question_text,
+          case_text,
+          image_url,
+          explanation,
+          summary,
+          is_active,
+          created_at,
+          intern_topics(title)
+        `)
+        .eq('topic_id', topicId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const questionIds = (questions || []).map((question) => question.id);
+      const options = await fetchQuestionOptions(questionIds);
+
+      return attachOptionsToQuestions(questions || [], options);
     },
 
     async getPracticeQuestions({ topicIds = [], count = 10 }) {
@@ -168,8 +224,85 @@
         .single();
 
       if (error) throw error;
-
       return data;
+    },
+
+    async createTopic({ title, slug, description, sortOrder = 0, isActive = true }) {
+      const { data, error } = await InternSupabase
+        .from('intern_topics')
+        .insert({
+          title,
+          slug,
+          description,
+          sort_order: sortOrder,
+          is_active: isActive
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    async deleteTopic(topicId) {
+      const { error } = await InternSupabase
+        .from('intern_topics')
+        .delete()
+        .eq('id', topicId);
+
+      if (error) throw error;
+      return true;
+    },
+
+    async createQuestion({
+      topicId,
+      type,
+      difficulty,
+      questionText,
+      caseText = '',
+      imageUrl = '',
+      explanation = '',
+      summary = '',
+      isActive = true
+    }) {
+      const { data, error } = await InternSupabase
+        .from('intern_questions')
+        .insert({
+          topic_id: topicId,
+          type,
+          difficulty,
+          question_text: questionText,
+          case_text: caseText,
+          image_url: imageUrl,
+          explanation,
+          summary,
+          is_active: isActive
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    async createQuestionOptions(options) {
+      const { data, error } = await InternSupabase
+        .from('intern_question_options')
+        .insert(options)
+        .select();
+
+      if (error) throw error;
+      return data || [];
+    },
+
+    async deleteQuestion(questionId) {
+      const { error } = await InternSupabase
+        .from('intern_questions')
+        .delete()
+        .eq('id', questionId);
+
+      if (error) throw error;
+      return true;
     }
   };
 
