@@ -374,6 +374,26 @@
       return true;
     }
   };
+async getDashboardSessions() {
+  const { data, error } = await InternSupabase
+    .from('intern_exam_sessions')
+    .select('*')
+    .order('created_at', { ascending: true });
 
+  if (error) throw error;
+  return data || [];
+},
+
+async getDashboardAnswers() {
+  const { data, error } = await InternSupabase
+    .from('intern_exam_answers')
+    .select(`
+      *,
+      intern_topics(title)
+    `);
+
+  if (error) throw error;
+  return data || [];
+},
   window.InternAPI = InternAPI;
 })();
