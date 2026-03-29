@@ -364,16 +364,16 @@
       return data || [];
     },
 
-    async deleteQuestion(questionId) {
-      const { error } = await InternSupabase
-        .from('intern_questions')
-        .delete()
-        .eq('id', questionId);
+   async deleteQuestion(questionId) {
+  const { error } = await InternSupabase
+    .from('intern_questions')
+    .delete()
+    .eq('id', questionId);
 
-      if (error) throw error;
-      return true;
-    }
-  };
+  if (error) throw error;
+  return true;
+},
+
 async getDashboardSessions() {
   const { data, error } = await InternSupabase
     .from('intern_exam_sessions')
@@ -394,6 +394,8 @@ async getDashboardAnswers() {
 
   if (error) throw error;
   return data || [];
-},
-  window.InternAPI = InternAPI;
+}
+};
+
+window.InternAPI = InternAPI;
 })();
