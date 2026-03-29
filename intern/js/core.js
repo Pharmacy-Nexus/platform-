@@ -5,18 +5,14 @@
     config: {
       appName: 'Pharmacy Nexus Intern',
       setSizeDefault: 20,
-     storageKeys: {
-  config: 'pn_intern_config_v1',
-  topicsCache: 'pn_intern_topics_cache_v1',
-  session: 'pn_intern_session_v1',
-  practiceReview: 'pn_intern_practice_review_v1',
-  practiceRetry: 'pn_intern_practice_retry_v1',
-  examReview: 'pn_intern_exam_review_v1',
-  examRetry: 'pn_intern_exam_retry_v1'
-},
-      supabase: {
-        url: '',
-        anonKey: ''
+      storageKeys: {
+        config: 'pn_intern_config_v1',
+        topicsCache: 'pn_intern_topics_cache_v1',
+        session: 'pn_intern_session_v1',
+        practiceReview: 'pn_intern_practice_review_v1',
+        practiceRetry: 'pn_intern_practice_retry_v1',
+        examReview: 'pn_intern_exam_review_v1',
+        examRetry: 'pn_intern_exam_retry_v1'
       }
     },
 
@@ -54,16 +50,6 @@
       localStorage.setItem(key, JSON.stringify(value));
     },
 
-    pageLink(path, query = {}) {
-      const url = new URL(path, window.location.href);
-      Object.entries(query).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          url.searchParams.set(key, String(value));
-        }
-      });
-      return `${url.pathname}${url.search}`;
-    },
-
     formatNumber(value) {
       return new Intl.NumberFormat('en-US').format(value || 0);
     },
@@ -92,21 +78,50 @@
       return saved;
     },
 
+    getInternHomeLink() {
+      return window.location.pathname.includes('/intern/pages/') ? '../index.html' : './index.html';
+    },
+
+    getMainHomeLink() {
+      return window.location.pathname.includes('/intern/pages/') ? '../../index.html' : '../index.html';
+    },
+
+    getMainDashboardLink() {
+      return window.location.pathname.includes('/intern/pages/') ? '../../dashboard.html' : '../dashboard.html';
+    },
+
+    getMainSavedLink() {
+      return window.location.pathname.includes('/intern/pages/') ? '../../saved.html' : '../saved.html';
+    },
+
+    getAdminLink() {
+      return window.location.pathname.includes('/intern/pages/') ? './admin.html' : './pages/admin.html';
+    },
+
+    bindAdminShortcut() {
+      document.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && event.shiftKey && event.key === '9') {
+          event.preventDefault();
+          window.location.href = this.getAdminLink();
+        }
+      });
+    },
+
     createShell() {
       const root = document.getElementById('intern-shell');
       root.innerHTML = `
         <header class="site-header">
           <div class="container navbar">
-            <a class="brand" href="../index.html">
+            <a class="brand" href="${this.getMainHomeLink()}">
               <span class="brand-mark">PN</span>
               <span>Pharmacy Nexus</span>
             </a>
 
             <nav class="nav-menu" style="display:flex;">
-              <a class="nav-link" href="../index.html">Home</a>
-              <a class="nav-link is-active" href="./index.html">Intern</a>
-              <a class="nav-link" href="../dashboard.html">Dashboard</a>
-              <a class="nav-link" href="../saved.html">Saved</a>
+              <a class="nav-link" href="${this.getMainHomeLink()}">Home</a>
+              <a class="nav-link is-active" href="${this.getInternHomeLink()}">Intern</a>
+              <a class="nav-link" href="${this.getMainDashboardLink()}">Dashboard</a>
+              <a class="nav-link" href="${this.getMainSavedLink()}">Saved</a>
             </nav>
           </div>
         </header>
@@ -114,12 +129,14 @@
         <main class="main-section">
           <div class="container">
             <div class="intern-topbar">
-              <a class="intern-back-link" href="../index.html">← Back to main platform</a>
+              <a class="intern-back-link" href="${this.getMainHomeLink()}">← Back to main platform</a>
             </div>
             <div id="internPageRoot"></div>
           </div>
         </main>
       `;
+
+      this.bindAdminShortcut();
     }
   };
 
