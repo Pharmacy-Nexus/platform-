@@ -364,7 +364,7 @@
       return data || [];
     },
 
-   async deleteQuestion(questionId) {
+ async deleteQuestion(questionId) {
   const { error } = await InternSupabase
     .from('intern_questions')
     .delete()
@@ -372,8 +372,8 @@
 
   if (error) throw error;
   return true;
-},
-
+}
+};
 
 window.InternAPI = InternAPI;
 })();
