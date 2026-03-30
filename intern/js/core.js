@@ -191,6 +191,66 @@
       this.bindAdminShortcut();
     }
   };
+InternCore.getEmptyDashboard = function () {
+  return {
+    totalAttempts: 0,
+    practiceAttempts: 0,
+    realExamAttempts: 0,
+    totalSolved: 0,
+    totalCorrect: 0,
+    totalWrong: 0,
+    topicStats: {},
+    recentSessions: []
+  };
+};
 
+InternCore.getDashboardData = function () {
+  return this.readStore(this.config.storageKeys.internDashboard, this.getEmptyDashboard());
+};
+
+InternCore.saveDashboardData = function (data) {
+  this.writeStore(this.config.storageKeys.internDashboard, data);
+};
+
+InternCore.updateDashboardFromSession = function ({ mode, rows, score, total }) {
+  const dashboard = this.getDashboardData();
+
+  dashboard.totalAttempts += 1;
+  if (mode === 'practice') dashboard.practiceAttempts += 1;
+  if (mode === 'real') dashboard.realExamAttempts += 1;
+
+  dashboard.totalSolved += total;
+  dashboard.totalCorrect += score;
+  dashboard.totalWrong += (total - score);
+
+  rows.forEach((row) => {
+    const topic = row.question.topic_title || 'Unknown Topic';
+
+    if (!dashboard.topicStats[topic]) {
+      dashboard.topicStats[topic] = {
+        topic,
+        total: 0,
+        correct: 0,
+        wrong: 0
+      };
+    }
+
+    dashboard.topicStats[topic].total += 1;
+    if (row.isCorrect) dashboard.topicStats[topic].correct += 1;
+    else dashboard.topicStats[topic].wrong += 1;
+  });
+
+  dashboard.recentSessions.unshift({
+    mode,
+    score,
+    total,
+    percent: total ? Math.round((score / total) * 100) : 0,
+    createdAt: new Date().toISOString()
+  });
+
+  dashboard.recentSessions = dashboard.recentSessions.slice(0, 20);
+
+  this.saveDashboardData(dashboard);
+};
   window.InternCore = InternCore;
 })();
