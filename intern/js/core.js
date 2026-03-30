@@ -5,7 +5,7 @@
     config: {
       appName: 'Pharmacy Nexus Intern',
       setSizeDefault: 20,
-      adminPassword: 'PN-Intern-2026',
+      allowedAdminEmail: 'your-email@example.com',
       storageKeys: {
         config: 'pn_intern_config_v1',
         topicsCache: 'pn_intern_topics_cache_v1',
@@ -13,8 +13,7 @@
         practiceReview: 'pn_intern_practice_review_v1',
         practiceRetry: 'pn_intern_practice_retry_v1',
         examReview: 'pn_intern_exam_review_v1',
-        examRetry: 'pn_intern_exam_retry_v1',
-        adminUnlocked: 'pn_intern_admin_unlocked_v1'
+        examRetry: 'pn_intern_exam_retry_v1'
       }
     },
 
@@ -104,54 +103,43 @@
       return window.location.pathname.includes('/intern/pages/') ? './admin.html' : './pages/admin.html';
     },
 
+    getAdminLoginLink() {
+      return window.location.pathname.includes('/intern/pages/') ? './admin-login.html' : './pages/admin-login.html';
+    },
+
     getInternDashboardLink() {
       return window.location.pathname.includes('/intern/pages/') ? './dashboard.html' : './pages/dashboard.html';
     },
 
-    isAdminUnlocked() {
-      return this.readStore(this.config.storageKeys.adminUnlocked, false) === true;
-    },
-
-    unlockAdmin() {
-      this.writeStore(this.config.storageKeys.adminUnlocked, true);
-    },
-
-    lockAdmin() {
-      this.removeStore(this.config.storageKeys.adminUnlocked);
-    },
-
-    promptAdminUnlock() {
-      const entered = window.prompt('Enter admin password');
-      if (!entered) return false;
-
-      if (entered === this.config.adminPassword) {
-        this.unlockAdmin();
-        return true;
+    async getCurrentUser() {
+      try {
+        const { data, error } = await InternSupabase.auth.getUser();
+        if (error) return null;
+        return data?.user || null;
+      } catch (_) {
+        return null;
       }
-
-      window.alert('Incorrect password.');
-      return false;
     },
 
-    ensureAdminAccess() {
-      if (this.isAdminUnlocked()) return true;
-      return this.promptAdminUnlock();
+    async isAllowedAdmin() {
+      const user = await this.getCurrentUser();
+      if (!user?.email) return false;
+      return user.email.toLowerCase() === this.config.allowedAdminEmail.toLowerCase();
     },
 
     bindAdminShortcut() {
-      document.addEventListener('keydown', (event) => {
-        const shortcutOne =
+      document.addEventListener('keydown', async (event) => {
+        const shortcut =
           event.ctrlKey &&
           event.shiftKey &&
           (event.code === 'Digit9' || event.code === 'Numpad9');
 
-        if (shortcutOne) {
-          event.preventDefault();
-          const allowed = this.ensureAdminAccess();
-          if (allowed) {
-            window.location.href = this.getAdminLink();
-          }
-        }
+        if (!shortcut) return;
+
+        event.preventDefault();
+
+        const isAdmin = await this.isAllowedAdmin();
+        window.location.href = isAdmin ? this.getAdminLink() : this.getAdminLoginLink();
       });
     },
 
@@ -181,7 +169,7 @@
               <a class="intern-back-link" href="${this.getMainHomeLink()}">← Back to main platform</a>
               <div style="display:flex; gap:10px; flex-wrap:wrap;">
                 <a class="btn btn-light" href="${this.getInternDashboardLink()}">Intern Dashboard</a>
-                ${this.isAdminUnlocked() ? '<button class="btn btn-light" id="lockAdminBtn" type="button">Lock Admin</button>' : ''}
+                <button class="btn btn-light" id="adminLogoutBtn" type="button">Logout</button>
               </div>
             </div>
             <div id="internPageRoot"></div>
@@ -189,11 +177,13 @@
         </main>
       `;
 
-      const lockBtn = this.qs('#lockAdminBtn');
-      if (lockBtn) {
-        lockBtn.addEventListener('click', () => {
-          this.lockAdmin();
-          window.alert('Admin locked.');
+      const logoutBtn = this.qs('#adminLogoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+          try {
+            await InternSupabase.auth.signOut();
+          } catch (_) {}
+          window.location.href = this.getAdminLoginLink();
         });
       }
 
