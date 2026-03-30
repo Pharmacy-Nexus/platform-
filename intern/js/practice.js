@@ -354,6 +354,12 @@
     });
 
     const score = rows.filter((row) => row.isCorrect).length;
+    InternCore.updateDashboardFromSession({
+  mode: 'practice',
+  rows,
+  score,
+  total: rows.length
+});
     const currentSession = InternCore.getSession();
 
     try {
