@@ -5,7 +5,7 @@
     config: {
       appName: 'Pharmacy Nexus Intern',
       setSizeDefault: 20,
-      allowedAdminEmail: 'your-email@example.com',
+      allowedAdminEmail: 'pharmacynexusofficial@gmail.com',
       storageKeys: {
         config: 'pn_intern_config_v1',
         topicsCache: 'pn_intern_topics_cache_v1',
