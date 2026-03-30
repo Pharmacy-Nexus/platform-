@@ -6,6 +6,50 @@
     return Math.round((correct / total) * 100);
   }
 
+  async function exportDashboardAsPDF() {
+    const target = InternCore.qs('#dashboardExportArea');
+    if (!target) return;
+
+    const { jsPDF } = window.jspdf;
+    const canvas = await html2canvas(target, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff'
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    const imgWidth = pageWidth - 20;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 10;
+
+    pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+    heightLeft -= (pageHeight - 20);
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight + 10;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+      heightLeft -= (pageHeight - 20);
+    }
+
+    pdf.save('intern-dashboard.pdf');
+  }
+
+  function resetDashboard() {
+    const ok = window.confirm('Reset all local dashboard data on this browser?');
+    if (!ok) return;
+
+    InternCore.saveDashboardData(InternCore.getEmptyDashboard());
+    renderDashboard();
+  }
+
   function renderDashboard() {
     const root = InternCore.qs('#internPageRoot');
     const dashboard = InternCore.getDashboardData();
@@ -19,6 +63,9 @@
     const weakest = [...topicStats].sort((a, b) => a.accuracy - b.accuracy).slice(0, 5);
     const averageAccuracy = percent(dashboard.totalCorrect, dashboard.totalSolved);
 
+    const bestAccuracy = topicStats.length ? Math.max(...topicStats.map((x) => x.accuracy)) : 0;
+    const worstAccuracy = topicStats.length ? Math.min(...topicStats.map((x) => x.accuracy)) : 0;
+
     root.innerHTML = `
       <section class="section-header">
         <div>
@@ -27,144 +74,173 @@
         </div>
       </section>
 
-      <section class="card" style="margin-bottom:24px;">
-        <div class="meta-row">
-          <span class="badge">Dashboard Notice</span>
-        </div>
-        <p class="muted" style="margin-top:12px;">
-          Your dashboard is stored locally on your browser only.
-          This helps keep the platform faster and lighter.
-          To avoid losing your progress, you can export your dashboard as a PDF backup from time to time.
-        </p>
-      </section>
+      <div class="action-row" style="justify-content:flex-start; margin-bottom:20px;">
+        <button class="btn btn-primary" id="downloadDashboardPdfBtn" type="button">Download Dashboard PDF</button>
+        <button class="btn btn-light" id="resetDashboardBtn" type="button">Reset Local Dashboard</button>
+      </div>
 
-      <section class="summary-grid four" style="margin-bottom:24px;">
-        <div class="card summary-card">
-          <div class="muted">Total Attempts</div>
-          <div class="big">${InternCore.formatNumber(dashboard.totalAttempts)}</div>
-        </div>
-        <div class="card summary-card">
-          <div class="muted">Practice Attempts</div>
-          <div class="big">${InternCore.formatNumber(dashboard.practiceAttempts)}</div>
-        </div>
-        <div class="card summary-card">
-          <div class="muted">Real Exam Attempts</div>
-          <div class="big">${InternCore.formatNumber(dashboard.realExamAttempts)}</div>
-        </div>
-        <div class="card summary-card">
-          <div class="muted">Average Accuracy</div>
-          <div class="big">${averageAccuracy}%</div>
-        </div>
-      </section>
-
-      <section class="summary-grid four" style="margin-bottom:24px;">
-        <div class="card summary-card">
-          <div class="muted">Solved Questions</div>
-          <div class="big">${InternCore.formatNumber(dashboard.totalSolved)}</div>
-        </div>
-        <div class="card summary-card">
-          <div class="muted">Correct Answers</div>
-          <div class="big">${InternCore.formatNumber(dashboard.totalCorrect)}</div>
-        </div>
-        <div class="card summary-card">
-          <div class="muted">Wrong Answers</div>
-          <div class="big">${InternCore.formatNumber(dashboard.totalWrong)}</div>
-        </div>
-        <div class="card summary-card">
-          <div class="muted">Tracked Topics</div>
-          <div class="big">${InternCore.formatNumber(topicStats.length)}</div>
-        </div>
-      </section>
-
-      <section class="analysis-grid">
-        <article class="card">
-          <h3 style="margin-top:0;">Strongest Topics</h3>
-          ${strongest.length ? strongest.map((row) => `
-            <div class="metric-row">
-              <span>${row.topic}</span>
-              <strong>${row.accuracy}%</strong>
-            </div>
-          `).join('') : '<div class="muted">No data yet.</div>'}
-        </article>
-
-        <article class="card">
-          <h3 style="margin-top:0;">Weakest Topics</h3>
-          ${weakest.length ? weakest.map((row) => `
-            <div class="metric-row">
-              <span>${row.topic}</span>
-              <strong>${row.accuracy}%</strong>
-            </div>
-          `).join('') : '<div class="muted">No data yet.</div>'}
-        </article>
-      </section>
-
-      <section class="intern-section">
-        <div class="section-header">
-          <div>
-            <h2>Topic Performance</h2>
-            <p>Performance is stored on this browser only.</p>
+      <div id="dashboardExportArea">
+        <section class="card" style="margin-bottom:24px;">
+          <div class="meta-row">
+            <span class="badge">Dashboard Notice</span>
           </div>
-        </div>
+          <p class="muted" style="margin-top:12px;">
+            Your dashboard is stored locally on your browser only.
+            This keeps the platform faster and lighter.
+            To avoid losing your progress, export your dashboard as a PDF backup from time to time.
+          </p>
+        </section>
 
-        ${
-          topicStats.length
-            ? `
-              <div class="review-list">
-                ${topicStats.map((row) => `
-                  <article class="review-card">
-                    <div class="question-top">
-                      <div>
-                        <h3 style="margin:0 0 8px;">${row.topic}</h3>
-                        <div class="meta-row">
-                          <span class="badge">${row.accuracy}% Accuracy</span>
-                          <span class="tag">${row.total} Questions</span>
-                          <span class="tag">${row.correct} Correct</span>
-                          <span class="tag">${row.wrong} Wrong</span>
+        <section class="summary-grid four" style="margin-bottom:24px;">
+          <div class="card summary-card">
+            <div class="muted">Total Attempts</div>
+            <div class="big">${InternCore.formatNumber(dashboard.totalAttempts)}</div>
+          </div>
+          <div class="card summary-card">
+            <div class="muted">Practice Attempts</div>
+            <div class="big">${InternCore.formatNumber(dashboard.practiceAttempts)}</div>
+          </div>
+          <div class="card summary-card">
+            <div class="muted">Real Exam Attempts</div>
+            <div class="big">${InternCore.formatNumber(dashboard.realExamAttempts)}</div>
+          </div>
+          <div class="card summary-card">
+            <div class="muted">Average Accuracy</div>
+            <div class="big">${averageAccuracy}%</div>
+          </div>
+        </section>
+
+        <section class="summary-grid four" style="margin-bottom:24px;">
+          <div class="card summary-card">
+            <div class="muted">Solved Questions</div>
+            <div class="big">${InternCore.formatNumber(dashboard.totalSolved)}</div>
+          </div>
+          <div class="card summary-card">
+            <div class="muted">Correct Answers</div>
+            <div class="big">${InternCore.formatNumber(dashboard.totalCorrect)}</div>
+          </div>
+          <div class="card summary-card">
+            <div class="muted">Wrong Answers</div>
+            <div class="big">${InternCore.formatNumber(dashboard.totalWrong)}</div>
+          </div>
+          <div class="card summary-card">
+            <div class="muted">Tracked Topics</div>
+            <div class="big">${InternCore.formatNumber(topicStats.length)}</div>
+          </div>
+        </section>
+
+        <section class="summary-grid four" style="margin-bottom:24px;">
+          <div class="card summary-card">
+            <div class="muted">Best Topic Accuracy</div>
+            <div class="big">${bestAccuracy}%</div>
+          </div>
+          <div class="card summary-card">
+            <div class="muted">Lowest Topic Accuracy</div>
+            <div class="big">${worstAccuracy}%</div>
+          </div>
+          <div class="card summary-card">
+            <div class="muted">Recent Sessions</div>
+            <div class="big">${InternCore.formatNumber((dashboard.recentSessions || []).length)}</div>
+          </div>
+          <div class="card summary-card">
+            <div class="muted">Mode Mix</div>
+            <div class="big">${dashboard.practiceAttempts}/${dashboard.realExamAttempts}</div>
+          </div>
+        </section>
+
+        <section class="analysis-grid">
+          <article class="card">
+            <h3 style="margin-top:0;">Strongest Topics</h3>
+            ${strongest.length ? strongest.map((row) => `
+              <div class="metric-row">
+                <span>${row.topic}</span>
+                <strong>${row.accuracy}%</strong>
+              </div>
+            `).join('') : '<div class="muted">No data yet.</div>'}
+          </article>
+
+          <article class="card">
+            <h3 style="margin-top:0;">Weakest Topics</h3>
+            ${weakest.length ? weakest.map((row) => `
+              <div class="metric-row">
+                <span>${row.topic}</span>
+                <strong>${row.accuracy}%</strong>
+              </div>
+            `).join('') : '<div class="muted">No data yet.</div>'}
+          </article>
+        </section>
+
+        <section class="intern-section">
+          <div class="section-header">
+            <div>
+              <h2>Topic Performance</h2>
+              <p>Performance is stored on this browser only.</p>
+            </div>
+          </div>
+
+          ${
+            topicStats.length
+              ? `
+                <div class="review-list">
+                  ${topicStats.map((row) => `
+                    <article class="review-card">
+                      <div class="question-top">
+                        <div>
+                          <h3 style="margin:0 0 8px;">${row.topic}</h3>
+                          <div class="meta-row">
+                            <span class="badge">${row.accuracy}% Accuracy</span>
+                            <span class="tag">${row.total} Questions</span>
+                            <span class="tag">${row.correct} Correct</span>
+                            <span class="tag">${row.wrong} Wrong</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </article>
-                `).join('')}
-              </div>
-            `
-            : '<div class="intern-empty">No topic performance data yet.</div>'
-        }
-      </section>
+                    </article>
+                  `).join('')}
+                </div>
+              `
+              : '<div class="intern-empty">No topic performance data yet.</div>'
+          }
+        </section>
 
-      <section class="intern-section">
-        <div class="section-header">
-          <div>
-            <h2>Recent Activity</h2>
-            <p>Your latest local sessions on this browser.</p>
+        <section class="intern-section">
+          <div class="section-header">
+            <div>
+              <h2>Recent Activity</h2>
+              <p>Your latest local sessions on this browser.</p>
+            </div>
           </div>
-        </div>
 
-        ${
-          dashboard.recentSessions?.length
-            ? `
-              <div class="review-list">
-                ${dashboard.recentSessions.map((session) => `
-                  <article class="review-card">
-                    <div class="question-top">
-                      <div>
-                        <div class="meta-row">
-                          <span class="badge">${session.mode}</span>
-                          <span class="tag">${session.score}/${session.total}</span>
-                          <span class="tag">${session.percent}%</span>
-                        </div>
-                        <div class="muted" style="margin-top:10px;">
-                          ${new Date(session.createdAt).toLocaleString()}
+          ${
+            dashboard.recentSessions?.length
+              ? `
+                <div class="review-list">
+                  ${dashboard.recentSessions.map((session) => `
+                    <article class="review-card">
+                      <div class="question-top">
+                        <div>
+                          <div class="meta-row">
+                            <span class="badge">${session.mode}</span>
+                            <span class="tag">${session.score}/${session.total}</span>
+                            <span class="tag">${session.percent}%</span>
+                          </div>
+                          <div class="muted" style="margin-top:10px;">
+                            ${new Date(session.createdAt).toLocaleString()}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </article>
-                `).join('')}
-              </div>
-            `
-            : '<div class="intern-empty">No recent activity yet.</div>'
-        }
-      </section>
+                    </article>
+                  `).join('')}
+                </div>
+              `
+              : '<div class="intern-empty">No recent activity yet.</div>'
+          }
+        </section>
+      </div>
     `;
+
+    InternCore.qs('#downloadDashboardPdfBtn')?.addEventListener('click', exportDashboardAsPDF);
+    InternCore.qs('#resetDashboardBtn')?.addEventListener('click', resetDashboard);
   }
 
   function initLocalDashboard() {
