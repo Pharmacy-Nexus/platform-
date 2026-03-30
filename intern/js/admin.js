@@ -805,7 +805,7 @@ async function initAdminPage() {
       </section>
     `;
   }
-}
+} 
 
   document.addEventListener('DOMContentLoaded', initAdminPage);
 })();
