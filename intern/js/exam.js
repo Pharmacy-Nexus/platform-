@@ -352,6 +352,12 @@
     });
 
     const score = rows.filter((row) => row.isCorrect).length;
+    InternCore.updateDashboardFromSession({
+  mode: 'real',
+  rows,
+  score,
+  total: rows.length
+});
 
     const byTopic = {};
     rows.forEach((row) => {
