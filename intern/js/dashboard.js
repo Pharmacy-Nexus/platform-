@@ -1,100 +1,78 @@
 (function () {
   'use strict';
 
-  function percent(score, total) {
+  function percent(correct, total) {
     if (!total) return 0;
-    return Math.round((score / total) * 100);
+    return Math.round((correct / total) * 100);
   }
 
-  function groupByTopic(answers) {
-    const map = new Map();
+  function renderDashboard() {
+    const root = InternCore.qs('#internPageRoot');
+    const dashboard = InternCore.getDashboardData();
 
-    answers.forEach((item) => {
-      const topicName = item.intern_topics?.title || 'Unknown Topic';
-      if (!map.has(topicName)) {
-        map.set(topicName, { topic: topicName, total: 0, correct: 0, wrong: 0 });
-      }
-
-      const row = map.get(topicName);
-      row.total += 1;
-      if (item.is_correct) row.correct += 1;
-      else row.wrong += 1;
-    });
-
-    return [...map.values()].map((row) => ({
+    const topicStats = Object.values(dashboard.topicStats || {}).map((row) => ({
       ...row,
       accuracy: percent(row.correct, row.total)
     }));
-  }
 
-  async function loadDashboardData() {
-    const [sessions, answers, topics] = await Promise.all([
-      InternAPI.getDashboardSessions(),
-      InternAPI.getDashboardAnswers(),
-      InternAPI.getAllTopics()
-    ]);
-
-    return { sessions, answers, topics };
-  }
-
-  function renderDashboard({ sessions, answers, topics }) {
-    const root = InternCore.qs('#internPageRoot');
-
-    const completedSessions = sessions.filter((session) => session.status === 'completed');
-    const totalAttempts = completedSessions.length;
-    const practiceAttempts = completedSessions.filter((s) => s.mode === 'practice').length;
-    const realAttempts = completedSessions.filter((s) => s.mode === 'real').length;
-    const totalSolved = answers.length;
-    const totalCorrect = answers.filter((a) => a.is_correct).length;
-    const avgAccuracy = percent(totalCorrect, totalSolved);
-
-    const topicStats = groupByTopic(answers).sort((a, b) => b.accuracy - a.accuracy);
-    const strongest = topicStats.slice(0, 5);
+    const strongest = [...topicStats].sort((a, b) => b.accuracy - a.accuracy).slice(0, 5);
     const weakest = [...topicStats].sort((a, b) => a.accuracy - b.accuracy).slice(0, 5);
+    const averageAccuracy = percent(dashboard.totalCorrect, dashboard.totalSolved);
 
     root.innerHTML = `
       <section class="section-header">
         <div>
           <h2>Intern Dashboard</h2>
-          <p>Track total attempts, solved questions, and topic-by-topic performance from Supabase.</p>
+          <p>Track your local progress across practice and real exams.</p>
         </div>
+      </section>
+
+      <section class="card" style="margin-bottom:24px;">
+        <div class="meta-row">
+          <span class="badge">Dashboard Notice</span>
+        </div>
+        <p class="muted" style="margin-top:12px;">
+          Your dashboard is stored locally on your browser only.
+          This helps keep the platform faster and lighter.
+          To avoid losing your progress, you can export your dashboard as a PDF backup from time to time.
+        </p>
       </section>
 
       <section class="summary-grid four" style="margin-bottom:24px;">
         <div class="card summary-card">
           <div class="muted">Total Attempts</div>
-          <div class="big">${InternCore.formatNumber(totalAttempts)}</div>
+          <div class="big">${InternCore.formatNumber(dashboard.totalAttempts)}</div>
         </div>
         <div class="card summary-card">
           <div class="muted">Practice Attempts</div>
-          <div class="big">${InternCore.formatNumber(practiceAttempts)}</div>
+          <div class="big">${InternCore.formatNumber(dashboard.practiceAttempts)}</div>
         </div>
         <div class="card summary-card">
           <div class="muted">Real Exam Attempts</div>
-          <div class="big">${InternCore.formatNumber(realAttempts)}</div>
+          <div class="big">${InternCore.formatNumber(dashboard.realExamAttempts)}</div>
         </div>
         <div class="card summary-card">
           <div class="muted">Average Accuracy</div>
-          <div class="big">${avgAccuracy}%</div>
+          <div class="big">${averageAccuracy}%</div>
         </div>
       </section>
 
       <section class="summary-grid four" style="margin-bottom:24px;">
         <div class="card summary-card">
-          <div class="muted">Topics in Database</div>
-          <div class="big">${InternCore.formatNumber(topics.length)}</div>
-        </div>
-        <div class="card summary-card">
           <div class="muted">Solved Questions</div>
-          <div class="big">${InternCore.formatNumber(totalSolved)}</div>
+          <div class="big">${InternCore.formatNumber(dashboard.totalSolved)}</div>
         </div>
         <div class="card summary-card">
           <div class="muted">Correct Answers</div>
-          <div class="big">${InternCore.formatNumber(totalCorrect)}</div>
+          <div class="big">${InternCore.formatNumber(dashboard.totalCorrect)}</div>
         </div>
         <div class="card summary-card">
           <div class="muted">Wrong Answers</div>
-          <div class="big">${InternCore.formatNumber(totalSolved - totalCorrect)}</div>
+          <div class="big">${InternCore.formatNumber(dashboard.totalWrong)}</div>
+        </div>
+        <div class="card summary-card">
+          <div class="muted">Tracked Topics</div>
+          <div class="big">${InternCore.formatNumber(topicStats.length)}</div>
         </div>
       </section>
 
@@ -124,7 +102,7 @@
         <div class="section-header">
           <div>
             <h2>Topic Performance</h2>
-            <p>Accuracy by topic based on saved answers.</p>
+            <p>Performance is stored on this browser only.</p>
           </div>
         </div>
 
@@ -139,7 +117,7 @@
                         <h3 style="margin:0 0 8px;">${row.topic}</h3>
                         <div class="meta-row">
                           <span class="badge">${row.accuracy}% Accuracy</span>
-                          <span class="tag">${row.total} Answers</span>
+                          <span class="tag">${row.total} Questions</span>
                           <span class="tag">${row.correct} Correct</span>
                           <span class="tag">${row.wrong} Wrong</span>
                         </div>
@@ -156,27 +134,26 @@
       <section class="intern-section">
         <div class="section-header">
           <div>
-            <h2>Recent Sessions</h2>
-            <p>Latest completed practice and real exam sessions.</p>
+            <h2>Recent Activity</h2>
+            <p>Your latest local sessions on this browser.</p>
           </div>
         </div>
 
         ${
-          completedSessions.length
+          dashboard.recentSessions?.length
             ? `
               <div class="review-list">
-                ${completedSessions.slice().reverse().slice(0, 10).map((session) => `
+                ${dashboard.recentSessions.map((session) => `
                   <article class="review-card">
                     <div class="question-top">
                       <div>
                         <div class="meta-row">
                           <span class="badge">${session.mode}</span>
-                          <span class="tag">${session.score}/${session.total_questions}</span>
-                          <span class="tag">${percent(session.score, session.total_questions)}%</span>
-                          <span class="tag">${session.question_count} Questions</span>
+                          <span class="tag">${session.score}/${session.total}</span>
+                          <span class="tag">${session.percent}%</span>
                         </div>
                         <div class="muted" style="margin-top:10px;">
-                          ${new Date(session.created_at).toLocaleString()}
+                          ${new Date(session.createdAt).toLocaleString()}
                         </div>
                       </div>
                     </div>
@@ -184,32 +161,16 @@
                 `).join('')}
               </div>
             `
-            : '<div class="intern-empty">No completed sessions yet.</div>'
+            : '<div class="intern-empty">No recent activity yet.</div>'
         }
       </section>
     `;
   }
 
-  async function initInternDashboard() {
+  function initLocalDashboard() {
     InternCore.createShell();
-
-    try {
-      const data = await loadDashboardData();
-      renderDashboard(data);
-    } catch (error) {
-      console.error(error);
-      const root = InternCore.qs('#internPageRoot');
-      root.innerHTML = `
-        <section class="card center">
-          <div class="meta-row" style="justify-content:center;">
-            <span class="badge">Error</span>
-          </div>
-          <h2>Failed to load intern dashboard.</h2>
-          <p class="muted">Please check Supabase permissions and data access.</p>
-        </section>
-      `;
-    }
+    renderDashboard();
   }
 
-  document.addEventListener('DOMContentLoaded', initInternDashboard);
+  document.addEventListener('DOMContentLoaded', initLocalDashboard);
 })();
