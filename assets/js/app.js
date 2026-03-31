@@ -297,11 +297,9 @@ function renderHome(index) {
           </p>
 
           <div class="hero-actions">
-            <a class="btn btn-primary" href="./subjects.html">Explore Subjects</a>
-            ${continueState
-              ? `<a class="btn btn-light" href="${continueLink()}">Continue Study</a>`
-              : `<a class="btn btn-secondary" href="./final-exam.html">Go to Final Exam</a>`}
-          </div>
+  <a class="btn btn-primary" href="./subjects.html">Explore Subjects</a>
+  <a class="btn btn-secondary" href="./final-exam.html">Go to Final Exam</a>
+</div>
 
           <div class="hero-mini-stats">
             <div class="mini-stat">
