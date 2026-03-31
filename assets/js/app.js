@@ -521,7 +521,6 @@ function renderHome(index) {
         card.innerHTML = `
           <div class="meta-row"><span class="badge">${subject.topics.length} Topics</span><span class="tag">${subject.id}</span></div>
           <h3>${subject.name}</h3>
-          <p class="muted">Structured study content for ${subject.name} with topic-based JSON files.</p>
           <div class="meta-row">${subject.topics.slice(0, 2).map((t) => `<span class="tag">${t.name}</span>`).join('')}</div>
           <div style="margin-top:20px;"><a class="btn btn-dark" href="${pageLink('./topics.html', { subject: subject.id })}">Open Topics</a></div>
         `;
