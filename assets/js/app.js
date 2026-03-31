@@ -263,182 +263,277 @@
     }));
   }
 
-  function renderHome(index) {
-    const root = document.getElementById('pageRoot');
-    const subjects = index.subjects;
-    const progress = getProgress();
-    const continueState = getContinueState();
-    const recent = progress.recent.slice(0, 4);
-    const savedCount = Object.keys(progress.savedBank || {}).length;
-    const notesCount = Object.keys(progress.savedNotes || {}).length;
-    const accuracy = progress.totalSelections ? Math.round((progress.correctSelections / progress.totalSelections) * 100) : 0;
+function renderHome(index) {
+  const root = document.getElementById('pageRoot');
+  const subjects = index.subjects;
+  const progress = getProgress();
+  const continueState = getContinueState();
+  const recent = progress.recent.slice(0, 4);
+  const savedCount = Object.keys(progress.savedBank || {}).length;
+  const notesCount = Object.keys(progress.savedNotes || {}).length;
+  const accuracy = progress.totalSelections
+    ? Math.round((progress.correctSelections / progress.totalSelections) * 100)
+    : 0;
 
-    root.innerHTML = `
-      <section class="hero hero-graphic-shell">
-        <span class="hero-chem hero-chem-a">C₂₀H₂₅N₃O</span>
-        <span class="hero-chem hero-chem-b">C₈H₉NO₂</span>
-        <span class="hero-orb hero-orb-a"></span>
-        <span class="hero-orb hero-orb-b"></span>
-        <div class="hero-grid">
-          <div>
-            <span class="eyebrow">Pharmacy Nexus • Structured Learning</span>
-            <h1>Your Ultimate Pharmacy Learning Platform <span>Built for Future Pharmacists</span></h1>
-            <p>Move subject by subject, topic by topic, study in clear 30-question sets, review every attempt in detail, and finish with a polished final exam workflow.</p>
-            <div class="hero-actions">
-              <a class="btn btn-primary" href="./subjects.html">Explore Subjects</a>
-              <a class="btn btn-secondary" href="./final-exam.html">Go to Final Exam</a>
+  const totalQuestions = subjects.reduce(
+    (sum, subject) => sum + (subject.topics || []).reduce((acc, topic) => acc + (topic.questionCount || 0), 0),
+    0
+  );
+
+  root.innerHTML = `
+    <section class="hero hero-graphic-shell">
+      <span class="hero-chem hero-chem-a">C₂₀H₂₅N₃O</span>
+      <span class="hero-chem hero-chem-b">C₈H₉NO₂</span>
+      <span class="hero-orb hero-orb-a"></span>
+      <span class="hero-orb hero-orb-b"></span>
+
+      <div class="hero-grid">
+        <div>
+          <span class="eyebrow">Pharmacy Nexus • Structured Learning</span>
+          <h1>Your Ultimate Pharmacy Learning Platform <span>Built for Future Pharmacists</span></h1>
+          <p>
+            Move subject by subject, topic by topic, study in clear 30-question sets,
+            review every attempt in detail, and finish with a polished final exam workflow.
+          </p>
+
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="./subjects.html">Explore Subjects</a>
+            ${continueState
+              ? `<a class="btn btn-light" href="${continueLink()}">Continue Study</a>`
+              : `<a class="btn btn-secondary" href="./final-exam.html">Go to Final Exam</a>`}
+          </div>
+
+          <div class="hero-mini-stats">
+            <div class="mini-stat">
+              <strong>${subjects.length}</strong>
+              <span>Subjects</span>
+            </div>
+            <div class="mini-stat">
+              <strong>${totalQuestions}</strong>
+              <span>Questions</span>
+            </div>
+            <div class="mini-stat">
+              <strong>${accuracy}%</strong>
+              <span>Accuracy</span>
             </div>
           </div>
-          <div class="hero-panel">
-            <h3>Focused. Clean. Expandable.</h3>
-            <p>Study sets, instant feedback, saved questions, final exam review, dashboard tracking, and hidden admin management inside one lightweight static build.</p>
-            <div class="stats-grid">
-              <div class="stat-box"><div class="label">Saved Questions</div><div class="value">${savedCount}</div></div>
-              <div class="stat-box"><div class="label">Notes</div><div class="value">${notesCount}</div></div>
-              <div class="stat-box"><div class="label">Final Exams</div><div class="value">${progress.finalExamsCompleted}</div></div>
-              <div class="stat-box"><div class="label">Accuracy</div><div class="value">${accuracy}%</div></div>
-            </div>
+        </div>
+
+        <div class="hero-panel">
+          <h3>Focused. Clean. Expandable.</h3>
+          <p>
+            Study sets, instant feedback, saved questions, final exam review,
+            dashboard tracking, and hidden admin management inside one lightweight static build.
+          </p>
+
+          <div class="stats-grid">
+            <div class="stat-box"><div class="label">Saved Questions</div><div class="value">${savedCount}</div></div>
+            <div class="stat-box"><div class="label">Notes</div><div class="value">${notesCount}</div></div>
+            <div class="stat-box"><div class="label">Final Exams</div><div class="value">${progress.finalExamsCompleted}</div></div>
+            <div class="stat-box"><div class="label">Accuracy</div><div class="value">${accuracy}%</div></div>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="ticker-section" style="margin-top:26px;">
-        <div class="ticker-shell">
-          <div class="ticker-track">
-            <span> Study in focused 30-question sets</span>
-            <span> Get instant answer feedback and explanations</span>
-            <span> Save important questions and notes</span>
-            <span> Retry only the questions you missed</span>
-            <span> Practice with timed final exams</span>
-            <span> Study in focused 30-question sets</span>
-            <span> Get instant answer feedback and explanations</span>
-            <span> Save important questions and notes</span>
-            <span> Retry only the questions you missed</span>
-            <span> Practice with timed final exams</span>
-          </div>
+    <section style="margin-top:24px;">
+      <div class="summary-grid four home-top-summary">
+        <div class="card summary-card">
+          <div class="muted">Subjects</div>
+          <div class="big">${subjects.length}</div>
         </div>
-      </section>
+        <div class="card summary-card">
+          <div class="muted">Question Bank</div>
+          <div class="big">${totalQuestions}</div>
+        </div>
+        <div class="card summary-card">
+          <div class="muted">Saved + Notes</div>
+          <div class="big">${savedCount + notesCount}</div>
+        </div>
+        <div class="card summary-card">
+          <div class="muted">Overall Accuracy</div>
+          <div class="big">${accuracy}%</div>
+        </div>
+      </div>
+    </section>
 
-      <section class="home-daily-section" style="margin-top:30px;">
-        <div class="section-header">
+    <section class="ticker-section" style="margin-top:26px;">
+      <div class="ticker-shell">
+        <div class="ticker-track">
+          <span> Study in focused 30-question sets</span>
+          <span> Get instant answer feedback and explanations</span>
+          <span> Save important questions and notes</span>
+          <span> Retry only the questions you missed</span>
+          <span> Practice with timed final exams</span>
+          <span> Study in focused 30-question sets</span>
+          <span> Get instant answer feedback and explanations</span>
+          <span> Save important questions and notes</span>
+          <span> Retry only the questions you missed</span>
+          <span> Practice with timed final exams</span>
+        </div>
+      </div>
+    </section>
+
+    ${continueState ? `
+      <section style="margin-top:30px;">
+        <div class="card continue-banner">
           <div>
-            <h2>Daily Challenge</h2>
-            <p>Pick one or more subjects and launch a fast 5-question challenge from your existing question bank.</p>
+            <div class="meta-row">
+              <span class="badge">Continue</span>
+              <span class="tag">${continueState.subjectName || 'Subject'}</span>
+            </div>
+            <h3 style="margin:8px 0 6px;">Resume ${continueState.topicName || 'your study session'}</h3>
+            <p class="muted">
+              You stopped at question ${Math.min((continueState.questionIndex || 0) + 1, Math.max(continueState.totalQuestions || 1, 1))}
+              in set ${continueState.setNumber || 1}.
+            </p>
+          </div>
+          <a class="btn btn-dark" href="${continueLink()}">Resume Now</a>
+        </div>
+      </section>
+    ` : ''}
+
+    <section class="home-daily-section" style="margin-top:30px;">
+      <div class="section-header">
+        <div>
+          <h2>Daily Challenge</h2>
+          <p>Pick one or more subjects and launch a fast 5-question challenge from your existing question bank.</p>
+        </div>
+      </div>
+
+      <div class="card home-dark-card daily-challenge-card">
+        <div class="daily-accent daily-accent-a"></div>
+        <div class="daily-accent daily-accent-b"></div>
+
+        <div class="daily-header-row">
+          <div>
+            <div class="meta-row">
+              <span class="badge">5 Questions</span>
+              <span class="tag">Quick Practice</span>
+            </div>
+            <h3 style="margin:8px 0 6px;">Build Today’s Challenge</h3>
+            <p class="muted">Choose any combination of subjects. We will pull 5 shuffled questions from your existing data.</p>
+          </div>
+
+          <div class="daily-icons" aria-hidden="true">
+            <span class="daily-icon-pill"></span>
+            <span class="daily-icon-ring"></span>
+            <span class="daily-icon-cross"></span>
           </div>
         </div>
-        <div class="card home-dark-card daily-challenge-card">
-          <div class="daily-accent daily-accent-a"></div>
-          <div class="daily-accent daily-accent-b"></div>
-          <div class="daily-header-row">
-            <div>
-              <div class="meta-row">
-                <span class="badge">5 Questions</span>
-                <span class="tag">Quick Practice</span>
+
+        <div class="daily-subject-picks" id="dailySubjectPicks">
+          ${subjects.map((subject) => `
+            <label class="daily-pick">
+              <input type="checkbox" value="${subject.id}" />
+              <span>${subject.name}</span>
+            </label>
+          `).join('')}
+        </div>
+
+        <div class="action-row" style="justify-content:flex-start; margin-top:20px;">
+          <button class="btn btn-primary" id="dailyChallengeBtn" type="button">Start Daily Challenge</button>
+        </div>
+        <div id="dailyChallengeMsg"></div>
+      </div>
+    </section>
+
+    <section style="margin-top:30px;">
+      <div class="section-header">
+        <div>
+          <h2>How It Works</h2>
+          <p>One simple study path, from first topic to final review.</p>
+        </div>
+      </div>
+
+      <div class="card-grid home-flow-grid">
+        <article class="card home-dark-card home-graphic-card">
+          <div class="home-step-number">01</div>
+          <div class="flow-icon chemistry-line"></div>
+          <h3>Choose a Subject</h3>
+          <p class="muted">Start from the subjects page, open any topic, and see its full question count and study sets.</p>
+        </article>
+
+        <article class="card home-dark-card home-graphic-card">
+          <div class="home-step-number">02</div>
+          <div class="flow-icon capsule-icon"></div>
+          <h3>Study in Sets</h3>
+          <p class="muted">Work through 30-question sets with instant answer feedback, explanations, saved questions, and notes.</p>
+        </article>
+
+        <article class="card home-dark-card home-graphic-card">
+          <div class="home-step-number">03</div>
+          <div class="flow-icon flask-icon"></div>
+          <h3>Review and Improve</h3>
+          <p class="muted">Use review pages, retry wrong questions, dashboard progress, and final exam mode to reinforce weak areas.</p>
+        </article>
+      </div>
+    </section>
+
+    <section style="margin-top:30px;">
+      <div class="section-header">
+        <div>
+          <h2>Recent Activity</h2>
+          <p>Your latest study and exam sessions.</p>
+        </div>
+      </div>
+
+      <div class="card home-dark-card">
+        ${recent.length ? `
+          <div class="list-stack">
+            ${recent.map((item) => `
+              <div class="list-item home-dark-panel">
+                <div>
+                  <strong>${item.name || item.type || 'Activity'}</strong>
+                  <div class="muted">${item.subject || 'Mixed'} • ${item.date || ''}</div>
+                </div>
+                <div class="tag">${item.score || '--'}</div>
               </div>
-              <h3 style="margin: 8px 0 6px;">Build Today’s Challenge</h3>
-              <p class="muted">Choose any combination of subjects. We will pull 5 shuffled questions from your existing data.</p>
-            </div>
-            <div class="daily-icons" aria-hidden="true">
-              <span class="daily-icon-pill"></span>
-              <span class="daily-icon-ring"></span>
-              <span class="daily-icon-cross"></span>
-            </div>
-          </div>
-          <div class="daily-subject-picks" id="dailySubjectPicks">
-            ${subjects.map((subject) => `
-              <label class="daily-pick">
-                <input type="checkbox" value="${subject.id}" />
-                <span>${subject.name}</span>
-              </label>
             `).join('')}
           </div>
-          <div class="action-row" style="justify-content:flex-start; margin-top:20px;">
-            <button class="btn btn-primary" id="dailyChallengeBtn" type="button">Start Daily Challenge</button>
-          </div>
-          <div id="dailyChallengeMsg"></div>
-        </div>
-      </section>
+        ` : `
+          <div class="empty-state">No recent activity yet. Start your first study set to build momentum.</div>
+        `}
+      </div>
+    </section>
+  `;
 
-      <section style="margin-top:30px;">
-        <div class="section-header">
-          <div>
-            <h2>How It Works</h2>
-            <p>One simple study path, from first topic to final review.</p>
-          </div>
-        </div>
-        <div class="card-grid home-flow-grid">
-          <article class="card home-dark-card home-graphic-card">
-            <div class="home-step-number">01</div>
-            <div class="flow-icon chemistry-line"></div>
-            <h3>Choose a Subject</h3>
-            <p class="muted">Start from the subjects page, open any topic, and see its full question count and study sets.</p>
-          </article>
-          <article class="card home-dark-card home-graphic-card">
-            <div class="home-step-number">02</div>
-            <div class="flow-icon capsule-icon"></div>
-            <h3>Study in Sets</h3>
-            <p class="muted">Work through 30-question sets with instant answer feedback, explanations, saved questions, and notes.</p>
-          </article>
-          <article class="card home-dark-card home-graphic-card">
-            <div class="home-step-number">03</div>
-            <div class="flow-icon flask-icon"></div>
-            <h3>Review and Improve</h3>
-            <p class="muted">Use review pages, retry wrong questions, dashboard progress, and final exam mode to reinforce weak areas.</p>
-          </article>
-        </div>
-      </section>
+  const dailyBtn = document.getElementById('dailyChallengeBtn');
+  if (dailyBtn) {
+    dailyBtn.addEventListener('click', async () => {
+      const selected = [...document.querySelectorAll('#dailySubjectPicks input:checked')].map((input) => input.value);
+      const msg = document.getElementById('dailyChallengeMsg');
 
-      <section style="margin-top:30px;">
-        <div class="section-header">
-          <div>
-            <h2>Progress Snapshot</h2>
-            <p>Keep track of where you stopped and what deserves your attention next.</p>
-          </div>
-        </div>
-        <div class="analysis-grid home-progress-grid">
-          <div class="card home-dark-card home-graphic-card">
-            <span class="panel-graphic formula-float">C₁₇H₁₉NO₃</span>
-            <h3 style="margin-top:0;">Latest Activity</h3>
-            ${recent.length ? recent.map((item) => `<div class="list-item home-dark-item"><div><strong>${item.name}</strong><div class="muted">${item.subject}</div></div><div><strong>${item.score}</strong><div class="muted">${item.date}</div></div></div>`).join('') : '<div class="empty-state">No recent activity yet.</div>'}
-          </div>
-          <div class="card home-dark-card home-graphic-card">
-            <span class="panel-graphic botanical-float"></span>
-            <h3 style="margin-top:0;">Keep Going</h3>
-            ${continueState ? `
-            <div class="panel home-dark-panel">
-              <div class="muted" style="margin-top:8px;">Continue Set ${continueState.setNumber} in ${continueState.subjectName} from question ${Math.min((continueState.questionIndex || 0) + 1, Math.max(continueState.totalQuestions || 1, 1))}.</div>
-              <div style="margin-top:16px;"><a class="btn btn-primary" href="${continueLink()}">Continue Studying</a></div>
-            </div>` : '<div class="panel home-dark-panel"><strong>Start Learning</strong><div class="muted" style="margin-top:8px;">Open the subjects page and begin your first study set to build progress, saved questions, and review history.</div><div style="margin-top:16px;"><a class="btn btn-primary" href="./subjects.html">Browse Subjects</a></div></div>'}
-            <div class="metric-list" style="margin-top:18px;">
-              <div class="metric-row"><span>Saved Questions</span><strong>${savedCount}</strong></div>
-              <div class="metric-row"><span>Notes</span><strong>${notesCount}</strong></div>
-              <div class="metric-row"><span>Final Exams</span><strong>${progress.finalExamsCompleted}</strong></div>
-            </div>
-          </div>
-        </div>
-      </section>
-    `;
-
-    const dailyBtn = document.getElementById('dailyChallengeBtn');
-    const dailyMsg = document.getElementById('dailyChallengeMsg');
-    dailyBtn?.addEventListener('click', async () => {
-      const checked = [...document.querySelectorAll('#dailySubjectPicks input:checked')].map((input) => input.value);
-      if (!checked.length) {
-        dailyMsg.innerHTML = '<div class="message error">Select at least one subject to start your challenge.</div>';
-        return;
-      }
-      dailyBtn.disabled = true;
-      dailyBtn.textContent = 'Preparing...';
-      dailyMsg.innerHTML = '';
       try {
-        await startDailyChallenge(checked);
+        if (!selected.length) throw new Error('Choose at least one subject.');
+
+        let pool = [];
+        for (const subjectId of selected) {
+          const subject = state.subjectMap.get(subjectId);
+          for (const topic of (subject?.topics || [])) {
+            const data = await loadTopic(subjectId, topic.id);
+            pool.push(...(data.questions || []));
+          }
+        }
+
+        if (pool.length < 5) throw new Error('Not enough questions found for this challenge.');
+
+        const dailyQuestions = shuffle(pool)
+          .slice(0, 5)
+          .map((q) => ({ ...q, options: [...q.options] }));
+
+        writeStore(KEYS.dailyChallenge, {
+          questions: dailyQuestions,
+          selectedSubjects: selected
+        });
+
+        window.location.href = pageLink('./study.html', { daily: 1 });
       } catch (error) {
-        dailyMsg.innerHTML = `<div class="message error">${error.message}</div>`;
-        dailyBtn.disabled = false;
-        dailyBtn.textContent = 'Start Daily Challenge';
+        msg.innerHTML = `<div class="message error">${error.message}</div>`;
       }
     });
   }
+}
 
   function renderSubjectCards(subjects, target, searchInput) {
     const draw = (term = '') => {
