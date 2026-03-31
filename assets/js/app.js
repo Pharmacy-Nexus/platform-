@@ -908,25 +908,91 @@
   }
 
   async function renderFinalExamPage() {
-    const root = document.getElementById('pageRoot');
-    await loadIndex();
-    const subjects = state.index.subjects;
-    root.innerHTML = `
-      <div class="section-header"><div><h2>Final Exam</h2><p>Choose multiple subjects or a single subject with selected topics. Answers stay hidden until the exam ends.</p></div></div>
-      <div id="examSetup"></div>
-      <div id="examEngine"></div>
-    `;
-    const setup = document.getElementById('examSetup');
-    const engine = document.getElementById('examEngine');
+  const root = document.getElementById('pageRoot');
+  await loadIndex();
+  const subjects = state.index.subjects;
+  const progress = getProgress();
+  const overallAccuracy = progress.totalSelections
+    ? Math.round((progress.correctSelections / progress.totalSelections) * 100)
+    : 0;
 
-    setup.innerHTML = `
-      <div class="card">
+  root.innerHTML = `
+    <section class="hero hero-graphic-shell exam-hero">
+      <span class="hero-chem hero-chem-a">RX • FINAL • EXAM</span>
+      <span class="hero-chem hero-chem-b">Timed • Mixed • Review</span>
+      <span class="hero-orb hero-orb-a"></span>
+      <span class="hero-orb hero-orb-b"></span>
+
+      <div class="hero-grid">
+        <div>
+          <span class="eyebrow">Pharmacy Nexus • Assessment Mode</span>
+          <h1>Final Exam <span>Simulate the real pressure, then review deeply</span></h1>
+          <p>
+            Build a timed exam from one subject, selected topics, or a wider mixed pool.
+            Answers stay hidden until submission, then you get a full performance review.
+          </p>
+        </div>
+
+        <div class="hero-panel">
+          <h3>Exam Snapshot</h3>
+          <div class="stats-grid">
+            <div class="stat-box">
+              <div class="label">Completed Exams</div>
+              <div class="value">${progress.finalExamsCompleted || 0}</div>
+            </div>
+            <div class="stat-box">
+              <div class="label">Overall Accuracy</div>
+              <div class="value">${overallAccuracy}%</div>
+            </div>
+            <div class="stat-box">
+              <div class="label">Subjects</div>
+              <div class="value">${subjects.length}</div>
+            </div>
+            <div class="stat-box">
+              <div class="label">Question Bank</div>
+              <div class="value">${subjects.reduce((sum, s) => sum + (s.topics || []).reduce((a, t) => a + (t.questionCount || 0), 0), 0)}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section style="margin-top:28px;">
+      <div class="summary-grid four">
+        <div class="card summary-card">
+          <div class="muted">Exam Style</div>
+          <div class="big" style="font-size:1.15rem;">Timed</div>
+        </div>
+        <div class="card summary-card">
+          <div class="muted">Answer Reveal</div>
+          <div class="big" style="font-size:1.15rem;">After Finish</div>
+        </div>
+        <div class="card summary-card">
+          <div class="muted">Review</div>
+          <div class="big" style="font-size:1.15rem;">Detailed</div>
+        </div>
+        <div class="card summary-card">
+          <div class="muted">Retry Wrong</div>
+          <div class="big" style="font-size:1.15rem;">Enabled</div>
+        </div>
+      </div>
+    </section>
+
+    <section style="margin-top:28px;">
+      <div class="card exam-builder-card">
+        <div class="section-header" style="margin-bottom:18px;">
+          <div>
+            <h2>Build Your Exam</h2>
+            <p>Choose mode, difficulty, pool, and exam size before starting.</p>
+          </div>
+        </div>
+
         <div class="input-row two">
           <div>
             <label class="muted">Exam mode</label>
             <select class="select" id="examMode">
-              <option value="multi">Mode 1 • Multiple Subjects</option>
-              <option value="single">Mode 2 • Single Subject + Topics</option>
+              <option value="multi">Multiple Subjects</option>
+              <option value="single">Single Subject + Selected Topics</option>
             </select>
           </div>
           <div>
@@ -939,7 +1005,8 @@
             </select>
           </div>
         </div>
-        <div class="input-row two" style="margin-top:16px;">
+
+        <div class="input-row three" style="margin-top:16px;">
           <div>
             <label class="muted">Number of questions</label>
             <input class="input" id="examCount" type="number" min="5" value="20" />
@@ -948,158 +1015,496 @@
             <label class="muted">Time limit (minutes)</label>
             <input class="input" id="examMinutes" type="number" min="5" value="30" />
           </div>
+          <div class="panel exam-preview-panel">
+            <strong id="poolCountLabel">Available pool: --</strong>
+            <div class="muted" id="examEstimateText" style="margin-top:8px;">Choose your filters to preview the pool.</div>
+          </div>
         </div>
+
         <div id="modeArea" style="margin-top:16px;"></div>
-        <div style="margin-top:20px;"><button class="btn btn-dark" id="startExamBtn">Start Final Exam</button></div>
+
+        <div class="exam-checklist" style="margin-top:18px;">
+          <div class="check-item">Timed exam experience</div>
+          <div class="check-item">Hidden answers until submission</div>
+          <div class="check-item">Detailed review after finishing</div>
+          <div class="check-item">Retry wrong questions later</div>
+        </div>
+
+        <div class="action-row" style="justify-content:flex-start; margin-top:22px;">
+          <button class="btn btn-dark" id="startExamBtn" type="button">Start Final Exam</button>
+          <button class="btn btn-light" id="previewExamBtn" type="button">Refresh Preview</button>
+        </div>
+
         <div id="examMessage"></div>
       </div>
-    `;
+    </section>
 
-    const modeSelect = document.getElementById('examMode');
-    const modeArea = document.getElementById('modeArea');
-    const drawMode = () => {
-      if (modeSelect.value === 'multi') {
-        modeArea.innerHTML = `
-          <label class="muted">Subjects</label>
-          <div class="input-row two">
-            <label class="panel"><input type="radio" name="multiScope" value="all" checked /> All subjects</label>
-            <label class="panel"><input type="radio" name="multiScope" value="single" /> One subject only</label>
+    <section style="margin-top:28px;">
+      <div id="examEngine"></div>
+    </section>
+  `;
+
+  const engine = document.getElementById('examEngine');
+  const modeSelect = document.getElementById('examMode');
+  const modeArea = document.getElementById('modeArea');
+  const difficultySelect = document.getElementById('examDifficulty');
+  const examCountInput = document.getElementById('examCount');
+  const examMinutesInput = document.getElementById('examMinutes');
+  const poolCountLabel = document.getElementById('poolCountLabel');
+  const examEstimateText = document.getElementById('examEstimateText');
+  const examMessage = document.getElementById('examMessage');
+
+  const drawMode = () => {
+    if (modeSelect.value === 'multi') {
+      modeArea.innerHTML = `
+        <label class="muted">Subjects</label>
+        <div class="input-row two">
+          <label class="panel exam-radio-panel">
+            <input type="radio" name="multiScope" value="all" checked />
+            <div>
+              <strong>All subjects</strong>
+              <div class="muted">Pull questions from the whole available bank.</div>
+            </div>
+          </label>
+          <label class="panel exam-radio-panel">
+            <input type="radio" name="multiScope" value="single" />
+            <div>
+              <strong>One subject only</strong>
+              <div class="muted">Build a focused final exam from one subject.</div>
+            </div>
+          </label>
+        </div>
+
+        <div style="margin-top:14px;">
+          <label class="muted">Subject</label>
+          <select class="select" id="multiSubjectSelect">
+            ${subjects.map((s) => `<option value="${s.id}">${s.name}</option>`).join('')}
+          </select>
+        </div>
+      `;
+
+      document.querySelectorAll('input[name="multiScope"]').forEach((radio) => {
+        radio.addEventListener('change', refreshPreview);
+      });
+      document.getElementById('multiSubjectSelect')?.addEventListener('change', refreshPreview);
+    } else {
+      modeArea.innerHTML = `
+        <div>
+          <label class="muted">Subject</label>
+          <select class="select" id="singleSubjectSelect">
+            ${subjects.map((s) => `<option value="${s.id}">${s.name}</option>`).join('')}
+          </select>
+        </div>
+        <div style="margin-top:14px;" id="topicCheckboxes"></div>
+      `;
+
+      const select = document.getElementById('singleSubjectSelect');
+
+      const drawTopics = () => {
+        const subject = state.subjectMap.get(select.value);
+        document.getElementById('topicCheckboxes').innerHTML = `
+          <label class="muted">Topics</label>
+          <div class="analysis-grid exam-topic-grid" style="margin-top:10px;">
+            ${(subject?.topics || []).map((topic) => `
+              <label class="panel exam-topic-option">
+                <input type="checkbox" value="${topic.id}" checked />
+                <div>
+                  <strong>${topic.name}</strong>
+                  <div class="muted">${topic.questionCount || 0} questions</div>
+                </div>
+              </label>
+            `).join('')}
           </div>
-          <div style="margin-top:14px;"><select class="select" id="multiSubjectSelect">${subjects.map((s) => `<option value="${s.id}">${s.name}</option>`).join('')}</select></div>
         `;
-      } else {
-        modeArea.innerHTML = `
-          <div>
-            <label class="muted">Subject</label>
-            <select class="select" id="singleSubjectSelect">${subjects.map((s) => `<option value="${s.id}">${s.name}</option>`).join('')}</select>
-          </div>
-          <div style="margin-top:14px;" id="topicCheckboxes"></div>
-        `;
-        const select = document.getElementById('singleSubjectSelect');
-        const drawTopics = () => {
-          const subject = state.subjectMap.get(select.value);
-          document.getElementById('topicCheckboxes').innerHTML = `<label class="muted">Topics</label><div class="analysis-grid" style="margin-top:10px;">${subject.topics.map((topic) => `<label class="panel"><input type="checkbox" value="${topic.id}" checked /> ${topic.name}</label>`).join('')}</div>`;
-        };
-        select.addEventListener('change', drawTopics);
+        document.querySelectorAll('#topicCheckboxes input').forEach((box) => {
+          box.addEventListener('change', refreshPreview);
+        });
+      };
+
+      select.addEventListener('change', () => {
         drawTopics();
-      }
-    };
-    modeSelect.addEventListener('change', drawMode);
-    drawMode();
+        refreshPreview();
+      });
 
-    document.getElementById('startExamBtn').addEventListener('click', async () => {
-      const difficulty = document.getElementById('examDifficulty').value;
-      const count = Number(document.getElementById('examCount').value || '20');
-      const minutes = Number(document.getElementById('examMinutes').value || '30');
-      const msg = document.getElementById('examMessage');
-      try {
-        let pool = [];
-        if (modeSelect.value === 'multi') {
-          const scope = document.querySelector('input[name="multiScope"]:checked')?.value || 'all';
-          const subjectIds = scope === 'all' ? subjects.map((s) => s.id) : [document.getElementById('multiSubjectSelect').value];
-          for (const subjectId of subjectIds) {
-            const subject = state.subjectMap.get(subjectId);
-            for (const topic of subject.topics) {
-              const data = await loadTopic(subjectId, topic.id);
-              pool.push(...data.questions);
-            }
-          }
-        } else {
-          const subjectId = document.getElementById('singleSubjectSelect').value;
-          const checked = [...document.querySelectorAll('#topicCheckboxes input:checked')].map((input) => input.value);
-          if (!checked.length) throw new Error('Select at least one topic.');
-          for (const topicId of checked) {
-            const data = await loadTopic(subjectId, topicId);
-            pool.push(...data.questions);
-          }
+      drawTopics();
+    }
+  };
+
+  async function buildExamPool() {
+    let pool = [];
+
+    if (modeSelect.value === 'multi') {
+      const scope = document.querySelector('input[name="multiScope"]:checked')?.value || 'all';
+      const subjectIds = scope === 'all'
+        ? subjects.map((s) => s.id)
+        : [document.getElementById('multiSubjectSelect').value];
+
+      for (const subjectId of subjectIds) {
+        const subject = state.subjectMap.get(subjectId);
+        for (const topic of (subject?.topics || [])) {
+          const data = await loadTopic(subjectId, topic.id);
+          pool.push(...(data.questions || []));
         }
-        if (difficulty !== 'all') pool = pool.filter((q) => q.difficulty === difficulty);
-        if (!pool.length) throw new Error('No questions matched your exam filters.');
-        const examQuestions = shuffle(pool).slice(0, Math.min(count, pool.length)).map((q) => ({ ...q, options: [...q.options] }));
-        setup.classList.add('hidden');
-        startExamEngine(engine, examQuestions, minutes);
-      } catch (error) {
-        msg.innerHTML = `<div class="message error">${error.message}</div>`;
       }
+    } else {
+      const subjectId = document.getElementById('singleSubjectSelect')?.value;
+      const checkedTopics = [...document.querySelectorAll('#topicCheckboxes input:checked')].map((input) => input.value);
+
+      if (!checkedTopics.length) {
+        return [];
+      }
+
+      for (const topicId of checkedTopics) {
+        const data = await loadTopic(subjectId, topicId);
+        pool.push(...(data.questions || []));
+      }
+    }
+
+    const difficulty = difficultySelect.value;
+    if (difficulty !== 'all') {
+      pool = pool.filter((q) => q.difficulty === difficulty);
+    }
+
+    return pool;
+  }
+
+  async function refreshPreview() {
+    examMessage.innerHTML = '';
+    poolCountLabel.textContent = 'Available pool: ...';
+    examEstimateText.textContent = 'Checking your selected filters...';
+
+    try {
+      const pool = await buildExamPool();
+      const requestedCount = Number(examCountInput.value || '20');
+      const minutes = Number(examMinutesInput.value || '30');
+
+      poolCountLabel.textContent = `Available pool: ${pool.length} question${pool.length === 1 ? '' : 's'}`;
+
+      if (!pool.length) {
+        examEstimateText.textContent = 'No questions match your current subject/topic/difficulty filters.';
+        return;
+      }
+
+      const actualCount = Math.min(requestedCount, pool.length);
+      const avgSeconds = Math.round((minutes * 60) / Math.max(actualCount, 1));
+
+      examEstimateText.textContent =
+        `You will get ${actualCount} question${actualCount === 1 ? '' : 's'} with about ${avgSeconds} sec/question based on your current time limit.`;
+    } catch (error) {
+      poolCountLabel.textContent = 'Available pool: --';
+      examEstimateText.textContent = 'Could not preview the exam pool.';
+      examMessage.innerHTML = `<div class="message error">${error.message}</div>`;
+    }
+  }
+
+  modeSelect.addEventListener('change', async () => {
+    drawMode();
+    await refreshPreview();
+  });
+
+  difficultySelect.addEventListener('change', refreshPreview);
+  examCountInput.addEventListener('input', refreshPreview);
+  examMinutesInput.addEventListener('input', refreshPreview);
+  document.getElementById('previewExamBtn').addEventListener('click', refreshPreview);
+
+  drawMode();
+  await refreshPreview();
+
+  document.getElementById('startExamBtn').addEventListener('click', async () => {
+    const count = Number(examCountInput.value || '20');
+    const minutes = Number(examMinutesInput.value || '30');
+
+    try {
+      if (count < 5) throw new Error('Please choose at least 5 questions.');
+      if (minutes < 5) throw new Error('Please choose at least 5 minutes.');
+
+      const pool = await buildExamPool();
+      if (!pool.length) throw new Error('No questions matched your exam filters.');
+
+      const examQuestions = shuffle(pool)
+        .slice(0, Math.min(count, pool.length))
+        .map((q) => ({ ...q, options: [...q.options] }));
+
+      document.querySelector('.exam-builder-card').classList.add('hidden');
+      startExamEngine(engine, examQuestions, minutes);
+    } catch (error) {
+      examMessage.innerHTML = `<div class="message error">${error.message}</div>`;
+    }
+  });
+}
+
+function startExamEngine(container, questions, minutes) {
+  let current = 0;
+  const answers = {};
+  let remaining = minutes * 60;
+  let timerId = null;
+
+  container.innerHTML = `
+    <div class="study-shell exam-shell-upgraded">
+      <aside class="side-panel">
+        <div class="sidebar-card">
+          <div class="tag">Final Exam</div>
+          <div class="timer" id="examTimer"></div>
+          <div class="muted">Time remaining</div>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="progress-bar">
+            <div class="progress-fill" id="examProgressFill"></div>
+          </div>
+          <div class="muted" id="examProgressText" style="margin-top:10px;"></div>
+
+          <div class="metric-list" style="margin-top:16px;">
+            <div class="metric-row">
+              <span>Answered</span>
+              <strong id="answeredCount">0</strong>
+            </div>
+            <div class="metric-row">
+              <span>Remaining</span>
+              <strong id="remainingCount">${questions.length}</strong>
+            </div>
+            <div class="metric-row">
+              <span>Total Questions</span>
+              <strong>${questions.length}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-card">
+          <h4 style="margin-top:0;">Question Palette</h4>
+          <p class="muted" style="margin-bottom:12px;">Jump directly to any question.</p>
+          <div class="exam-palette" id="examPalette"></div>
+        </div>
+
+        <div class="sidebar-card">
+          <button class="btn btn-danger" id="submitExamSide" type="button" style="width:100%;">Submit Exam</button>
+        </div>
+      </aside>
+
+      <section class="question-card" id="examCard"></section>
+    </div>
+  `;
+
+  const timerEl = document.getElementById('examTimer');
+  const progressFill = document.getElementById('examProgressFill');
+  const progressText = document.getElementById('examProgressText');
+  const answeredCountEl = document.getElementById('answeredCount');
+  const remainingCountEl = document.getElementById('remainingCount');
+  const palette = document.getElementById('examPalette');
+  const card = document.getElementById('examCard');
+
+  const drawTimer = () => {
+    const mins = Math.floor(remaining / 60).toString().padStart(2, '0');
+    const secs = (remaining % 60).toString().padStart(2, '0');
+    timerEl.textContent = `${mins}:${secs}`;
+  };
+
+  function drawPalette() {
+    palette.innerHTML = '';
+    questions.forEach((q, idx) => {
+      const btn = el('button', `palette-btn ${idx === current ? 'is-current' : ''} ${answers[q.id] ? 'is-answered' : ''}`);
+      btn.type = 'button';
+      btn.textContent = idx + 1;
+      btn.addEventListener('click', () => {
+        current = idx;
+        drawQuestion();
+      });
+      palette.appendChild(btn);
     });
   }
 
-  function startExamEngine(container, questions, minutes) {
-    let current = 0;
-    const answers = {};
-    let remaining = minutes * 60;
-    let timerId = null;
+  function updateMeta() {
+    const answeredCount = Object.keys(answers).length;
+    progressFill.style.width = `${((current + 1) / questions.length) * 100}%`;
+    progressText.textContent = `Question ${current + 1} of ${questions.length}`;
+    answeredCountEl.textContent = answeredCount;
+    remainingCountEl.textContent = Math.max(questions.length - answeredCount, 0);
+    drawPalette();
+  }
 
-    container.innerHTML = `
-      <div class="study-shell">
-        <aside class="side-panel">
-          <div class="sidebar-card"><div class="tag">Final Exam</div><div class="timer" id="examTimer"></div><div class="muted">Time remaining</div></div>
-          <div class="sidebar-card"><div class="progress-bar"><div class="progress-fill" id="examProgressFill"></div></div><div class="muted" id="examProgressText" style="margin-top:10px;"></div></div>
-        </aside>
-        <section class="question-card" id="examCard"></section>
+  drawTimer();
+  timerId = setInterval(() => {
+    remaining -= 1;
+    drawTimer();
+
+    if (remaining <= 0) {
+      clearInterval(timerId);
+      finishExam();
+    }
+  }, 1000);
+
+  function drawQuestion() {
+    const q = questions[current];
+    updateMeta();
+
+    card.innerHTML = `
+      <div class="question-top">
+        <div>
+          <div class="meta-row">
+            <span class="badge">${q.difficulty.toUpperCase()}</span>
+            <span class="tag">${q.subject}</span>
+            <span class="tag">${q.topic}</span>
+            ${answers[q.id] ? '<span class="tag">Answered</span>' : '<span class="tag">Unanswered</span>'}
+          </div>
+          <h2 class="question-title">${q.question}</h2>
+        </div>
+      </div>
+
+      ${q.caseScenario ? `
+        <div class="case-box">
+          <strong>Case</strong>
+          <div class="muted" style="margin-top:8px;">${q.caseScenario}</div>
+        </div>
+      ` : ''}
+
+      ${q.imageUrl ? `
+        <div style="margin-top:18px;">
+          <img src="${q.imageUrl}" alt="Question visual" style="border-radius:22px; border:1px solid var(--border);">
+        </div>
+      ` : ''}
+
+      <div class="option-list" id="examOptionList"></div>
+
+      <div class="action-row">
+        <button class="btn btn-light" id="examPrev" ${current === 0 ? 'disabled' : ''}>Previous</button>
+
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <button class="btn btn-light" id="clearAnswerBtn" ${answers[q.id] ? '' : 'disabled'}>Clear Answer</button>
+          <button class="btn btn-danger" id="submitExam">Submit Exam</button>
+          <button class="btn btn-dark" id="examNext">${current === questions.length - 1 ? 'Finish Reviewing' : 'Next'}</button>
+        </div>
       </div>
     `;
 
-    const timerEl = document.getElementById('examTimer');
-    const progressFill = document.getElementById('examProgressFill');
-    const progressText = document.getElementById('examProgressText');
-    const card = document.getElementById('examCard');
+    const list = document.getElementById('examOptionList');
+    q.options.forEach((option) => {
+      const button = el('button', 'option-btn');
+      button.type = 'button';
+      button.textContent = option;
 
-    const drawTimer = () => {
-      const mins = Math.floor(remaining / 60).toString().padStart(2, '0');
-      const secs = (remaining % 60).toString().padStart(2, '0');
-      timerEl.textContent = `${mins}:${secs}`;
-    };
-    drawTimer();
-    timerId = setInterval(() => {
-      remaining -= 1;
-      drawTimer();
-      if (remaining <= 0) {
-        clearInterval(timerId);
-        finishExam();
+      if (answers[q.id] === option) {
+        button.classList.add('ghost-correct');
       }
-    }, 1000);
 
-    function drawQuestion() {
-      const q = questions[current];
-      progressFill.style.width = `${((current + 1) / questions.length) * 100}%`;
-      progressText.textContent = `Question ${current + 1} of ${questions.length}`;
-      card.innerHTML = `
-        <div class="question-top">
-          <div>
-            <div class="meta-row"><span class="badge">${q.difficulty.toUpperCase()}</span><span class="tag">${q.subject}</span><span class="tag">${q.topic}</span></div>
-            <h2 class="question-title">${q.question}</h2>
-          </div>
-        </div>
-        ${q.caseScenario ? `<div class="case-box"><strong>Case</strong><div class="muted" style="margin-top:8px;">${q.caseScenario}</div></div>` : ''}
-        <div class="option-list" id="examOptionList"></div>
-        <div class="action-row">
-          <button class="btn btn-light" id="examPrev" ${current === 0 ? 'disabled' : ''}>Previous</button>
-          <div style="display:flex; gap:12px; flex-wrap:wrap;">
-            <button class="btn btn-danger" id="submitExam">Submit Exam</button>
-            <button class="btn btn-dark" id="examNext">${current === questions.length - 1 ? 'Last Question' : 'Next'}</button>
-          </div>
-        </div>
-      `;
-      const list = document.getElementById('examOptionList');
-      q.options.forEach((option) => {
-        const button = el('button', 'option-btn');
-        button.type = 'button';
-        button.textContent = option;
-        if (answers[q.id] === option) button.classList.add('ghost-correct');
-        button.addEventListener('click', () => {
-          answers[q.id] = option;
-          drawQuestion();
-        });
-        list.appendChild(button);
+      button.addEventListener('click', () => {
+        answers[q.id] = option;
+        drawQuestion();
       });
-      document.getElementById('examPrev').addEventListener('click', () => { if (current > 0) { current -= 1; drawQuestion(); } });
-      document.getElementById('examNext').addEventListener('click', () => { if (current < questions.length - 1) { current += 1; drawQuestion(); } });
-      document.getElementById('submitExam').addEventListener('click', () => {
-        if (confirm('Submit final exam now?')) finishExam();
-      });
-    }
 
+      list.appendChild(button);
+    });
+
+    document.getElementById('examPrev').addEventListener('click', () => {
+      if (current > 0) {
+        current -= 1;
+        drawQuestion();
+      }
+    });
+
+    document.getElementById('examNext').addEventListener('click', () => {
+      if (current < questions.length - 1) {
+        current += 1;
+        drawQuestion();
+      }
+    });
+
+    document.getElementById('clearAnswerBtn').addEventListener('click', () => {
+      delete answers[q.id];
+      drawQuestion();
+    });
+
+    document.getElementById('submitExam').addEventListener('click', () => {
+      const unanswered = questions.length - Object.keys(answers).length;
+      const text = unanswered > 0
+        ? `You still have ${unanswered} unanswered question${unanswered === 1 ? '' : 's'}. Submit anyway?`
+        : 'Submit final exam now?';
+
+      if (confirm(text)) finishExam();
+    });
+  }
+
+  document.getElementById('submitExamSide').addEventListener('click', () => {
+    const unanswered = questions.length - Object.keys(answers).length;
+    const text = unanswered > 0
+      ? `You still have ${unanswered} unanswered question${unanswered === 1 ? '' : 's'}. Submit anyway?`
+      : 'Submit final exam now?';
+
+    if (confirm(text)) finishExam();
+  });
+
+  function finishExam() {
+    clearInterval(timerId);
+
+    const rows = questions.map((q) => ({
+      question: q,
+      selected: answers[q.id] || 'No answer selected',
+      correct: q.correctAnswer,
+      isCorrect: answers[q.id] === q.correctAnswer
+    }));
+
+    const correct = rows.filter((row) => row.isCorrect).length;
+    const progress = getProgress();
+
+    progress.finalExamsCompleted += 1;
+    progress.correctSelections += correct;
+    progress.totalSelections += rows.length;
+    progress.recent.unshift({
+      type: 'exam',
+      name: 'Final Exam',
+      subject: 'Mixed',
+      score: `${correct}/${rows.length}`,
+      date: formatDate(new Date())
+    });
+    progress.recent = progress.recent.slice(0, 12);
+
+    rows.forEach((row) => {
+      progress.subjects[row.question.subject] = progress.subjects[row.question.subject] || { attempts: 0, correct: 0, total: 0 };
+      progress.subjects[row.question.subject].correct += row.isCorrect ? 1 : 0;
+      progress.subjects[row.question.subject].total += 1;
+      progress.subjects[row.question.subject].attempts += 1;
+
+      const topicKey = `${row.question.subject}:${row.question.topic}`;
+      progress.topics[topicKey] = progress.topics[topicKey] || {
+        attempts: 0,
+        correct: 0,
+        total: 0,
+        topicName: row.question.topic,
+        subjectName: row.question.subject
+      };
+      progress.topics[topicKey].correct += row.isCorrect ? 1 : 0;
+      progress.topics[topicKey].total += 1;
+      progress.topics[topicKey].attempts += 1;
+    });
+
+    saveProgress(progress);
+
+    const bySubject = {};
+    const byTopic = {};
+
+    rows.forEach((row) => {
+      bySubject[row.question.subject] = bySubject[row.question.subject] || { correct: 0, total: 0 };
+      bySubject[row.question.subject].total += 1;
+      if (row.isCorrect) bySubject[row.question.subject].correct += 1;
+
+      const topicKey = `${row.question.subject} • ${row.question.topic}`;
+      byTopic[topicKey] = byTopic[topicKey] || { correct: 0, total: 0 };
+      byTopic[topicKey].total += 1;
+      if (row.isCorrect) byTopic[topicKey].correct += 1;
+    });
+
+    writeStore(KEYS.review, {
+      type: 'exam',
+      title: 'Final Exam Review',
+      summary: { score: correct, total: rows.length, subjects: bySubject, topics: byTopic },
+      rows,
+      actions: { back: './final-exam.html', backLabel: 'Back to Final Exam' }
+    });
+
+    window.location.href = './review.html';
+  }
+
+  drawQuestion();
+}
     function finishExam() {
       clearInterval(timerId);
       const rows = questions.map((q) => ({
