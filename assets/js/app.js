@@ -1505,56 +1505,6 @@ function startExamEngine(container, questions, minutes) {
 
   drawQuestion();
 }
-    function finishExam() {
-      clearInterval(timerId);
-      const rows = questions.map((q) => ({
-        question: q,
-        selected: answers[q.id] || 'No answer selected',
-        correct: q.correctAnswer,
-        isCorrect: answers[q.id] === q.correctAnswer
-      }));
-      const correct = rows.filter((row) => row.isCorrect).length;
-      const progress = getProgress();
-      progress.finalExamsCompleted += 1;
-      progress.correctSelections += correct;
-      progress.totalSelections += rows.length;
-      progress.recent.unshift({ type: 'exam', name: 'Final Exam', subject: 'Mixed', score: `${correct}/${rows.length}`, date: formatDate(new Date()) });
-      progress.recent = progress.recent.slice(0, 12);
-      rows.forEach((row) => {
-        progress.subjects[row.question.subject] = progress.subjects[row.question.subject] || { attempts: 0, correct: 0, total: 0 };
-        progress.subjects[row.question.subject].correct += row.isCorrect ? 1 : 0;
-        progress.subjects[row.question.subject].total += 1;
-        progress.subjects[row.question.subject].attempts += 1;
-        const topicKey = `${row.question.subject}:${row.question.topic}`;
-        progress.topics[topicKey] = progress.topics[topicKey] || { attempts: 0, correct: 0, total: 0, topicName: row.question.topic, subjectName: row.question.subject };
-        progress.topics[topicKey].correct += row.isCorrect ? 1 : 0;
-        progress.topics[topicKey].total += 1;
-        progress.topics[topicKey].attempts += 1;
-      });
-      saveProgress(progress);
-      const bySubject = {};
-      const byTopic = {};
-      rows.forEach((row) => {
-        bySubject[row.question.subject] = bySubject[row.question.subject] || { correct: 0, total: 0 };
-        bySubject[row.question.subject].total += 1;
-        if (row.isCorrect) bySubject[row.question.subject].correct += 1;
-        const topicKey = `${row.question.subject} • ${row.question.topic}`;
-        byTopic[topicKey] = byTopic[topicKey] || { correct: 0, total: 0 };
-        byTopic[topicKey].total += 1;
-        if (row.isCorrect) byTopic[topicKey].correct += 1;
-      });
-      writeStore(KEYS.review, {
-        type: 'exam',
-        title: 'Final Exam Review',
-        summary: { score: correct, total: rows.length, subjects: bySubject, topics: byTopic },
-        rows,
-        actions: { back: './final-exam.html', backLabel: 'Back to Final Exam' }
-      });
-      window.location.href = './review.html';
-    }
-
-    drawQuestion();
-  }
 
   function renderReviewPage() {
     const data = readStore(KEYS.review, null);
