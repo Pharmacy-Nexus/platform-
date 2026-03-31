@@ -336,27 +336,6 @@ function renderHome(index) {
       </div>
     </section>
 
-    <section style="margin-top:24px;">
-      <div class="summary-grid four home-top-summary">
-        <div class="card summary-card">
-          <div class="muted">Subjects</div>
-          <div class="big">${subjects.length}</div>
-        </div>
-        <div class="card summary-card">
-          <div class="muted">Question Bank</div>
-          <div class="big">${totalQuestions}</div>
-        </div>
-        <div class="card summary-card">
-          <div class="muted">Saved + Notes</div>
-          <div class="big">${savedCount + notesCount}</div>
-        </div>
-        <div class="card summary-card">
-          <div class="muted">Overall Accuracy</div>
-          <div class="big">${accuracy}%</div>
-        </div>
-      </div>
-    </section>
-
     <section class="ticker-section" style="margin-top:26px;">
       <div class="ticker-shell">
         <div class="ticker-track">
