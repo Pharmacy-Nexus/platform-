@@ -531,15 +531,114 @@ function renderHome(index) {
     searchInput?.addEventListener('input', (e) => draw(e.target.value));
   }
 
-  function renderSubjectsPage(index) {
-    const root = document.getElementById('pageRoot');
-    root.innerHTML = `
-      <div class="section-header"><div><h2>Subjects</h2><p>Choose a subject, then move into its topics and study sets.</p></div></div>
-      <div class="panel" style="margin-bottom:18px;"><input class="input" id="subjectSearch" placeholder="Search subjects..." /></div>
+ function renderSubjectsPage(index) {
+  const root = document.getElementById('pageRoot');
+  const subjects = index.subjects || [];
+
+  root.innerHTML = `
+    <section class="section-header">
+      <div>
+        <h2>Subjects</h2>
+        <p>Browse your pharmacy subjects, check topic coverage, and open any subject to start studying.</p>
+      </div>
+    </section>
+
+    <section style="margin-bottom: 22px;">
+      <div class="card">
+        <div class="input-row two">
+          <div>
+            <label class="muted">Search subjects</label>
+            <input
+              type="text"
+              id="subjectSearch"
+              class="input"
+              placeholder="Type a subject name..."
+            />
+          </div>
+          <div class="panel">
+            <strong id="subjectCountLabel">${subjects.length} subject${subjects.length === 1 ? '' : 's'}</strong>
+            <div class="muted" style="margin-top:8px;">
+              Open a subject to explore topics and start study sets.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
       <div class="card-grid" id="subjectsGrid"></div>
-    `;
-    renderSubjectCards(index.subjects, document.getElementById('subjectsGrid'), document.getElementById('subjectSearch'));
+    </section>
+  `;
+
+  const grid = document.getElementById('subjectsGrid');
+  const searchInput = document.getElementById('subjectSearch');
+  const countLabel = document.getElementById('subjectCountLabel');
+
+  function drawSubjects(query = '') {
+    const normalized = query.trim().toLowerCase();
+
+    const filtered = subjects.filter((subject) =>
+      (subject.name || '').toLowerCase().includes(normalized)
+    );
+
+    countLabel.textContent = `${filtered.length} subject${filtered.length === 1 ? '' : 's'}`;
+
+    if (!filtered.length) {
+      grid.innerHTML = `
+        <div class="empty-state">
+          No subjects found for "<strong>${query}</strong>".
+        </div>
+      `;
+      return;
+    }
+
+    grid.innerHTML = filtered.map((subject) => {
+      const topicCount = (subject.topics || []).length;
+      const questionCount = (subject.topics || []).reduce(
+        (sum, topic) => sum + (topic.questionCount || 0),
+        0
+      );
+
+      return `
+        <article class="card subject-card-upgraded">
+          <div class="subject-card-top">
+            <div>
+              <div class="tag">Subject</div>
+              <h3>${subject.name}</h3>
+            </div>
+          </div>
+
+          <p class="muted">
+            ${topicCount} topic${topicCount === 1 ? '' : 's'} available for structured study.
+          </p>
+
+          <div class="subject-mini-stats">
+            <div class="subject-mini-stat">
+              <span>Topics</span>
+              <strong>${topicCount}</strong>
+            </div>
+            <div class="subject-mini-stat">
+              <span>Questions</span>
+              <strong>${questionCount}</strong>
+            </div>
+          </div>
+
+          <div class="action-row" style="justify-content:flex-start;">
+            <a class="btn btn-dark" href="${pageLink('./topics.html', { subject: subject.id })}">
+              Open Topics
+            </a>
+          </div>
+        </article>
+      `;
+    }).join('');
   }
+
+  drawSubjects();
+
+  searchInput.addEventListener('input', (e) => {
+    drawSubjects(e.target.value);
+  });
+}
 
   function renderTopicsPage() {
     const subjectId = params().get('subject');
