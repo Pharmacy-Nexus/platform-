@@ -241,12 +241,13 @@
       </header>
       <main class="main-section"><div class="container" id="pageRoot"></div></main>
       <footer class="footer">
-        <div class="container footer-shell">
-          <div>
-            <strong>Contact: pharmacynexusofficial@gmail.com</strong>
-            <div>For feedback, collaboration, or educational contributions, feel free to contact us.</div>
-          </div>
-      </footer>
+  <div class="container footer-shell">
+    <div>
+      <strong>Contact: pharmacynexusofficial@gmail.com</strong>
+      <div>For feedback, collaboration, or educational contributions, feel free to contact us.</div>
+    </div>
+  </div>
+</footer>
       <div class="admin-backdrop" id="adminBackdrop"></div>
     `;
 
