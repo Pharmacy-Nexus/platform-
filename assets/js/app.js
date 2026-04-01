@@ -531,7 +531,7 @@ function renderHome(index) {
     searchInput?.addEventListener('input', (e) => draw(e.target.value));
   }
 
- function renderSubjectsPage(index) {
+function renderSubjectsPage(index) {
   const root = document.getElementById('pageRoot');
   const subjects = index.subjects || [];
 
