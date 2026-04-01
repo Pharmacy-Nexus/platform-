@@ -541,47 +541,36 @@ function renderHome(index) {
       </section>
     ` : ''}
 
-  <section class="home-daily-section" style="margin-top:30px;">
+ <section class="home-daily-section" style="margin-top:30px;">
   <div class="section-header">
     <div>
       <h2>Daily Challenge</h2>
-      <p>Spin a real wheel for the subject, then spin another one for the number of questions.</p>
+      <p>Spin for a subject, get a lucky number, and launch a fast daily practice session.</p>
     </div>
   </div>
 
-  <div class="card home-dark-card daily-challenge-card">
+  <div class="card home-dark-card daily-challenge-card daily-premium-card">
     <div class="daily-accent daily-accent-a"></div>
     <div class="daily-accent daily-accent-b"></div>
 
     <div class="daily-header-row">
       <div>
         <div class="meta-row">
-          <span class="badge">Spin Mode</span>
-          <span class="tag">Dynamic + Sound</span>
+          <span class="badge">Daily Spin</span>
+          <span class="tag">Premium Hybrid</span>
         </div>
-        <h3 style="margin:8px 0 6px;">Spin the Daily Wheels</h3>
+        <h3 style="margin:8px 0 6px;">Spin the Subject Wheel</h3>
         <p class="muted">
-          The subject wheel updates automatically when you add new subjects. The question wheel adapts to the selected subject.
+          The wheel updates automatically when you add new subjects. Then generate a lucky question count from 1 to the smart maximum.
         </p>
-      </div>
-
-      <div class="daily-icons" aria-hidden="true">
-        <span class="daily-icon-pill"></span>
-        <span class="daily-icon-ring"></span>
-        <span class="daily-icon-cross"></span>
       </div>
     </div>
 
-    <div class="daily-real-wheel-grid">
-      <div class="daily-wheel-module">
-        <div class="daily-wheel-title-row">
-          <strong>Subject Wheel</strong>
-          <span class="tag">Auto-updates with new subjects</span>
-        </div>
-
-        <div class="wheel-stage">
+    <div class="daily-premium-layout">
+      <div class="daily-wheel-side">
+        <div class="wheel-stage premium-wheel-stage">
           <div class="wheel-pointer"></div>
-          <div class="daily-wheel-shell">
+          <div class="daily-wheel-shell premium-wheel-shell">
             <div class="daily-wheel-disc" id="subjectWheelDisc">
               <div class="daily-wheel-center"></div>
               <div class="wheel-labels" id="subjectWheelLabels"></div>
@@ -592,45 +581,36 @@ function renderHome(index) {
         <div class="daily-wheel-result" id="dailySubjectDisplay">Press spin</div>
         <div class="muted" id="dailySubjectMeta">Chooses from all current subjects in your bank.</div>
 
-        <button class="btn btn-light" id="spinSubjectBtn" type="button">Spin Subject</button>
+        <div class="action-row" style="justify-content:center; margin-top:12px;">
+          <button class="btn btn-light" id="spinSubjectBtn" type="button">Spin Subject</button>
+        </div>
       </div>
 
-      <div class="daily-wheel-module">
-        <div class="daily-wheel-title-row">
-          <strong>Question Wheel</strong>
-          <span class="tag">1 to smart max</span>
-        </div>
+      <div class="daily-lucky-side">
+        <div class="daily-lucky-card">
+          <div class="daily-wheel-label">Lucky Number</div>
+          <div class="daily-lucky-number" id="dailyCountDisplay">?</div>
+          <div class="muted" id="dailyCountMeta">Spin a subject first.</div>
 
-        <div class="wheel-stage">
-          <div class="wheel-pointer"></div>
-          <div class="daily-wheel-shell">
-            <div class="daily-wheel-disc" id="countWheelDisc">
-              <div class="daily-wheel-center"></div>
-              <div class="wheel-labels" id="countWheelLabels"></div>
-            </div>
+          <div class="action-row" style="justify-content:center; margin-top:14px;">
+            <button class="btn btn-light" id="spinCountBtn" type="button" disabled>Lucky Number</button>
           </div>
         </div>
 
-        <div class="daily-wheel-result" id="dailyCountDisplay">Press spin</div>
-        <div class="muted" id="dailyCountMeta">Spin subject first to unlock this wheel.</div>
+        <div class="daily-selection-summary" id="dailySelectionSummary">
+          <div class="metric-row"><span>Selected Subject</span><strong>—</strong></div>
+          <div class="metric-row"><span>Questions</span><strong>—</strong></div>
+        </div>
 
-        <button class="btn btn-light" id="spinCountBtn" type="button" disabled>Spin Question Count</button>
+        <div class="action-row" style="justify-content:flex-start; margin-top:16px;">
+          <button class="btn btn-primary" id="dailyChallengeBtn" type="button" disabled>Start Daily Challenge</button>
+        </div>
       </div>
-    </div>
-
-    <div class="daily-selection-summary" id="dailySelectionSummary">
-      <div class="metric-row"><span>Selected Subject</span><strong>—</strong></div>
-      <div class="metric-row"><span>Questions</span><strong>—</strong></div>
-    </div>
-
-    <div class="action-row" style="justify-content:flex-start; margin-top:20px;">
-      <button class="btn btn-primary" id="dailyChallengeBtn" type="button" disabled>Start Daily Challenge</button>
     </div>
 
     <div id="dailyChallengeMsg"></div>
   </div>
 </section>
-
     <section style="margin-top:30px;">
       <div class="section-header">
         <div>
