@@ -537,82 +537,95 @@ function renderHome(index) {
       </section>
     ` : ''}
 
-    <section class="home-daily-section" style="margin-top:30px;">
-      <div class="section-header">
-        <div>
-          <h2>Daily Challenge</h2>
-          <p>Pick one or more subjects and launch a fast 5-question challenge from your existing question bank.</p>
+  <section class="home-daily-section" style="margin-top:30px;">
+  <div class="section-header">
+    <div>
+      <h2>Daily Challenge</h2>
+      <p>Spin a real wheel for the subject, then spin another one for the number of questions.</p>
+    </div>
+  </div>
+
+  <div class="card home-dark-card daily-challenge-card">
+    <div class="daily-accent daily-accent-a"></div>
+    <div class="daily-accent daily-accent-b"></div>
+
+    <div class="daily-header-row">
+      <div>
+        <div class="meta-row">
+          <span class="badge">Spin Mode</span>
+          <span class="tag">Dynamic + Sound</span>
         </div>
+        <h3 style="margin:8px 0 6px;">Spin the Daily Wheels</h3>
+        <p class="muted">
+          The subject wheel updates automatically when you add new subjects. The question wheel adapts to the selected subject.
+        </p>
       </div>
 
-      <div class="card home-dark-card daily-challenge-card">
-        <div class="daily-accent daily-accent-a"></div>
-        <div class="daily-accent daily-accent-b"></div>
+      <div class="daily-icons" aria-hidden="true">
+        <span class="daily-icon-pill"></span>
+        <span class="daily-icon-ring"></span>
+        <span class="daily-icon-cross"></span>
+      </div>
+    </div>
 
-        <div class="daily-header-row">
-          <div>
-            <div class="meta-row">
-              <span class="badge">5 Questions</span>
-              <span class="tag">Quick Practice</span>
+    <div class="daily-real-wheel-grid">
+      <div class="daily-wheel-module">
+        <div class="daily-wheel-title-row">
+          <strong>Subject Wheel</strong>
+          <span class="tag">Auto-updates with new subjects</span>
+        </div>
+
+        <div class="wheel-stage">
+          <div class="wheel-pointer"></div>
+          <div class="daily-wheel-shell">
+            <div class="daily-wheel-disc" id="subjectWheelDisc">
+              <div class="daily-wheel-center"></div>
+              <div class="wheel-labels" id="subjectWheelLabels"></div>
             </div>
-            <h3 style="margin:8px 0 6px;">Build Today’s Challenge</h3>
-            <p class="muted">Choose any combination of subjects. We will pull 5 shuffled questions from your existing data.</p>
-          </div>
-
-          <div class="daily-icons" aria-hidden="true">
-            <span class="daily-icon-pill"></span>
-            <span class="daily-icon-ring"></span>
-            <span class="daily-icon-cross"></span>
           </div>
         </div>
 
-        <div class="daily-subject-picks" id="dailySubjectPicks">
-          ${subjects.map((subject) => `
-            <label class="daily-pick">
-              <input type="checkbox" value="${subject.id}" />
-              <span>${subject.name}</span>
-            </label>
-          `).join('')}
-        </div>
+        <div class="daily-wheel-result" id="dailySubjectDisplay">Press spin</div>
+        <div class="muted" id="dailySubjectMeta">Chooses from all current subjects in your bank.</div>
 
-        <div class="action-row" style="justify-content:flex-start; margin-top:20px;">
-          <button class="btn btn-primary" id="dailyChallengeBtn" type="button">Start Daily Challenge</button>
-        </div>
-        <div id="dailyChallengeMsg"></div>
-      </div>
-    </section>
-
-    <section style="margin-top:30px;">
-      <div class="section-header">
-        <div>
-          <h2>How It Works</h2>
-          <p>One simple study path, from first topic to final review.</p>
-        </div>
+        <button class="btn btn-light" id="spinSubjectBtn" type="button">Spin Subject</button>
       </div>
 
-      <div class="card-grid home-flow-grid">
-        <article class="card home-dark-card home-graphic-card">
-          <div class="home-step-number">01</div>
-          <div class="flow-icon chemistry-line"></div>
-          <h3>Choose a Subject</h3>
-          <p class="muted">Start from the subjects page, open any topic, and see its full question count and study sets.</p>
-        </article>
+      <div class="daily-wheel-module">
+        <div class="daily-wheel-title-row">
+          <strong>Question Wheel</strong>
+          <span class="tag">1 to smart max</span>
+        </div>
 
-        <article class="card home-dark-card home-graphic-card">
-          <div class="home-step-number">02</div>
-          <div class="flow-icon capsule-icon"></div>
-          <h3>Study in Sets</h3>
-          <p class="muted">Work through 30-question sets with instant answer feedback, explanations, saved questions, and notes.</p>
-        </article>
+        <div class="wheel-stage">
+          <div class="wheel-pointer"></div>
+          <div class="daily-wheel-shell">
+            <div class="daily-wheel-disc" id="countWheelDisc">
+              <div class="daily-wheel-center"></div>
+              <div class="wheel-labels" id="countWheelLabels"></div>
+            </div>
+          </div>
+        </div>
 
-        <article class="card home-dark-card home-graphic-card">
-          <div class="home-step-number">03</div>
-          <div class="flow-icon flask-icon"></div>
-          <h3>Review and Improve</h3>
-          <p class="muted">Use review pages, retry wrong questions, dashboard progress, and final exam mode to reinforce weak areas.</p>
-        </article>
+        <div class="daily-wheel-result" id="dailyCountDisplay">Press spin</div>
+        <div class="muted" id="dailyCountMeta">Spin subject first to unlock this wheel.</div>
+
+        <button class="btn btn-light" id="spinCountBtn" type="button" disabled>Spin Question Count</button>
       </div>
-    </section>
+    </div>
+
+    <div class="daily-selection-summary" id="dailySelectionSummary">
+      <div class="metric-row"><span>Selected Subject</span><strong>—</strong></div>
+      <div class="metric-row"><span>Questions</span><strong>—</strong></div>
+    </div>
+
+    <div class="action-row" style="justify-content:flex-start; margin-top:20px;">
+      <button class="btn btn-primary" id="dailyChallengeBtn" type="button" disabled>Start Daily Challenge</button>
+    </div>
+
+    <div id="dailyChallengeMsg"></div>
+  </div>
+</section>
 
     <section style="margin-top:30px;">
       <div class="section-header">
