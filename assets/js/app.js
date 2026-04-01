@@ -821,8 +821,7 @@ dailyBtn?.addEventListener('click', async () => {
 });
 
 refreshDailySummary();
-    }
-
+    
   function renderSubjectCards(subjects, target, searchInput) {
     const draw = (term = '') => {
       const filtered = subjects.filter((subject) => subject.name.toLowerCase().includes(term.toLowerCase()));
