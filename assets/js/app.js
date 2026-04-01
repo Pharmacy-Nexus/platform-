@@ -655,42 +655,152 @@ function renderHome(index) {
     </section>
   `;
 
-  const dailyBtn = document.getElementById('dailyChallengeBtn');
-  if (dailyBtn) {
-    dailyBtn.addEventListener('click', async () => {
-      const selected = [...document.querySelectorAll('#dailySubjectPicks input:checked')].map((input) => input.value);
-      const msg = document.getElementById('dailyChallengeMsg');
+ const dailyBtn = document.getElementById('dailyChallengeBtn');
+const dailyMsg = document.getElementById('dailyChallengeMsg');
+const spinSubjectBtn = document.getElementById('spinSubjectBtn');
+const spinCountBtn = document.getElementById('spinCountBtn');
 
-      try {
-        if (!selected.length) throw new Error('Choose at least one subject.');
+const subjectDisplay = document.getElementById('dailySubjectDisplay');
+const countDisplay = document.getElementById('dailyCountDisplay');
+const subjectMeta = document.getElementById('dailySubjectMeta');
+const countMeta = document.getElementById('dailyCountMeta');
+const summary = document.getElementById('dailySelectionSummary');
 
-        let pool = [];
-        for (const subjectId of selected) {
-          const subject = state.subjectMap.get(subjectId);
-          for (const topic of (subject?.topics || [])) {
-            const data = await loadTopic(subjectId, topic.id);
-            pool.push(...(data.questions || []));
-          }
-        }
+const subjectWheelDisc = document.getElementById('subjectWheelDisc');
+const countWheelDisc = document.getElementById('countWheelDisc');
+const subjectWheelLabels = document.getElementById('subjectWheelLabels');
+const countWheelLabels = document.getElementById('countWheelLabels');
 
-        if (pool.length < 5) throw new Error('Not enough questions found for this challenge.');
+let selectedDailySubject = null;
+let selectedDailyCount = null;
 
-        const dailyQuestions = shuffle(pool)
-          .slice(0, 5)
-          .map((q) => ({ ...q, options: [...q.options] }));
+const subjectOptions = subjects.map((subject) => ({
+  id: subject.id,
+  name: subject.name,
+  totalQuestions: (subject.topics || []).reduce((sum, topic) => sum + (topic.questionCount || 0), 0),
+  label: subject.name
+}));
 
-        writeStore(KEYS.dailyChallenge, {
-          questions: dailyQuestions,
-          selectedSubjects: selected
-        });
+const wheelPalette = [
+  '#0f274f',
+  '#17386b',
+  '#214b86',
+  '#a98028',
+  '#d0a546',
+  '#355f9d',
+  '#1d3e73',
+  '#6f5320'
+];
 
-        window.location.href = pageLink('./study.html', { daily: 1 });
-      } catch (error) {
-        msg.innerHTML = `<div class="message error">${error.message}</div>`;
-      }
-    });
-  }
+subjectWheelDisc.style.background = polarSegmentBackground(subjectOptions.length, wheelPalette);
+buildWheelLabels(subjectWheelLabels, subjectOptions);
+
+function buildCountWheel(maxCount) {
+  const countOptions = Array.from({ length: maxCount }, (_, i) => ({
+    value: i + 1,
+    label: `${i + 1}`
+  }));
+
+  countWheelDisc.style.background = polarSegmentBackground(countOptions.length, wheelPalette);
+  buildWheelLabels(countWheelLabels, countOptions);
+
+  return countOptions;
 }
+
+buildCountWheel(10);
+
+function refreshDailySummary() {
+  summary.innerHTML = `
+    <div class="metric-row"><span>Selected Subject</span><strong>${selectedDailySubject?.name || '—'}</strong></div>
+    <div class="metric-row"><span>Questions</span><strong>${selectedDailyCount || '—'}</strong></div>
+  `;
+  dailyBtn.disabled = !(selectedDailySubject && selectedDailyCount);
+}
+
+spinSubjectBtn?.addEventListener('click', async () => {
+  if (!subjectOptions.length) {
+    dailyMsg.innerHTML = '<div class="message error">No subjects available yet.</div>';
+    return;
+  }
+
+  dailyMsg.innerHTML = '';
+  selectedDailyCount = null;
+  countDisplay.textContent = 'Press spin';
+  countMeta.textContent = 'Spin subject first to unlock this wheel.';
+  spinCountBtn.disabled = true;
+  refreshDailySummary();
+
+  const audioCtx = ensureWheelAudio();
+
+  spinSubjectBtn.disabled = true;
+  const picked = await spinWheel({
+    wheelEl: subjectWheelDisc,
+    resultEl: subjectDisplay,
+    options: subjectOptions,
+    getResultText: (item) => item.name,
+    audioCtx,
+    duration: 3400
+  });
+  spinSubjectBtn.disabled = false;
+
+  selectedDailySubject = picked;
+
+  if (picked) {
+    const maxCount = clampDailyCount(picked.totalQuestions);
+    subjectMeta.textContent = `${picked.totalQuestions} question${picked.totalQuestions === 1 ? '' : 's'} available in this subject.`;
+    countMeta.textContent = `This wheel will spin from 1 to ${maxCount}.`;
+    buildCountWheel(maxCount);
+    countWheelDisc.style.transform = 'rotate(0deg)';
+    countWheelDisc.style.transition = 'none';
+    spinCountBtn.disabled = false;
+  }
+
+  refreshDailySummary();
+});
+
+spinCountBtn?.addEventListener('click', async () => {
+  if (!selectedDailySubject) return;
+
+  dailyMsg.innerHTML = '';
+  const maxCount = clampDailyCount(selectedDailySubject.totalQuestions);
+  const countOptions = buildCountWheel(maxCount);
+  const audioCtx = ensureWheelAudio();
+
+  spinCountBtn.disabled = true;
+  const pickedCount = await spinWheel({
+    wheelEl: countWheelDisc,
+    resultEl: countDisplay,
+    options: countOptions,
+    getResultText: (item) => `${item.value}`,
+    audioCtx,
+    duration: 3000
+  });
+  spinCountBtn.disabled = false;
+
+  selectedDailyCount = pickedCount?.value || null;
+  countMeta.textContent = selectedDailyCount
+    ? `Challenge will use ${selectedDailyCount} question${selectedDailyCount === 1 ? '' : 's'}.`
+    : 'Spin again to choose a count.';
+  refreshDailySummary();
+});
+
+dailyBtn?.addEventListener('click', async () => {
+  if (!(selectedDailySubject && selectedDailyCount)) return;
+
+  dailyBtn.disabled = true;
+  dailyBtn.textContent = 'Preparing...';
+  dailyMsg.innerHTML = '';
+
+  try {
+    await startDailyChallengeBySubject(selectedDailySubject.id, selectedDailyCount);
+  } catch (error) {
+    dailyMsg.innerHTML = `<div class="message error">${error.message}</div>`;
+    dailyBtn.disabled = false;
+    dailyBtn.textContent = 'Start Daily Challenge';
+  }
+});
+
+refreshDailySummary();
 
   function renderSubjectCards(subjects, target, searchInput) {
     const draw = (term = '') => {
