@@ -219,6 +219,173 @@
     if (!state) return '';
     return pageLink('./study.html', { subject: state.subjectId, topic: state.topicId, set: state.setNumber, resume: 1 });
   }
+  function clampDailyCount(subjectQuestionTotal) {
+  return Math.max(1, Math.min(10, subjectQuestionTotal || 1));
+}
+
+function polarSegmentBackground(count, colors) {
+  if (!count) return '#1d3557';
+  const step = 360 / count;
+  const stops = [];
+  for (let i = 0; i < count; i += 1) {
+    const start = i * step;
+    const end = (i + 1) * step;
+    const color = colors[i % colors.length];
+    stops.push(`${color} ${start}deg ${end}deg`);
+  }
+  return `conic-gradient(${stops.join(', ')})`;
+}
+
+function buildWheelLabels(container, options) {
+  container.innerHTML = '';
+  const count = options.length;
+  const step = 360 / count;
+
+  options.forEach((option, index) => {
+    const label = document.createElement('div');
+    label.className = 'wheel-label';
+    label.style.transform = `rotate(${index * step}deg)`;
+    label.innerHTML = `<span style="transform: rotate(${step / 2}deg)">${option.label}</span>`;
+    container.appendChild(label);
+  });
+}
+
+function playTickSound(audioCtx, frequency = 900, duration = 0.018, gainValue = 0.028) {
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const oscillator = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  oscillator.type = 'square';
+  oscillator.frequency.setValueAtTime(frequency, now);
+  gain.gain.setValueAtTime(gainValue, now);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+  oscillator.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  oscillator.start(now);
+  oscillator.stop(now + duration);
+}
+
+function playFinishSound(audioCtx) {
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+
+  [660, 880].forEach((freq, i) => {
+    const oscillator = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(freq, now + i * 0.06);
+    gain.gain.setValueAtTime(0.001, now + i * 0.06);
+    gain.gain.exponentialRampToValueAtTime(0.05, now + i * 0.06 + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.06 + 0.16);
+
+    oscillator.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    oscillator.start(now + i * 0.06);
+    oscillator.stop(now + i * 0.06 + 0.16);
+  });
+}
+
+function ensureWheelAudio() {
+  try {
+    const AudioContextRef = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextRef) return null;
+    if (!window.__dailyWheelAudioCtx) {
+      window.__dailyWheelAudioCtx = new AudioContextRef();
+    }
+    if (window.__dailyWheelAudioCtx.state === 'suspended') {
+      window.__dailyWheelAudioCtx.resume();
+    }
+    return window.__dailyWheelAudioCtx;
+  } catch (error) {
+    return null;
+  }
+}
+
+function computeWheelRotation(optionCount, chosenIndex, extraSpins = 5) {
+  const segment = 360 / optionCount;
+  const centerAngle = chosenIndex * segment + segment / 2;
+  const pointerAngle = 0;
+  const target = 360 - centerAngle + pointerAngle;
+  return extraSpins * 360 + target;
+}
+
+function spinWheel({
+  wheelEl,
+  resultEl,
+  options,
+  getResultText,
+  audioCtx,
+  duration = 3200
+}) {
+  return new Promise((resolve) => {
+    if (!options.length) {
+      resolve(null);
+      return;
+    }
+
+    const chosenIndex = Math.floor(Math.random() * options.length);
+    const chosen = options[chosenIndex];
+    const finalRotation = computeWheelRotation(options.length, chosenIndex, 6 + Math.floor(Math.random() * 2));
+
+    wheelEl.classList.add('is-spinning');
+    wheelEl.style.transition = 'none';
+    wheelEl.style.transform = 'rotate(0deg)';
+    wheelEl.offsetHeight;
+
+    let tickCount = 0;
+    const tickIntervalMs = 85;
+    const tickTimer = setInterval(() => {
+      tickCount += 1;
+      playTickSound(audioCtx, 850 + (tickCount % 5) * 30, 0.014, 0.02);
+    }, tickIntervalMs);
+
+    requestAnimationFrame(() => {
+      wheelEl.style.transition = `transform ${duration}ms cubic-bezier(0.12, 0.82, 0.18, 1)`;
+      wheelEl.style.transform = `rotate(${finalRotation}deg)`;
+    });
+
+    setTimeout(() => {
+      clearInterval(tickTimer);
+      playFinishSound(audioCtx);
+      wheelEl.classList.remove('is-spinning');
+      resultEl.textContent = getResultText(chosen);
+      resolve(chosen);
+    }, duration + 40);
+  });
+}
+
+async function startDailyChallengeBySubject(subjectId, requestedCount) {
+  const subject = state.subjectMap.get(subjectId);
+  if (!subject) throw new Error('Selected subject was not found.');
+
+  let pool = [];
+  for (const topic of (subject.topics || [])) {
+    const data = await loadTopic(subjectId, topic.id);
+    pool.push(...(data.questions || []));
+  }
+
+  if (!pool.length) throw new Error('No questions found for this subject.');
+
+  const actualCount = Math.min(Math.max(1, requestedCount || 1), pool.length);
+
+  const dailyQuestions = shuffle(pool)
+    .slice(0, actualCount)
+    .map((q) => ({ ...q, options: [...q.options] }));
+
+  writeStore(KEYS.dailyChallenge, {
+    questions: dailyQuestions,
+    selectedSubjects: [subjectId],
+    selectedCount: actualCount,
+    selectedSubjectName: subject.name
+  });
+
+  window.location.href = pageLink('./study.html', { daily: 1 });
+}
 
   function ensureShell() {
     const root = document.getElementById('site-shell');
