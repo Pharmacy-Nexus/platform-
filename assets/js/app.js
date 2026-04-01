@@ -1212,12 +1212,14 @@ async function renderTopicsPage() {
       options: shuffle([...(q.options || [])])
     }));
     const selectedNames = ids.map((id) => state.subjectMap.get(id)?.name).filter(Boolean);
-    writeStore(KEYS.daily, {
-      date: new Date().toISOString(),
-      subjects: ids,
-      subjectNames: selectedNames,
-      questions
-    });
+   writeStore(KEYS.daily, {
+  date: new Date().toISOString(),
+  subjects: [subjectId],
+  subjectNames: [subject.name],
+  questions: dailyQuestions,
+  selectedCount: actualCount,
+  selectedSubjectName: subject.name
+});
     window.location.href = './study.html?daily=1';
   }
 
