@@ -1250,7 +1250,7 @@ async function renderTopicsPage() {
       }
       prepared = dailyQuestions.map((q) => ({ ...q, options: shuffle([...(q.options || [])]) }));
       panelTag = 'Daily Challenge';
-      panelTitle = '5 Question Challenge';
+      panelTitle = `${dailyQuestions.length} Question Challenge`;
       panelMuted = (dailyData.subjectNames || []).join(' • ') || 'Selected subjects';
       backHref = './index.html';
       backLabel = 'Back to Home';
