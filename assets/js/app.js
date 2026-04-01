@@ -1253,9 +1253,9 @@ async function renderTopicsPage() {
         return;
       }
       prepared = dailyQuestions.map((q) => ({ ...q, options: shuffle([...(q.options || [])]) }));
-      panelTag = 'Daily Challenge';
-      panelTitle = `${dailyQuestions.length} Question Challenge`;
-      panelMuted = (dailyData.subjectNames || []).join(' • ') || 'Selected subjects';
+panelTag = 'Daily Challenge';
+panelTitle = `${dailyQuestions.length} Question Challenge`;
+panelMuted = (dailyData.subjectNames || []).join(' • ') || 'Selected subjects';
       backHref = './index.html';
       backLabel = 'Back to Home';
     } else if (retryMode) {
