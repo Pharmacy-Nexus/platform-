@@ -801,6 +801,7 @@ dailyBtn?.addEventListener('click', async () => {
 });
 
 refreshDailySummary();
+    }
 
   function renderSubjectCards(subjects, target, searchInput) {
     const draw = (term = '') => {
