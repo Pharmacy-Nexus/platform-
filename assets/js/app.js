@@ -640,43 +640,146 @@ function renderSubjectsPage(index) {
   });
 }
 
-  function renderTopicsPage() {
-    const subjectId = params().get('subject');
-    const subject = state.subjectMap.get(subjectId);
-    const root = document.getElementById('pageRoot');
-    if (!subject) {
-      root.innerHTML = '<div class="empty-state">Subject not found.</div>';
-      return;
-    }
-    root.innerHTML = `
-      <div class="section-header"><div><h2>${subject.name}</h2><p>Choose a topic, then enter a study set or prepare for the final exam.</p></div></div>
-      <div class="panel" style="margin-bottom:18px;"><input class="input" id="topicSearch" placeholder="Search topics..." /></div>
-      <div class="card-grid" id="topicsGrid"></div>
-    `;
-    const grid = document.getElementById('topicsGrid');
-    const draw = (term = '') => {
-      const filtered = subject.topics.filter((t) => t.name.toLowerCase().includes(term.toLowerCase()));
-      grid.innerHTML = filtered.length ? '' : '<div class="empty-state">No topics matched your search.</div>';
-      filtered.forEach((topic) => {
-        const setCount = Math.ceil(topic.questionCount / SET_SIZE);
-        const statusMarkup = getTopicStatusMarkup(subject.id, topic.id, topic.questionCount);
-        const card = el('article', 'card');
-        card.innerHTML = `
-          <div class="meta-row"><span class="badge">${topic.questionCount} Questions</span><span class="tag">${setCount} Sets</span></div>
-          <h3>${topic.name}</h3>
-          <div class="meta-row" style="margin-bottom:10px;">${statusMarkup}</div>
-          <p class="muted">Study in shuffled sets with instant feedback and end-of-set review.</p>
-          <div class="action-row" style="margin-top:22px;justify-content:flex-start;">
-            <a class="btn btn-dark" href="${pageLink('./topic.html', { subject: subject.id, topic: topic.id })}">Study</a>
-          </div>
-        `;
-        grid.appendChild(card);
-      });
-    };
-    draw();
-    document.getElementById('topicSearch').addEventListener('input', (e) => draw(e.target.value));
+async function renderTopicsPage() {
+  const subjectId = params().get('subject');
+  const subject = state.subjectMap.get(subjectId);
+  const root = document.getElementById('pageRoot');
+
+  if (!subject) {
+    root.innerHTML = '<div class="empty-state">Subject not found.</div>';
+    return;
   }
 
+  const topics = subject.topics || [];
+  const totalQuestions = topics.reduce((sum, topic) => sum + (topic.questionCount || 0), 0);
+
+  root.innerHTML = `
+    <section class="section-header">
+      <div>
+        <h2>${subject.name}</h2>
+        <p>Browse topics, check coverage, and open any topic to start studying in structured sets.</p>
+      </div>
+    </section>
+
+    <section style="margin-bottom:22px;">
+      <div class="summary-grid three">
+        <div class="card summary-card">
+          <div class="muted">Topics</div>
+          <div class="big">${topics.length}</div>
+        </div>
+        <div class="card summary-card">
+          <div class="muted">Question Bank</div>
+          <div class="big">${totalQuestions}</div>
+        </div>
+        <div class="card summary-card">
+          <div class="muted">Study Mode</div>
+          <div class="big" style="font-size:1.05rem;">Structured Sets</div>
+        </div>
+      </div>
+    </section>
+
+    <section style="margin-bottom:22px;">
+      <div class="card">
+        <div class="input-row two">
+          <div>
+            <label class="muted">Search topics</label>
+            <input
+              type="text"
+              id="topicSearch"
+              class="input"
+              placeholder="Type a topic name..."
+            />
+          </div>
+          <div class="panel">
+            <strong id="topicCountLabel">${topics.length} topic${topics.length === 1 ? '' : 's'}</strong>
+            <div class="muted" style="margin-top:8px;">
+              Open a topic to choose study sets or launch practice.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="card-grid" id="topicsGrid"></div>
+    </section>
+  `;
+
+  const grid = document.getElementById('topicsGrid');
+  const searchInput = document.getElementById('topicSearch');
+  const countLabel = document.getElementById('topicCountLabel');
+
+  function drawTopics(query = '') {
+    const normalized = query.trim().toLowerCase();
+
+    const filtered = topics.filter((topic) =>
+      (topic.name || '').toLowerCase().includes(normalized)
+    );
+
+    countLabel.textContent = `${filtered.length} topic${filtered.length === 1 ? '' : 's'}`;
+
+    if (!filtered.length) {
+      grid.innerHTML = `
+        <div class="empty-state">
+          No topics found for "<strong>${query}</strong>".
+        </div>
+      `;
+      return;
+    }
+
+    grid.innerHTML = filtered.map((topic) => {
+      const questionCount = topic.questionCount || 0;
+      const setCount = Math.ceil(questionCount / SET_SIZE);
+      const topicStatus = getTopicStatus(subjectId, topic.id, questionCount);
+
+      return `
+        <article class="card topic-card-upgraded">
+          <div class="topic-card-top">
+            <div>
+              <div class="tag">Topic</div>
+              <h3>${topic.name}</h3>
+            </div>
+            <div class="topic-status-chip ${topicStatus.className || ''}">
+              ${topicStatus.label}
+            </div>
+          </div>
+
+          <p class="muted">
+            ${questionCount} question${questionCount === 1 ? '' : 's'} available across
+            ${setCount || 1} study set${setCount === 1 ? '' : 's'}.
+          </p>
+
+          <div class="topic-mini-stats">
+            <div class="topic-mini-stat">
+              <span>Questions</span>
+              <strong>${questionCount}</strong>
+            </div>
+            <div class="topic-mini-stat">
+              <span>Sets</span>
+              <strong>${setCount || 1}</strong>
+            </div>
+          </div>
+
+          <div class="meta-row" style="margin-top:6px;">
+            ${getTopicStatusMarkup(subjectId, topic.id, questionCount)}
+          </div>
+
+          <div class="action-row" style="justify-content:flex-start;">
+            <a class="btn btn-dark" href="${pageLink('./topic.html', { subject: subjectId, topic: topic.id })}">
+              Open Topic
+            </a>
+          </div>
+        </article>
+      `;
+    }).join('');
+  }
+
+  drawTopics();
+
+  searchInput.addEventListener('input', (e) => {
+    drawTopics(e.target.value);
+  });
+}
   async function renderTopicPage() {
     const subjectId = params().get('subject');
     const topicId = params().get('topic');
