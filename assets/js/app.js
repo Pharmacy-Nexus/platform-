@@ -734,16 +734,15 @@ spinSubjectBtn?.addEventListener('click', async () => {
 
   selectedDailySubject = picked;
 
-  if (picked) {
-    const maxCount = clampDailyCount(picked.totalQuestions);
-    subjectMeta.textContent = `${picked.totalQuestions} question${picked.totalQuestions === 1 ? '' : 's'} available in this subject.`;
-    countMeta.textContent = `Lucky number range: 1 to ${maxCount}.`;
-    spinCountBtn.disabled = false;
-  }
-  });
-  refreshDailySummary();
-  }
+ if (picked) {
+  const maxCount = clampDailyCount(picked.totalQuestions);
+  subjectMeta.textContent = `${picked.totalQuestions} question${picked.totalQuestions === 1 ? '' : 's'} available in this subject.`;
+  countMeta.textContent = `Lucky number range: 1 to ${maxCount}.`;
+  spinCountBtn.disabled = false;
+}
 
+refreshDailySummary();
+});
 spinCountBtn?.addEventListener('click', async () => {
   if (!selectedDailySubject) return;
 
