@@ -740,9 +740,9 @@ spinSubjectBtn?.addEventListener('click', async () => {
     countMeta.textContent = `Lucky number range: 1 to ${maxCount}.`;
     spinCountBtn.disabled = false;
   }
-
+  });
   refreshDailySummary();
-});
+  }
 
 spinCountBtn?.addEventListener('click', async () => {
   if (!selectedDailySubject) return;
