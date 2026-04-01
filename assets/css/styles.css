@@ -1330,3 +1330,91 @@ body::after {
     font-size: 0.7rem;
   }
 }
+.daily-premium-card {
+  overflow: hidden;
+}
+
+.daily-premium-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 460px) minmax(260px, 1fr);
+  gap: 24px;
+  align-items: center;
+  margin-top: 18px;
+}
+
+.daily-wheel-side,
+.daily-lucky-side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.premium-wheel-stage {
+  padding-top: 12px;
+}
+
+.premium-wheel-shell {
+  width: 300px;
+  height: 300px;
+  margin: 0 auto;
+}
+
+.daily-lucky-card {
+  padding: 22px;
+  border-radius: 22px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  text-align: center;
+}
+
+.daily-lucky-number {
+  min-height: 96px;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  margin-top: 12px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #fff;
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  box-shadow: inset 0 0 24px rgba(0,0,0,0.12);
+}
+
+.daily-selection-summary {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.daily-selection-summary .metric-row span {
+  color: rgba(255,255,255,0.70);
+}
+
+.daily-selection-summary .metric-row strong {
+  color: #fff;
+}
+
+@media (max-width: 980px) {
+  .daily-premium-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .premium-wheel-shell {
+    width: 270px;
+    height: 270px;
+  }
+}
+
+@media (max-width: 640px) {
+  .daily-lucky-number {
+    font-size: 2.4rem;
+  }
+
+  .premium-wheel-shell {
+    width: 230px;
+    height: 230px;
+  }
+}
