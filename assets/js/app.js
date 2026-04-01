@@ -639,7 +639,7 @@ function renderHome(index) {
     </section>
   `;
 
- const dailyBtn = document.getElementById('dailyChallengeBtn');
+const dailyBtn = document.getElementById('dailyChallengeBtn');
 const dailyMsg = document.getElementById('dailyChallengeMsg');
 const spinSubjectBtn = document.getElementById('spinSubjectBtn');
 const spinCountBtn = document.getElementById('spinCountBtn');
@@ -651,9 +651,7 @@ const countMeta = document.getElementById('dailyCountMeta');
 const summary = document.getElementById('dailySelectionSummary');
 
 const subjectWheelDisc = document.getElementById('subjectWheelDisc');
-const countWheelDisc = document.getElementById('countWheelDisc');
 const subjectWheelLabels = document.getElementById('subjectWheelLabels');
-const countWheelLabels = document.getElementById('countWheelLabels');
 
 let selectedDailySubject = null;
 let selectedDailyCount = null;
@@ -679,26 +677,33 @@ const wheelPalette = [
 subjectWheelDisc.style.background = polarSegmentBackground(subjectOptions.length, wheelPalette);
 buildWheelLabels(subjectWheelLabels, subjectOptions);
 
-function buildCountWheel(maxCount) {
-  const countOptions = Array.from({ length: maxCount }, (_, i) => ({
-    value: i + 1,
-    label: `${i + 1}`
-  }));
-
-  countWheelDisc.style.background = polarSegmentBackground(countOptions.length, wheelPalette);
-  buildWheelLabels(countWheelLabels, countOptions);
-
-  return countOptions;
-}
-
-buildCountWheel(10);
-
 function refreshDailySummary() {
   summary.innerHTML = `
     <div class="metric-row"><span>Selected Subject</span><strong>${selectedDailySubject?.name || '—'}</strong></div>
     <div class="metric-row"><span>Questions</span><strong>${selectedDailyCount || '—'}</strong></div>
   `;
   dailyBtn.disabled = !(selectedDailySubject && selectedDailyCount);
+}
+
+function animateLuckyNumber(maxCount, audioCtx) {
+  return new Promise((resolve) => {
+    let ticks = 0;
+    const totalTicks = 16 + Math.floor(Math.random() * 8);
+    const interval = setInterval(() => {
+      const value = getRandomInt(1, maxCount);
+      countDisplay.textContent = `${value}`;
+      playTickSound(audioCtx, 950 + (ticks % 4) * 35, 0.012, 0.018);
+      ticks += 1;
+
+      if (ticks >= totalTicks) {
+        clearInterval(interval);
+        const finalValue = getRandomInt(1, maxCount);
+        countDisplay.textContent = `${finalValue}`;
+        playFinishSound(audioCtx);
+        resolve(finalValue);
+      }
+    }, 80);
+  });
 }
 
 spinSubjectBtn?.addEventListener('click', async () => {
@@ -709,8 +714,8 @@ spinSubjectBtn?.addEventListener('click', async () => {
 
   dailyMsg.innerHTML = '';
   selectedDailyCount = null;
-  countDisplay.textContent = 'Press spin';
-  countMeta.textContent = 'Spin subject first to unlock this wheel.';
+  countDisplay.textContent = '?';
+  countMeta.textContent = 'Spin a subject first.';
   spinCountBtn.disabled = true;
   refreshDailySummary();
 
@@ -723,7 +728,7 @@ spinSubjectBtn?.addEventListener('click', async () => {
     options: subjectOptions,
     getResultText: (item) => item.name,
     audioCtx,
-    duration: 3400
+    duration: 3200
   });
   spinSubjectBtn.disabled = false;
 
@@ -732,14 +737,45 @@ spinSubjectBtn?.addEventListener('click', async () => {
   if (picked) {
     const maxCount = clampDailyCount(picked.totalQuestions);
     subjectMeta.textContent = `${picked.totalQuestions} question${picked.totalQuestions === 1 ? '' : 's'} available in this subject.`;
-    countMeta.textContent = `This wheel will spin from 1 to ${maxCount}.`;
-    buildCountWheel(maxCount);
-    countWheelDisc.style.transform = 'rotate(0deg)';
-    countWheelDisc.style.transition = 'none';
+    countMeta.textContent = `Lucky number range: 1 to ${maxCount}.`;
     spinCountBtn.disabled = false;
   }
 
   refreshDailySummary();
+});
+
+spinCountBtn?.addEventListener('click', async () => {
+  if (!selectedDailySubject) return;
+
+  dailyMsg.innerHTML = '';
+  const maxCount = clampDailyCount(selectedDailySubject.totalQuestions);
+  const audioCtx = ensureWheelAudio();
+
+  spinCountBtn.disabled = true;
+  selectedDailyCount = await animateLuckyNumber(maxCount, audioCtx);
+  spinCountBtn.disabled = false;
+
+  countMeta.textContent = `Challenge will use ${selectedDailyCount} question${selectedDailyCount === 1 ? '' : 's'}.`;
+  refreshDailySummary();
+});
+
+dailyBtn?.addEventListener('click', async () => {
+  if (!(selectedDailySubject && selectedDailyCount)) return;
+
+  dailyBtn.disabled = true;
+  dailyBtn.textContent = 'Preparing...';
+  dailyMsg.innerHTML = '';
+
+  try {
+    await startDailyChallengeBySubject(selectedDailySubject.id, selectedDailyCount);
+  } catch (error) {
+    dailyMsg.innerHTML = `<div class="message error">${error.message}</div>`;
+    dailyBtn.disabled = false;
+    dailyBtn.textContent = 'Start Daily Challenge';
+  }
+});
+
+refreshDailySummary();
 });
 
 spinCountBtn?.addEventListener('click', async () => {
