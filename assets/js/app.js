@@ -222,6 +222,11 @@
   function clampDailyCount(subjectQuestionTotal) {
   return Math.max(1, Math.min(10, subjectQuestionTotal || 1));
 }
+function getRandomInt(min, max) {
+  const lo = Math.ceil(min);
+  const hi = Math.floor(max);
+  return Math.floor(Math.random() * (hi - lo + 1)) + lo;
+}  
 
 function polarSegmentBackground(count, colors) {
   if (!count) return '#1d3557';
