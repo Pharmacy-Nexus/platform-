@@ -358,33 +358,37 @@ function spinWheel({
     }, duration + 40);
   });
 }
-
 async function startDailyChallengeBySubject(subjectId, requestedCount) {
   const subject = state.subjectMap.get(subjectId);
   if (!subject) throw new Error('Selected subject was not found.');
 
   let pool = [];
-  for (const topic of (subject.topics || [])) {
+  for (const topic of subject.topics) {
     const data = await loadTopic(subjectId, topic.id);
     pool.push(...(data.questions || []));
   }
 
-  if (!pool.length) throw new Error('No questions found for this subject.');
+  if (!pool.length) throw new Error('No questions were found for the selected subject.');
 
   const actualCount = Math.min(Math.max(1, requestedCount || 1), pool.length);
 
-  const dailyQuestions = shuffle(pool)
+  const questions = shuffle(pool)
     .slice(0, actualCount)
-    .map((q) => ({ ...q, options: [...q.options] }));
+    .map((q) => ({
+      ...q,
+      options: shuffle([...(q.options || [])])
+    }));
 
-  writeStore(KEYS.dailyChallenge, {
-    questions: dailyQuestions,
-    selectedSubjects: [subjectId],
+  writeStore(KEYS.daily, {
+    date: new Date().toISOString(),
+    subjects: [subjectId],
+    subjectNames: [subject.name],
+    questions,
     selectedCount: actualCount,
     selectedSubjectName: subject.name
   });
 
-  window.location.href = pageLink('./study.html', { daily: 1 });
+  window.location.href = './study.html?daily=1';
 }
 
   function ensureShell() {
