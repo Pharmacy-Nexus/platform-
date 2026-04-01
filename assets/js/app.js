@@ -638,7 +638,6 @@ function renderHome(index) {
       </div>
     </section>
   `;
-
 const dailyBtn = document.getElementById('dailyChallengeBtn');
 const dailyMsg = document.getElementById('dailyChallengeMsg');
 const spinSubjectBtn = document.getElementById('spinSubjectBtn');
@@ -689,6 +688,7 @@ function animateLuckyNumber(maxCount, audioCtx) {
   return new Promise((resolve) => {
     let ticks = 0;
     const totalTicks = 16 + Math.floor(Math.random() * 8);
+
     const interval = setInterval(() => {
       const value = getRandomInt(1, maxCount);
       countDisplay.textContent = `${value}`;
@@ -743,7 +743,7 @@ spinSubjectBtn?.addEventListener('click', async () => {
 
   refreshDailySummary();
 });
-  
+
 spinCountBtn?.addEventListener('click', async () => {
   if (!selectedDailySubject) return;
 
@@ -776,52 +776,7 @@ dailyBtn?.addEventListener('click', async () => {
 });
 
 refreshDailySummary();
-});
-
-spinCountBtn?.addEventListener('click', async () => {
-  if (!selectedDailySubject) return;
-
-  dailyMsg.innerHTML = '';
-  const maxCount = clampDailyCount(selectedDailySubject.totalQuestions);
-  const countOptions = buildCountWheel(maxCount);
-  const audioCtx = ensureWheelAudio();
-
-  spinCountBtn.disabled = true;
-  const pickedCount = await spinWheel({
-    wheelEl: countWheelDisc,
-    resultEl: countDisplay,
-    options: countOptions,
-    getResultText: (item) => `${item.value}`,
-    audioCtx,
-    duration: 3000
-  });
-  spinCountBtn.disabled = false;
-
-  selectedDailyCount = pickedCount?.value || null;
-  countMeta.textContent = selectedDailyCount
-    ? `Challenge will use ${selectedDailyCount} question${selectedDailyCount === 1 ? '' : 's'}.`
-    : 'Spin again to choose a count.';
-  refreshDailySummary();
-});
-
-dailyBtn?.addEventListener('click', async () => {
-  if (!(selectedDailySubject && selectedDailyCount)) return;
-
-  dailyBtn.disabled = true;
-  dailyBtn.textContent = 'Preparing...';
-  dailyMsg.innerHTML = '';
-
-  try {
-    await startDailyChallengeBySubject(selectedDailySubject.id, selectedDailyCount);
-  } catch (error) {
-    dailyMsg.innerHTML = `<div class="message error">${error.message}</div>`;
-    dailyBtn.disabled = false;
-    dailyBtn.textContent = 'Start Daily Challenge';
-  }
-});
-
-refreshDailySummary();
-    
+}
   function renderSubjectCards(subjects, target, searchInput) {
     const draw = (term = '') => {
       const filtered = subjects.filter((subject) => subject.name.toLowerCase().includes(term.toLowerCase()));
