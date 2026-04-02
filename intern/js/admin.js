@@ -625,123 +625,133 @@
     });
   }
 
-  function bindQuestionForm() {
-    const saveBtn = InternCore.qs('#saveQuestionBtn');
-    const cancelBtn = InternCore.qs('#cancelQuestionEditBtn');
-    const msg = InternCore.qs('#adminQuestionMessage');
-    const typeSelect = InternCore.qs('#adminQuestionType');
+function bindQuestionForm() {
+  const saveBtn = InternCore.qs('#saveQuestionBtn');
+  const cancelBtn = InternCore.qs('#cancelQuestionEditBtn');
+  const msg = InternCore.qs('#adminQuestionMessage');
+  const typeSelect = InternCore.qs('#adminQuestionType');
+  const questionTopicSelect = InternCore.qs('#adminQuestionTopic');
 
-    typeSelect?.addEventListener('change', updateQuestionFormByType);
-    updateQuestionFormByType();
+  questionTopicSelect?.addEventListener('change', (event) => {
+    adminState.selectedQuestionTopicId = event.target.value;
+  });
 
-    cancelBtn?.addEventListener('click', () => {
+  typeSelect?.addEventListener('change', updateQuestionFormByType);
+  updateQuestionFormByType();
+
+  cancelBtn?.addEventListener('click', () => {
+    resetQuestionForm();
+    msg.innerHTML = '';
+  });
+
+  saveBtn?.addEventListener('click', async () => {
+    const topicId = InternCore.qs('#adminQuestionTopic').value;
+    const type = InternCore.qs('#adminQuestionType').value;
+    const difficulty = InternCore.qs('#adminQuestionDifficulty').value;
+    const isActive = InternCore.qs('#adminQuestionStatus').value === 'true';
+    const questionText = InternCore.qs('#adminQuestionText').value.trim();
+    const caseText = InternCore.qs('#adminCaseText').value.trim();
+    const imageUrl = InternCore.qs('#adminImageUrl').value.trim();
+    const explanation = InternCore.qs('#adminExplanation').value.trim();
+    const summary = InternCore.qs('#adminSummary').value.trim();
+    const correctIndex = Number(InternCore.qs('#adminCorrectOption').value);
+
+    let optionValues = InternCore.qsa('.admin-option-input').map((input) => input.value.trim());
+
+    if (type === 'true_false') {
+      optionValues = ['True', 'False'];
+    }
+
+    if (!topicId) {
+      msg.innerHTML = `<div class="message error">Please select a topic.</div>`;
+      return;
+    }
+
+    if (!questionText) {
+      msg.innerHTML = `<div class="message error">Question text is required.</div>`;
+      return;
+    }
+
+    const cleanedOptions = optionValues.filter(Boolean);
+
+    if (cleanedOptions.length < 2) {
+      msg.innerHTML = `<div class="message error">At least 2 options are required.</div>`;
+      return;
+    }
+
+    if (correctIndex >= cleanedOptions.length) {
+      msg.innerHTML = `<div class="message error">Correct option index does not match the filled options.</div>`;
+      return;
+    }
+
+    try {
+      let question;
+
+      if (adminState.editingQuestionId) {
+        question = await InternAPI.updateQuestion(adminState.editingQuestionId, {
+          topicId,
+          type,
+          difficulty,
+          questionText,
+          caseText,
+          imageUrl,
+          explanation,
+          summary,
+          isActive
+        });
+
+        const optionsPayload = cleanedOptions.map((text, index) => ({
+          question_id: question.id,
+          option_text: text,
+          is_correct: index === correctIndex,
+          sort_order: index + 1
+        }));
+
+        await InternAPI.replaceQuestionOptions(question.id, optionsPayload);
+        msg.innerHTML = `<div class="message success">Question updated successfully.</div>`;
+      } else {
+        question = await InternAPI.createQuestion({
+          topicId,
+          type,
+          difficulty,
+          questionText,
+          caseText,
+          imageUrl,
+          explanation,
+          summary,
+          isActive
+        });
+
+        const optionsPayload = cleanedOptions.map((text, index) => ({
+          question_id: question.id,
+          option_text: text,
+          is_correct: index === correctIndex,
+          sort_order: index + 1
+        }));
+
+        await InternAPI.createQuestionOptions(optionsPayload);
+        msg.innerHTML = `<div class="message success">Question created successfully.</div>`;
+      }
+
+      adminState.selectedQuestionTopicId = topicId;
+
       resetQuestionForm();
-      msg.innerHTML = '';
-    });
+      await loadTopics();
 
-    saveBtn?.addEventListener('click', async () => {
-      const topicId = InternCore.qs('#adminQuestionTopic').value;
-      const type = InternCore.qs('#adminQuestionType').value;
-      const difficulty = InternCore.qs('#adminQuestionDifficulty').value;
-      const isActive = InternCore.qs('#adminQuestionStatus').value === 'true';
-      const questionText = InternCore.qs('#adminQuestionText').value.trim();
-      const caseText = InternCore.qs('#adminCaseText').value.trim();
-      const imageUrl = InternCore.qs('#adminImageUrl').value.trim();
-      const explanation = InternCore.qs('#adminExplanation').value.trim();
-      const summary = InternCore.qs('#adminSummary').value.trim();
-      const correctIndex = Number(InternCore.qs('#adminCorrectOption').value);
+      adminState.selectedTopicId = topicId;
+      await loadQuestionsByTopic(topicId);
 
-      let optionValues = InternCore.qsa('.admin-option-input').map((input) => input.value.trim());
+      const browseSelect = InternCore.qs('#adminBrowseTopic');
+      if (browseSelect) browseSelect.value = topicId;
 
-      if (type === 'true_false') {
-        optionValues = ['True', 'False'];
-      }
-
-      if (!topicId) {
-        msg.innerHTML = `<div class="message error">Please select a topic.</div>`;
-        return;
-      }
-
-      if (!questionText) {
-        msg.innerHTML = `<div class="message error">Question text is required.</div>`;
-        return;
-      }
-
-      const cleanedOptions = optionValues.filter(Boolean);
-
-      if (cleanedOptions.length < 2) {
-        msg.innerHTML = `<div class="message error">At least 2 options are required.</div>`;
-        return;
-      }
-
-      if (correctIndex >= cleanedOptions.length) {
-        msg.innerHTML = `<div class="message error">Correct option index does not match the filled options.</div>`;
-        return;
-      }
-
-      try {
-        let question;
-
-        if (adminState.editingQuestionId) {
-          question = await InternAPI.updateQuestion(adminState.editingQuestionId, {
-            topicId,
-            type,
-            difficulty,
-            questionText,
-            caseText,
-            imageUrl,
-            explanation,
-            summary,
-            isActive
-          });
-
-          const optionsPayload = cleanedOptions.map((text, index) => ({
-            question_id: question.id,
-            option_text: text,
-            is_correct: index === correctIndex,
-            sort_order: index + 1
-          }));
-
-          await InternAPI.replaceQuestionOptions(question.id, optionsPayload);
-          msg.innerHTML = `<div class="message success">Question updated successfully.</div>`;
-        } else {
-          question = await InternAPI.createQuestion({
-            topicId,
-            type,
-            difficulty,
-            questionText,
-            caseText,
-            imageUrl,
-            explanation,
-            summary,
-            isActive
-          });
-
-          const optionsPayload = cleanedOptions.map((text, index) => ({
-            question_id: question.id,
-            option_text: text,
-            is_correct: index === correctIndex,
-            sort_order: index + 1
-          }));
-
-          await InternAPI.createQuestionOptions(optionsPayload);
-          msg.innerHTML = `<div class="message success">Question created successfully.</div>`;
-        }
-
-        resetQuestionForm();
-        await loadTopics();
-
-        adminState.selectedTopicId = topicId;
-        await loadQuestionsByTopic(topicId);
-
-        const browseSelect = InternCore.qs('#adminBrowseTopic');
-        if (browseSelect) browseSelect.value = topicId;
-      } catch (error) {
-        console.error(error);
-        msg.innerHTML = `<div class="message error">Failed to save question.</div>`;
-      }
-    });
-  }
+      const topicSelect = InternCore.qs('#adminQuestionTopic');
+      if (topicSelect) topicSelect.value = topicId;
+    } catch (error) {
+      console.error(error);
+      msg.innerHTML = `<div class="message error">Failed to save question.</div>`;
+    }
+  });
+}
 
   function bindQuestionsBrowser() {
     const btn = InternCore.qs('#loadQuestionsBtn');
