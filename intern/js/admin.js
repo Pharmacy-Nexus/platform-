@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  const adminState = {
+const adminState = {
   topics: [],
   questions: [],
   selectedTopicId: '',
