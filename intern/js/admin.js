@@ -350,29 +350,38 @@
   }
 
   function drawTopicsList() {
-    const container = InternCore.qs('#adminTopicsList');
-    const topicSelect = InternCore.qs('#adminQuestionTopic');
-    const browseSelect = InternCore.qs('#adminBrowseTopic');
+  const container = InternCore.qs('#adminTopicsList');
+  const topicSelect = InternCore.qs('#adminQuestionTopic');
+  const browseSelect = InternCore.qs('#adminBrowseTopic');
 
-    const optionsHtml = adminState.topics.length
-      ? adminState.topics.map((topic) => `
-          <option value="${topic.id}">${escapeHtml(topic.title)}</option>
-        `).join('')
-      : '<option value="">No topics found</option>';
+  const optionsHtml = adminState.topics.length
+    ? adminState.topics.map((topic) => `
+        <option value="${topic.id}">${escapeHtml(topic.title)}</option>
+      `).join('')
+    : '<option value="">No topics found</option>';
 
-    if (topicSelect) topicSelect.innerHTML = optionsHtml;
-    if (browseSelect) browseSelect.innerHTML = optionsHtml;
+  if (topicSelect) {
+    topicSelect.innerHTML = optionsHtml;
 
-    if (adminState.selectedTopicId && browseSelect) {
-      browseSelect.value = adminState.selectedTopicId;
+    if (adminState.selectedQuestionTopicId) {
+      topicSelect.value = adminState.selectedQuestionTopicId;
     }
+  }
 
-    if (!container) return;
+  if (browseSelect) {
+    browseSelect.innerHTML = optionsHtml;
+  }
 
-    if (!adminState.topics.length) {
-      container.innerHTML = `<div class="intern-empty">No topics found yet.</div>`;
-      return;
-    }
+  if (adminState.selectedTopicId && browseSelect) {
+    browseSelect.value = adminState.selectedTopicId;
+  }
+
+  if (!container) return;
+
+  if (!adminState.topics.length) {
+    container.innerHTML = `<div class="intern-empty">No topics found yet.</div>`;
+    return;
+  }
 
     container.innerHTML = `
       <div class="review-list">
