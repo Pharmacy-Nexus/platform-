@@ -10,7 +10,8 @@
     searchTerm: '',
     filterType: 'all',
     filterDifficulty: 'all'
-  };
+    selectedQuestionTopicId: ''
+};
 
   function slugify(value) {
     return String(value || '')
