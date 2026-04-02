@@ -2,15 +2,15 @@
   'use strict';
 
   const adminState = {
-    topics: [],
-    questions: [],
-    selectedTopicId: '',
-    editingTopicId: null,
-    editingQuestionId: null,
-    searchTerm: '',
-    filterType: 'all',
-    filterDifficulty: 'all'
-    selectedQuestionTopicId: ''
+  topics: [],
+  questions: [],
+  selectedTopicId: '',
+  editingTopicId: null,
+  editingQuestionId: null,
+  searchTerm: '',
+  filterType: 'all',
+  filterDifficulty: 'all',
+  selectedQuestionTopicId: ''
 };
 
   function slugify(value) {
