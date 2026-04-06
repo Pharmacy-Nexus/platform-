@@ -2327,11 +2327,15 @@ function startExamEngine(container, questions, minutes) {
           <h2>Your performance at a glance</h2>
           <p class="muted">Provides continuous performance tracking, identifying core weaknesses and suggesting targeted interventions for optimization.</p>
 
-          <div class="dashboard-hero-score-row">
-           <div class="dashboard-score-ring ${levelTone}" style="--score:${success};">
-              <div class="dashboard-score-value">${success}%</div>
-              <div class="dashboard-score-label">overall</div>
-            </div>
+          <div class="dashboard-score-ring-clean">
+  <div class="dashboard-score-ring-track">
+    <div class="dashboard-score-ring-fill" style="--score:${success};"></div>
+    <div class="dashboard-score-ring-center">
+      <strong>${success}%</strong>
+      <span>OVERALL</span>
+    </div>
+  </div>
+</div>
 
             <div class="dashboard-hero-copy">
               <div class="dashboard-status-chip ${levelTone}">${levelLabel}</div>
