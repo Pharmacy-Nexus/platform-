@@ -2325,7 +2325,7 @@ function startExamEngine(container, questions, minutes) {
         <div class="dashboard-hero-main">
           <div class="dashboard-eyebrow">Student Dashboard</div>
           <h2>Your performance at a glance</h2>
-          <p class="muted">Track progress, spot weak areas fast, and jump مباشرةً to the best next action without digging through pages.</p>
+          <p class="muted">Provides continuous performance tracking, identifying core weaknesses and suggesting targeted interventions for optimization.</p>
 
           <div class="dashboard-hero-score-row">
            <div class="dashboard-score-ring ${levelTone}" style="--score:${success};">
