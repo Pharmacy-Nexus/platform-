@@ -173,10 +173,10 @@
     const accuracy = stats?.total ? Math.round((stats.correct / stats.total) * 100) : 0;
     const completion = questionCount ? Math.min(100, Math.round((answered / questionCount) * 100)) : 0;
 
-    if (!stats || !stats.total) return { label: 'Not Started', accuracy: 0, completion: 0, tone: 'tag' };
-    if (questionCount && answered >= questionCount && accuracy >= 85) return { label: 'Mastered', accuracy, completion: 100, tone: 'badge' };
-    if (questionCount && answered >= questionCount) return { label: 'Completed', accuracy, completion: 100, tone: 'badge' };
-    return { label: 'In Progress', accuracy, completion: completion || 1, tone: 'tag' };
+    if (!stats || !stats.total) return { label: 'Not Started', accuracy: 0, completion: 0, tone: 'tag', className: 'is-not-started' };
+    if (questionCount && answered >= questionCount && accuracy >= 85) return { label: 'Mastered', accuracy, completion: 100, tone: 'badge', className: 'is-mastered' };
+    if (questionCount && answered >= questionCount) return { label: 'Completed', accuracy, completion: 100, tone: 'badge', className: 'is-completed' };
+    return { label: 'In Progress', accuracy, completion: completion || 1, tone: 'tag', className: 'is-in-progress' };
   }
 
   function getTopicStatusMarkup(subjectId, topicId, questionCount = 0) {
@@ -408,6 +408,7 @@ async function startDailyChallengeBySubject(subjectId, requestedCount) {
           <button class="nav-toggle" id="navToggle" type="button" aria-label="Open navigation"><span></span></button>
           <nav class="nav-menu" id="navMenu">
             <a class="nav-link ${PAGE === 'home' ? 'is-active' : ''}" href="./index.html">Home</a>
+            <a class="nav-link ${PAGE === 'subjects' || PAGE === 'topics' || PAGE === 'topic' || PAGE === 'study' ? 'is-active' : ''}" href="./subjects.html">Subjects</a>
             <a class="nav-link ${PAGE === 'final-exam' ? 'is-active' : ''}" href="./final-exam.html">Final Exam</a>
             <a class="nav-link" href="./intern/index.html">Intern</a>
             <a class="nav-link ${PAGE === 'dashboard' ? 'is-active' : ''}" href="./dashboard.html">Dashboard</a>
@@ -437,6 +438,76 @@ async function startDailyChallengeBySubject(subjectId, requestedCount) {
       toggle.classList.remove('is-open');
       menu.classList.remove('is-open');
     }));
+  }
+
+
+  function getSubjectAccent(subjectName = '', index = 0) {
+    const key = subjectName.toLowerCase();
+    if (key.includes('pharmacology') || key.includes('فارما')) {
+      return { icon: '💊', tag: 'Core', bg: 'linear-gradient(135deg, #0d2549 0%, #143564 62%, #1d467d 100%)' };
+    }
+    if (key.includes('biochemistry') || key.includes('bio')) {
+      return { icon: '🧬', tag: 'Pathways', bg: 'linear-gradient(135deg, #102543 0%, #1d467d 58%, #d7b14b 140%)' };
+    }
+    if (key.includes('pharmaceutics') || key.includes('سيوتكس')) {
+      return { icon: '🧪', tag: 'Dosage Forms', bg: 'linear-gradient(135deg, #07182f 0%, #0d2549 60%, #2b5c92 100%)' };
+    }
+    if (key.includes('chemistry') || key.includes('pharmaceutical chemistry') || key.includes('medicinal') || key.includes('سيوتكال')) {
+      return { icon: '⚗️', tag: 'Medicinal', bg: 'linear-gradient(135deg, #0d2549 0%, #143564 55%, #0b1c37 100%)' };
+    }
+    if (key.includes('clinical')) {
+      return { icon: '🩺', tag: 'Practice', bg: 'linear-gradient(135deg, #143564 0%, #1d467d 52%, #e8c765 155%)' };
+    }
+    const fallback = [
+      { icon: '📘', tag: 'Subject', bg: 'linear-gradient(135deg, #07182f 0%, #0d2549 56%, #143564 100%)' },
+      { icon: '🔬', tag: 'Science', bg: 'linear-gradient(135deg, #102543 0%, #1d467d 60%, #143564 100%)' },
+      { icon: '🧠', tag: 'High Yield', bg: 'linear-gradient(135deg, #0d2549 0%, #143564 58%, #d7b14b 165%)' },
+      { icon: '📚', tag: 'Review', bg: 'linear-gradient(135deg, #07182f 0%, #143564 55%, #1d467d 100%)' }
+    ];
+    return fallback[index % fallback.length];
+  }
+
+  function buildHomeSubjectCarousel(subjects) {
+    const cards = subjects.map((subject, index) => {
+      const accent = getSubjectAccent(subject.name, index);
+      const topicCount = (subject.topics || []).length;
+      const questionCount = (subject.topics || []).reduce((sum, topic) => sum + (topic.questionCount || 0), 0);
+      return `
+        <a class="subject-showcase-card" href="${pageLink('./topics.html', { subject: subject.id })}" style="--subject-bg:${accent.bg};">
+          <div class="subject-showcase-glow"></div>
+          <div class="subject-showcase-top">
+            <div class="subject-showcase-count">${String(index + 1).padStart(2, '0')}</div>
+            <div class="subject-showcase-tag">${accent.tag}</div>
+          </div>
+          <div class="subject-showcase-icon">${accent.icon}</div>
+          <div class="subject-showcase-body">
+            <h3>${subject.name}</h3>
+            <p>${topicCount} topic${topicCount === 1 ? '' : 's'} • ${questionCount} question${questionCount === 1 ? '' : 's'}</p>
+            <div class="subject-showcase-footer">
+              <span class="subject-showcase-link">Open Subject</span>
+            </div>
+          </div>
+        </a>
+      `;
+    }).join('');
+
+    return `
+      <section class="home-subject-showcase" style="margin-top:30px;">
+        <div class="section-header">
+          <div>
+            <h2>Browse Subjects</h2>
+            <p>A smooth moving subject rail that makes the home page feel richer and more visual.</p>
+          </div>
+          <a class="btn btn-secondary" href="./subjects.html">See All Subjects</a>
+        </div>
+        <div class="subject-showcase-shell">
+          <div class="subject-showcase-track">
+            ${cards}
+            ${cards}
+          </div>
+        </div>
+      </section>
+    `;
   }
 
 function renderHome(index) {
@@ -545,6 +616,8 @@ function renderHome(index) {
         </div>
       </section>
     ` : ''}
+
+    ${buildHomeSubjectCarousel(subjects)}
 
  <section class="home-daily-section" style="margin-top:30px;">
   <div class="section-header">
@@ -1176,6 +1249,10 @@ async function renderTopicsPage() {
   async function startDailyChallenge(subjectIds) {
     const ids = (subjectIds || []).filter(Boolean);
     if (!ids.length) throw new Error('Select at least one subject for your challenge.');
+    if (ids.length === 1) {
+      return startDailyChallengeBySubject(ids[0], 5);
+    }
+
     let pool = [];
     for (const subjectId of ids) {
       const subject = state.subjectMap.get(subjectId);
@@ -1186,19 +1263,22 @@ async function renderTopicsPage() {
       }
     }
     if (!pool.length) throw new Error('No questions were found for the selected subjects.');
-    const questions = shuffle(pool).slice(0, Math.min(5, pool.length)).map((q) => ({
+
+    const actualCount = Math.min(5, pool.length);
+    const questions = shuffle(pool).slice(0, actualCount).map((q) => ({
       ...q,
       options: shuffle([...(q.options || [])])
     }));
     const selectedNames = ids.map((id) => state.subjectMap.get(id)?.name).filter(Boolean);
-   writeStore(KEYS.daily, {
-  date: new Date().toISOString(),
-  subjects: [subjectId],
-  subjectNames: [subject.name],
-  questions: dailyQuestions,
-  selectedCount: actualCount,
-  selectedSubjectName: subject.name
-});
+
+    writeStore(KEYS.daily, {
+      date: new Date().toISOString(),
+      subjects: ids,
+      subjectNames: selectedNames,
+      questions,
+      selectedCount: actualCount,
+      selectedSubjectName: selectedNames.join(' • ') || 'Mixed Subjects'
+    });
     window.location.href = './study.html?daily=1';
   }
 
@@ -2158,7 +2238,6 @@ function startExamEngine(container, questions, minutes) {
     });
   }
 
-
   function renderDashboardPage() {
     const progress = getProgress();
     const root = document.getElementById('pageRoot');
@@ -2477,6 +2556,7 @@ function startExamEngine(container, questions, minutes) {
     `;
   }
 
+  function renderSavedPage() {
   function renderSavedPage() {
     const progress = getProgress();
     const savedMap = progress.savedBank || {};
