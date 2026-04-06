@@ -2360,7 +2360,7 @@ function startExamEngine(container, questions, minutes) {
         </div>
 
         <div class="dashboard-hero-side">
-          <div class="dashboard-side-card">
+       <div class="dashboard-side-card is-primary">
             <div class="muted">Recommended next move</div>
             ${
               recommendation
