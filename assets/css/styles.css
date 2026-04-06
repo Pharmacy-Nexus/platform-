@@ -1977,3 +1977,66 @@ body::after {
     flex-direction: column;
   }
 }
+.dashboard-score-ring-clean {
+  width: 132px;
+  min-width: 132px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard-score-ring-track {
+  --score: 0;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  position: relative;
+  background: conic-gradient(
+    var(--navy-900) calc(var(--score) * 1%),
+    #dbe3ef 0
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 1px rgba(14, 37, 73, 0.08);
+}
+
+.dashboard-score-ring-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+
+.dashboard-score-ring-track::after {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(14, 37, 73, 0.06);
+}
+
+.dashboard-score-ring-center {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.dashboard-score-ring-center strong {
+  font-size: 2.1rem;
+  line-height: 1;
+  font-weight: 800;
+  color: var(--navy-900);
+}
+
+.dashboard-score-ring-center span {
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  color: #6f7f98;
+}
