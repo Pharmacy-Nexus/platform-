@@ -2328,7 +2328,7 @@ function startExamEngine(container, questions, minutes) {
           <p class="muted">Track progress, spot weak areas fast, and jump مباشرةً to the best next action without digging through pages.</p>
 
           <div class="dashboard-hero-score-row">
-            <div class="dashboard-score-ring ${levelTone}">
+           <div class="dashboard-score-ring ${levelTone}" style="--score:${success};">
               <div class="dashboard-score-value">${success}%</div>
               <div class="dashboard-score-label">overall</div>
             </div>
