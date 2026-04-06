@@ -1671,17 +1671,17 @@ body::after {
 .dashboard-quick-actions .btn-secondary:hover {
   background: rgba(14, 37, 73, 0.1);
 }
-.dashboard-score-ring.is-great {
+.dashboard-score-ring.is-great { --ring-color: var(--gold-500); }
   background:
     radial-gradient(circle at center, #fff 52%, transparent 53%),
     conic-gradient(var(--gold-500) 0deg, var(--gold-500) 310deg, rgba(20,53,100,0.12) 310deg 360deg);
 }
-.dashboard-score-ring.is-good {
+.dashboard-score-ring.is-good { --ring-color: #205b8d; }
   background:
     radial-gradient(circle at center, #fff 52%, transparent 53%),
     conic-gradient(#205b8d 0deg, #205b8d 275deg, rgba(20,53,100,0.12) 275deg 360deg);
 }
-.dashboard-score-ring.is-fair {
+.dashboard-score-ring.is-fair { --ring-color: #6f87ad; }
   background:
     radial-gradient(circle at center, #fff 52%, transparent 53%),
     conic-gradient(#6f87ad 0deg, #6f87ad 220deg, rgba(20,53,100,0.12) 220deg 360deg);
