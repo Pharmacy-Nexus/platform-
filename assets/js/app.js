@@ -2557,7 +2557,6 @@ function startExamEngine(container, questions, minutes) {
   }
 
   function renderSavedPage() {
-  function renderSavedPage() {
     const progress = getProgress();
     const savedMap = progress.savedBank || {};
     const notesMap = progress.savedNotes || {};
