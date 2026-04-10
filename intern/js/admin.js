@@ -10,7 +10,8 @@ const adminState = {
   searchTerm: '',
   filterType: 'all',
   filterDifficulty: 'all',
-  selectedQuestionTopicId: ''
+  selectedQuestionTopicId: '',
+  bulkDefaultType: 'mcq'
 };
 
   function slugify(value) {
@@ -179,6 +180,56 @@ const adminState = {
             <button class="btn btn-light hidden" id="cancelQuestionEditBtn" type="button">Cancel Edit</button>
           </div>
         </article>
+      </section>
+
+      <section class="intern-section">
+        <div class="section-header">
+          <div>
+            <h2>Bulk Upload Questions</h2>
+            <p>Paste CSV rows here to create many questions at once without changing the current manual workflow.</p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px;">
+          <div class="input-row three">
+            <div>
+              <label class="muted">Topic</label>
+              <select class="select" id="adminBulkTopic"></select>
+            </div>
+            <div>
+              <label class="muted">Default question type</label>
+              <select class="select" id="adminBulkType">
+                <option value="mcq">MCQ</option>
+                <option value="true_false">True / False</option>
+                <option value="image_mcq">Image with MCQ</option>
+                <option value="case">Case</option>
+              </select>
+            </div>
+            <div>
+              <label class="muted">CSV header</label>
+              <input class="input" value="question_text,difficulty,case_text,image_url,explanation,summary,is_active,option_1,option_2,option_3,option_4,correct_option[,type]" readonly />
+            </div>
+          </div>
+
+          <div style="margin-top:16px;">
+            <label class="muted">Paste CSV content</label>
+            <textarea class="textarea" id="adminBulkCsv" style="min-height:240px;" placeholder='question_text,difficulty,case_text,image_url,explanation,summary,is_active,option_1,option_2,option_3,option_4,correct_option
+What is the first-line treatment for hypertension?,medium,,,ACE inhibitors are commonly preferred...,ACEI summary,true,Lisinopril,Atenolol,Furosemide,Clonidine,1'></textarea>
+          </div>
+
+          <div class="meta-row" style="margin-top:12px;">
+            <span class="tag">correct_option uses 1 to 4</span>
+            <span class="tag">type column is optional</span>
+            <span class="tag">true_false rows may use only first 2 options</span>
+          </div>
+
+          <div id="adminBulkMessage" style="margin-top:16px;"></div>
+
+          <div class="action-row" style="justify-content:flex-start;">
+            <button class="btn btn-primary" id="adminBulkUploadBtn" type="button">Upload Bulk Questions</button>
+            <button class="btn btn-light" id="adminBulkClearBtn" type="button">Clear CSV</button>
+          </div>
+        </div>
       </section>
 
       <section class="intern-section">
@@ -353,6 +404,7 @@ const adminState = {
   const container = InternCore.qs('#adminTopicsList');
   const topicSelect = InternCore.qs('#adminQuestionTopic');
   const browseSelect = InternCore.qs('#adminBrowseTopic');
+  const bulkTopicSelect = InternCore.qs('#adminBulkTopic');
 
   const optionsHtml = adminState.topics.length
     ? adminState.topics.map((topic) => `
@@ -370,6 +422,14 @@ const adminState = {
 
   if (browseSelect) {
     browseSelect.innerHTML = optionsHtml;
+  }
+
+  if (bulkTopicSelect) {
+    bulkTopicSelect.innerHTML = optionsHtml;
+
+    if (adminState.selectedQuestionTopicId) {
+      bulkTopicSelect.value = adminState.selectedQuestionTopicId;
+    }
   }
 
   if (adminState.selectedTopicId && browseSelect) {
@@ -554,6 +614,263 @@ const adminState = {
     adminState.selectedTopicId = topicId;
     adminState.questions = await InternAPI.getQuestionsByTopic(topicId);
     drawQuestionsList();
+  }
+
+
+  function parseCsvLine(line) {
+    const cells = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i += 1) {
+      const char = line[i];
+      const next = line[i + 1];
+
+      if (char === '"') {
+        if (inQuotes && next === '"') {
+          current += '"';
+          i += 1;
+        } else {
+          inQuotes = !inQuotes;
+        }
+        continue;
+      }
+
+      if (char === ',' && !inQuotes) {
+        cells.push(current);
+        current = '';
+        continue;
+      }
+
+      current += char;
+    }
+
+    cells.push(current);
+    return cells.map((cell) => cell.trim());
+  }
+
+  function parseBulkCsv(text) {
+    const lines = String(text || '')
+      .replace(/\r/g, '')
+      .split('\n')
+      .filter((line) => line.trim());
+
+    if (lines.length < 2) {
+      throw new Error('Please add a header row and at least one question row.');
+    }
+
+    const headers = parseCsvLine(lines[0]).map((header) => header.trim().toLowerCase());
+    const rows = lines.slice(1).map((line, index) => {
+      const cells = parseCsvLine(line);
+      const row = { __rowNumber: index + 2 };
+
+      headers.forEach((header, headerIndex) => {
+        row[header] = cells[headerIndex] ?? '';
+      });
+
+      return row;
+    });
+
+    return { headers, rows };
+  }
+
+  function toBoolean(value, defaultValue = true) {
+    if (value === undefined || value === null || value === '') return defaultValue;
+    const normalized = String(value).trim().toLowerCase();
+    if (['true', '1', 'yes', 'y'].includes(normalized)) return true;
+    if (['false', '0', 'no', 'n'].includes(normalized)) return false;
+    return defaultValue;
+  }
+
+  function normalizeBulkRow(row, defaultType) {
+    const type = String(row.type || defaultType || 'mcq').trim() || 'mcq';
+    const difficulty = String(row.difficulty || 'medium').trim().toLowerCase() || 'medium';
+    const questionText = String(row.question_text || '').trim();
+    const caseText = String(row.case_text || '').trim();
+    const imageUrl = String(row.image_url || '').trim();
+    const explanation = String(row.explanation || '').trim();
+    const summary = String(row.summary || '').trim();
+    const isActive = toBoolean(row.is_active, true);
+    const correctOption = Number(String(row.correct_option || '').trim());
+
+    let optionValues = [
+      String(row.option_1 || '').trim(),
+      String(row.option_2 || '').trim(),
+      String(row.option_3 || '').trim(),
+      String(row.option_4 || '').trim()
+    ].filter(Boolean);
+
+    if (type === 'true_false') {
+      optionValues = ['True', 'False'];
+    }
+
+    if (!questionText) {
+      throw new Error(`Row ${row.__rowNumber}: question_text is required.`);
+    }
+
+    if (!['mcq', 'true_false', 'image_mcq', 'case'].includes(type)) {
+      throw new Error(`Row ${row.__rowNumber}: type must be mcq, true_false, image_mcq, or case.`);
+    }
+
+    if (!['easy', 'medium', 'hard'].includes(difficulty)) {
+      throw new Error(`Row ${row.__rowNumber}: difficulty must be easy, medium, or hard.`);
+    }
+
+    if (optionValues.length < 2) {
+      throw new Error(`Row ${row.__rowNumber}: at least 2 options are required.`);
+    }
+
+    if (!Number.isInteger(correctOption) || correctOption < 1 || correctOption > optionValues.length) {
+      throw new Error(`Row ${row.__rowNumber}: correct_option must be a number from 1 to ${optionValues.length}.`);
+    }
+
+    const optionsPayload = optionValues.map((text, index) => ({
+      option_text: text,
+      is_correct: index === correctOption - 1,
+      sort_order: index + 1
+    }));
+
+    return {
+      rowNumber: row.__rowNumber,
+      topicId: '',
+      type,
+      difficulty,
+      questionText,
+      caseText,
+      imageUrl,
+      explanation,
+      summary,
+      isActive,
+      optionsPayload
+    };
+  }
+
+  async function bindBulkUpload() {
+    const uploadBtn = InternCore.qs('#adminBulkUploadBtn');
+    const clearBtn = InternCore.qs('#adminBulkClearBtn');
+    const csvInput = InternCore.qs('#adminBulkCsv');
+    const msg = InternCore.qs('#adminBulkMessage');
+    const topicSelect = InternCore.qs('#adminBulkTopic');
+    const typeSelect = InternCore.qs('#adminBulkType');
+
+    typeSelect?.addEventListener('change', (event) => {
+      adminState.bulkDefaultType = event.target.value;
+    });
+
+    clearBtn?.addEventListener('click', () => {
+      if (csvInput) csvInput.value = '';
+      msg.innerHTML = '';
+    });
+
+    uploadBtn?.addEventListener('click', async () => {
+      const topicId = topicSelect?.value || '';
+      const csvText = csvInput?.value || '';
+      const defaultType = typeSelect?.value || 'mcq';
+
+      if (!topicId) {
+        msg.innerHTML = `<div class="message error">Please choose a topic for the bulk upload.</div>`;
+        return;
+      }
+
+      if (!csvText.trim()) {
+        msg.innerHTML = `<div class="message error">Please paste CSV content first.</div>`;
+        return;
+      }
+
+      let parsedRows;
+      try {
+        const parsed = parseBulkCsv(csvText);
+        parsedRows = parsed.rows.map((row) => {
+          const normalized = normalizeBulkRow(row, defaultType);
+          normalized.topicId = topicId;
+          return normalized;
+        });
+      } catch (error) {
+        msg.innerHTML = `<div class="message error">${escapeHtml(error.message)}</div>`;
+        return;
+      }
+
+      const ok = window.confirm(`Upload ${parsedRows.length} questions to the selected topic?`);
+      if (!ok) return;
+
+      uploadBtn.disabled = true;
+      clearBtn.disabled = true;
+      msg.innerHTML = `<div class="message">Uploading ${parsedRows.length} questions...</div>`;
+
+      const results = {
+        uploaded: 0,
+        failed: 0,
+        errors: []
+      };
+
+      for (const row of parsedRows) {
+        let createdQuestion = null;
+
+        try {
+          createdQuestion = await InternAPI.createQuestion({
+            topicId: row.topicId,
+            type: row.type,
+            difficulty: row.difficulty,
+            questionText: row.questionText,
+            caseText: row.caseText,
+            imageUrl: row.imageUrl,
+            explanation: row.explanation,
+            summary: row.summary,
+            isActive: row.isActive
+          });
+
+          await InternAPI.createQuestionOptions(
+            row.optionsPayload.map((option) => ({
+              question_id: createdQuestion.id,
+              option_text: option.option_text,
+              is_correct: option.is_correct,
+              sort_order: option.sort_order
+            }))
+          );
+
+          results.uploaded += 1;
+        } catch (error) {
+          results.failed += 1;
+          results.errors.push(`Row ${row.rowNumber}: ${error.message || 'Upload failed.'}`);
+
+          if (createdQuestion?.id) {
+            try {
+              await InternAPI.deleteQuestion(createdQuestion.id);
+            } catch (_) {}
+          }
+        }
+      }
+
+      uploadBtn.disabled = false;
+      clearBtn.disabled = false;
+      adminState.selectedQuestionTopicId = topicId;
+      adminState.selectedTopicId = topicId;
+
+      try {
+        await loadTopics();
+        await loadQuestionsByTopic(topicId);
+      } catch (_) {}
+
+      const browseSelect = InternCore.qs('#adminBrowseTopic');
+      if (browseSelect) browseSelect.value = topicId;
+      if (topicSelect) topicSelect.value = topicId;
+
+      const reportParts = [
+        `<div class="message success">Uploaded ${results.uploaded} question(s).${results.failed ? ` Failed: ${results.failed}.` : ''}</div>`
+      ];
+
+      if (results.errors.length) {
+        reportParts.push(`
+          <div class="message error" style="margin-top:12px;">
+            <strong>Errors</strong>
+            <div style="margin-top:8px; white-space:pre-wrap;">${escapeHtml(results.errors.slice(0, 10).join('\n'))}</div>
+            ${results.errors.length > 10 ? `<div style="margin-top:8px;">+ ${results.errors.length - 10} more error(s)</div>` : ''}
+          </div>
+        `);
+      }
+
+      msg.innerHTML = reportParts.join('');
+    });
   }
 
   function bindTopicForm() {
@@ -809,6 +1126,7 @@ async function initAdminPage() {
     bindTopicForm();
     bindQuestionForm();
     bindQuestionsBrowser();
+    bindBulkUpload();
     drawQuestionsList();
     resetTopicForm();
     resetQuestionForm();
