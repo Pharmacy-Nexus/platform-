@@ -6,16 +6,16 @@
       appName: 'Pharmacy Nexus Intern',
       setSizeDefault: 20,
       allowedAdminEmail: 'pharmacynexusofficial@gmail.com',
-  storageKeys: {
-  config: 'pn_intern_config_v1',
-  topicsCache: 'pn_intern_topics_cache_v1',
-  session: 'pn_intern_session_v1',
-  practiceReview: 'pn_intern_practice_review_v1',
-  practiceRetry: 'pn_intern_practice_retry_v1',
-  examReview: 'pn_intern_exam_review_v1',
-  examRetry: 'pn_intern_exam_retry_v1',
-  internDashboard: 'pn_intern_dashboard_v1'
-}
+      storageKeys: {
+        config: 'pn_intern_config_v1',
+        topicsCache: 'pn_intern_topics_cache_v1',
+        session: 'pn_intern_session_v1',
+        practiceReview: 'pn_intern_practice_review_v1',
+        practiceRetry: 'pn_intern_practice_retry_v1',
+        examReview: 'pn_intern_exam_review_v1',
+        examRetry: 'pn_intern_exam_retry_v1',
+        internDashboard: 'pn_intern_dashboard_v1'
+      }
     },
 
     state: {
@@ -191,66 +191,150 @@
       this.bindAdminShortcut();
     }
   };
-InternCore.getEmptyDashboard = function () {
-  return {
-    totalAttempts: 0,
-    practiceAttempts: 0,
-    realExamAttempts: 0,
-    totalSolved: 0,
-    totalCorrect: 0,
-    totalWrong: 0,
-    topicStats: {},
-    recentSessions: []
+
+  InternCore.getEmptyDashboard = function () {
+    return {
+      version: 2,
+      totalAttempts: 0,
+      practiceAttempts: 0,
+      realExamAttempts: 0,
+      totalSolved: 0,
+      totalCorrect: 0,
+      totalWrong: 0,
+      practiceSolved: 0,
+      practiceCorrect: 0,
+      practiceWrong: 0,
+      realSolved: 0,
+      realCorrect: 0,
+      realWrong: 0,
+      topicStats: {},
+      recentSessions: []
+    };
   };
-};
 
-InternCore.getDashboardData = function () {
-  return this.readStore(this.config.storageKeys.internDashboard, this.getEmptyDashboard());
-};
+  InternCore.normalizeDashboardData = function (rawDashboard) {
+    const base = this.getEmptyDashboard();
+    const dashboard = rawDashboard && typeof rawDashboard === 'object'
+      ? { ...base, ...rawDashboard }
+      : { ...base };
 
-InternCore.saveDashboardData = function (data) {
-  this.writeStore(this.config.storageKeys.internDashboard, data);
-};
+    dashboard.version = 2;
+    dashboard.topicStats = dashboard.topicStats && typeof dashboard.topicStats === 'object'
+      ? dashboard.topicStats
+      : {};
+    dashboard.recentSessions = Array.isArray(dashboard.recentSessions)
+      ? dashboard.recentSessions
+      : [];
 
-InternCore.updateDashboardFromSession = function ({ mode, rows, score, total }) {
-  const dashboard = this.getDashboardData();
+    dashboard.practiceSolved = Number(dashboard.practiceSolved || 0);
+    dashboard.practiceCorrect = Number(dashboard.practiceCorrect || 0);
+    dashboard.practiceWrong = Number(dashboard.practiceWrong || 0);
+    dashboard.realSolved = Number(dashboard.realSolved || 0);
+    dashboard.realCorrect = Number(dashboard.realCorrect || 0);
+    dashboard.realWrong = Number(dashboard.realWrong || 0);
 
-  dashboard.totalAttempts += 1;
-  if (mode === 'practice') dashboard.practiceAttempts += 1;
-  if (mode === 'real') dashboard.realExamAttempts += 1;
-
-  dashboard.totalSolved += total;
-  dashboard.totalCorrect += score;
-  dashboard.totalWrong += (total - score);
-
-  rows.forEach((row) => {
-    const topic = row.question.topic_title || 'Unknown Topic';
-
-    if (!dashboard.topicStats[topic]) {
+    Object.keys(dashboard.topicStats).forEach((topic) => {
+      const stat = dashboard.topicStats[topic] || {};
       dashboard.topicStats[topic] = {
-        topic,
-        total: 0,
-        correct: 0,
-        wrong: 0
+        topic: stat.topic || topic,
+        total: Number(stat.total || 0),
+        correct: Number(stat.correct || 0),
+        wrong: Number(stat.wrong || 0),
+        practice_total: Number(stat.practice_total || 0),
+        practice_correct: Number(stat.practice_correct || 0),
+        practice_wrong: Number(stat.practice_wrong || 0),
+        real_total: Number(stat.real_total || 0),
+        real_correct: Number(stat.real_correct || 0),
+        real_wrong: Number(stat.real_wrong || 0),
+        last_practiced_at: stat.last_practiced_at || null
       };
+    });
+
+    return dashboard;
+  };
+
+  InternCore.getDashboardData = function () {
+    return this.normalizeDashboardData(
+      this.readStore(this.config.storageKeys.internDashboard, this.getEmptyDashboard())
+    );
+  };
+
+  InternCore.saveDashboardData = function (data) {
+    this.writeStore(this.config.storageKeys.internDashboard, this.normalizeDashboardData(data));
+  };
+
+  InternCore.updateDashboardFromSession = function ({ mode, rows, score, total }) {
+    const dashboard = this.getDashboardData();
+    const safeRows = Array.isArray(rows) ? rows : [];
+    const sessionPercent = total ? Math.round((score / total) * 100) : 0;
+    const now = new Date().toISOString();
+
+    dashboard.totalAttempts += 1;
+    dashboard.totalSolved += total;
+    dashboard.totalCorrect += score;
+    dashboard.totalWrong += (total - score);
+
+    if (mode === 'practice') {
+      dashboard.practiceAttempts += 1;
+      dashboard.practiceSolved += total;
+      dashboard.practiceCorrect += score;
+      dashboard.practiceWrong += (total - score);
+    } else if (mode === 'real') {
+      dashboard.realExamAttempts += 1;
+      dashboard.realSolved += total;
+      dashboard.realCorrect += score;
+      dashboard.realWrong += (total - score);
     }
 
-    dashboard.topicStats[topic].total += 1;
-    if (row.isCorrect) dashboard.topicStats[topic].correct += 1;
-    else dashboard.topicStats[topic].wrong += 1;
-  });
+    safeRows.forEach((row) => {
+      const topic = row?.question?.topic_title || 'Unknown Topic';
 
-  dashboard.recentSessions.unshift({
-    mode,
-    score,
-    total,
-    percent: total ? Math.round((score / total) * 100) : 0,
-    createdAt: new Date().toISOString()
-  });
+      if (!dashboard.topicStats[topic]) {
+        dashboard.topicStats[topic] = {
+          topic,
+          total: 0,
+          correct: 0,
+          wrong: 0,
+          practice_total: 0,
+          practice_correct: 0,
+          practice_wrong: 0,
+          real_total: 0,
+          real_correct: 0,
+          real_wrong: 0,
+          last_practiced_at: null
+        };
+      }
 
-  dashboard.recentSessions = dashboard.recentSessions.slice(0, 20);
+      const topicRow = dashboard.topicStats[topic];
+      topicRow.total += 1;
+      if (row.isCorrect) topicRow.correct += 1;
+      else topicRow.wrong += 1;
 
-  this.saveDashboardData(dashboard);
-};
+      if (mode === 'practice') {
+        topicRow.practice_total += 1;
+        if (row.isCorrect) topicRow.practice_correct += 1;
+        else topicRow.practice_wrong += 1;
+      } else if (mode === 'real') {
+        topicRow.real_total += 1;
+        if (row.isCorrect) topicRow.real_correct += 1;
+        else topicRow.real_wrong += 1;
+      }
+
+      topicRow.last_practiced_at = now;
+    });
+
+    dashboard.recentSessions.unshift({
+      mode,
+      score,
+      total,
+      percent: sessionPercent,
+      createdAt: now
+    });
+
+    dashboard.recentSessions = dashboard.recentSessions.slice(0, 20);
+
+    this.saveDashboardData(dashboard);
+  };
+
   window.InternCore = InternCore;
 })();
