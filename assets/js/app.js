@@ -173,10 +173,10 @@
     const accuracy = stats?.total ? Math.round((stats.correct / stats.total) * 100) : 0;
     const completion = questionCount ? Math.min(100, Math.round((answered / questionCount) * 100)) : 0;
 
-    if (!stats || !stats.total) return { label: 'Not Started', accuracy: 0, completion: 0, tone: 'tag', className: 'is-not-started' };
-    if (questionCount && answered >= questionCount && accuracy >= 85) return { label: 'Mastered', accuracy, completion: 100, tone: 'badge', className: 'is-mastered' };
-    if (questionCount && answered >= questionCount) return { label: 'Completed', accuracy, completion: 100, tone: 'badge', className: 'is-completed' };
-    return { label: 'In Progress', accuracy, completion: completion || 1, tone: 'tag', className: 'is-in-progress' };
+    if (!stats || !stats.total) return { label: 'Not Started', accuracy: 0, completion: 0, tone: 'tag' };
+    if (questionCount && answered >= questionCount && accuracy >= 85) return { label: 'Mastered', accuracy, completion: 100, tone: 'badge' };
+    if (questionCount && answered >= questionCount) return { label: 'Completed', accuracy, completion: 100, tone: 'badge' };
+    return { label: 'In Progress', accuracy, completion: completion || 1, tone: 'tag' };
   }
 
   function getTopicStatusMarkup(subjectId, topicId, questionCount = 0) {
@@ -219,6 +219,103 @@
     if (!state) return '';
     return pageLink('./study.html', { subject: state.subjectId, topic: state.topicId, set: state.setNumber, resume: 1 });
   }
+
+  function getPageMeta() {
+    const p = params();
+    const subjectId = p.get('subject');
+    const topicId = p.get('topic');
+    const subject = subjectId ? state.subjectMap.get(subjectId) : null;
+    const topic = subjectId && topicId ? state.topicMap.get(`${subjectId}:${topicId}`) : null;
+
+    const base = {
+      home: {
+        eyebrow: 'Overview',
+        title: 'Home',
+        description: 'Your main pharmacy learning hub with quick access to study, review, saved questions, and exams.',
+        crumbs: [{ label: 'Home', href: './index.html' }]
+      },
+      subjects: {
+        eyebrow: 'Library',
+        title: 'Subjects',
+        description: 'Browse your available pharmacy subjects and move into the topic level when you are ready.',
+        crumbs: [{ label: 'Home', href: './index.html' }, { label: 'Subjects' }]
+      },
+      dashboard: {
+        eyebrow: 'Progress',
+        title: 'Dashboard',
+        description: 'Track your performance, recent activity, strengths, weak areas, and next study focus.',
+        crumbs: [{ label: 'Home', href: './index.html' }, { label: 'Dashboard' }]
+      },
+      saved: {
+        eyebrow: 'Review Later',
+        title: 'Saved Questions',
+        description: 'Revisit starred questions and personal notes stored locally in this browser.',
+        crumbs: [{ label: 'Home', href: './index.html' }, { label: 'Saved Questions' }]
+      },
+      'final-exam': {
+        eyebrow: 'Assessment',
+        title: 'Final Exam',
+        description: 'Build a timed exam, submit at the end, and review your full performance in one place.',
+        crumbs: [{ label: 'Home', href: './index.html' }, { label: 'Final Exam' }]
+      },
+      review: {
+        eyebrow: 'After Action',
+        title: 'Review',
+        description: 'See your answers, the correct answers, and explanations, then retry the wrong questions.',
+        crumbs: [{ label: 'Home', href: './index.html' }, { label: 'Review' }]
+      },
+      topics: {
+        eyebrow: subject ? 'Subject Topics' : 'Subject Topics',
+        title: subject?.name || 'Topics',
+        description: 'Open a topic to pick a structured set and start focused practice.',
+        crumbs: [
+          { label: 'Home', href: './index.html' },
+          { label: 'Subjects', href: './subjects.html' },
+          { label: subject?.name || 'Topics' }
+        ]
+      },
+      topic: {
+        eyebrow: subject ? subject.name : 'Topic Detail',
+        title: topic?.name || 'Topic',
+        description: 'Choose the study set that matches your progress and continue where you stopped.',
+        crumbs: [
+          { label: 'Home', href: './index.html' },
+          { label: 'Subjects', href: './subjects.html' },
+          subject ? { label: subject.name, href: pageLink('./topics.html', { subject: subject.id }) } : null,
+          { label: topic?.name || 'Topic' }
+        ].filter(Boolean)
+      },
+      study: {
+        eyebrow: 'Question Flow',
+        title: topic?.name || 'Study Session',
+        description: 'Answer questions one by one with instant feedback, notes, and saved-question actions.',
+        crumbs: [
+          { label: 'Home', href: './index.html' },
+          { label: 'Subjects', href: './subjects.html' },
+          subject ? { label: subject.name, href: pageLink('./topics.html', { subject: subject.id }) } : null,
+          topic ? { label: topic.name, href: pageLink('./topic.html', { subject: subject.id, topic: topic.id }) } : null,
+          { label: 'Study' }
+        ].filter(Boolean)
+      }
+    };
+
+    return base[PAGE] || {
+      eyebrow: 'Pharmacy Nexus',
+      title: 'Workspace',
+      description: 'Structured learning environment.',
+      crumbs: [{ label: 'Home', href: './index.html' }]
+    };
+  }
+
+  function renderBreadcrumbs(items) {
+    return items.map((item, index) => {
+      const current = index === items.length - 1;
+      return current
+        ? `<span class="crumb current">${item.label}</span>`
+        : `<a class="crumb" href="${item.href || '#'}">${item.label}</a>`;
+    }).join('<span class="crumb-sep">/</span>');
+  }
+
   function clampDailyCount(subjectQuestionTotal) {
   return Math.max(1, Math.min(10, subjectQuestionTotal || 1));
 }
@@ -398,115 +495,90 @@ async function startDailyChallengeBySubject(subjectId, requestedCount) {
 
   function ensureShell() {
     const root = document.getElementById('site-shell');
+    const meta = getPageMeta();
     root.innerHTML = `
-      <header class="site-header">
-        <div class="container navbar">
-          <a class="brand" href="./index.html">
-            <span class="brand-mark">PN</span>
-            <span>Pharmacy Nexus</span>
-          </a>
-          <button class="nav-toggle" id="navToggle" type="button" aria-label="Open navigation"><span></span></button>
-          <nav class="nav-menu" id="navMenu">
-            <a class="nav-link ${PAGE === 'home' ? 'is-active' : ''}" href="./index.html">Home</a>
-            <a class="nav-link ${PAGE === 'final-exam' ? 'is-active' : ''}" href="./final-exam.html">Final Exam</a>
-            <a class="nav-link" href="./intern/index.html">Intern</a>
-            <a class="nav-link ${PAGE === 'dashboard' ? 'is-active' : ''}" href="./dashboard.html">Dashboard</a>
-            <a class="nav-link ${PAGE === 'saved' ? 'is-active' : ''}" href="./saved.html">Saved</a>
-          </nav>
+      <div class="app-shell">
+        <aside class="app-sidebar" id="navMenu">
+          <div class="sidebar-inner">
+            <a class="brand brand-sidebar" href="./index.html">
+              <span class="brand-mark logo-mark" aria-hidden="true">
+                <span class="logo-node logo-node-a"></span>
+                <span class="logo-node logo-node-b"></span>
+                <span class="logo-node logo-node-c"></span>
+                <span class="logo-core"></span>
+              </span>
+              <span class="brand-copy">
+                <strong>Pharmacy Nexus</strong>
+                <small>Structured exam prep</small>
+              </span>
+            </a>
+
+            <nav class="sidebar-nav">
+              <a class="nav-link ${PAGE === 'home' ? 'is-active' : ''}" href="./index.html">Home</a>
+              <a class="nav-link ${PAGE === 'subjects' || PAGE === 'topics' || PAGE === 'topic' || PAGE === 'study' ? 'is-active' : ''}" href="./subjects.html">Subjects</a>
+              <a class="nav-link ${PAGE === 'dashboard' ? 'is-active' : ''}" href="./dashboard.html">Dashboard</a>
+              <a class="nav-link ${PAGE === 'final-exam' ? 'is-active' : ''}" href="./final-exam.html">Final Exam</a>
+              <a class="nav-link ${PAGE === 'saved' ? 'is-active' : ''}" href="./saved.html">Saved</a>
+            </nav>
+
+            <div class="sidebar-context-card">
+              <div class="sidebar-label">${meta.eyebrow}</div>
+              <strong>${meta.title}</strong>
+              <p>${meta.description}</p>
+            </div>
+          </div>
+        </aside>
+
+        <div class="app-main">
+          <header class="site-header app-topbar">
+            <div class="app-topbar-inner">
+              <div class="topbar-context">
+                <div class="breadcrumb-row">${renderBreadcrumbs(meta.crumbs)}</div>
+                <div class="topbar-title">${meta.title}</div>
+              </div>
+
+              <button class="nav-toggle" id="navToggle" type="button" aria-label="Open navigation"><span></span></button>
+            </div>
+          </header>
+
+          <main class="main-section">
+            <div class="app-content-wrap">
+              <div class="page-context-card">
+                <div>
+                  <span class="page-context-eyebrow">${meta.eyebrow}</span>
+                  <h1 class="page-context-title">${meta.title}</h1>
+                  <p class="page-context-text">${meta.description}</p>
+                </div>
+              </div>
+              <div id="pageRoot"></div>
+            </div>
+          </main>
+
+          <footer class="footer">
+            <div class="app-content-wrap footer-shell">
+              <div>
+                <strong>Contact: pharmacynexusofficial@gmail.com</strong>
+                <div>For feedback, collaboration, or educational contributions, feel free to contact us.</div>
+              </div>
+            </div>
+          </footer>
         </div>
-      </header>
-      <main class="main-section"><div class="container" id="pageRoot"></div></main>
-      <footer class="footer">
-  <div class="container footer-shell">
-    <div>
-      <strong>Contact: pharmacynexusofficial@gmail.com</strong>
-      <div>For feedback, collaboration, or educational contributions, feel free to contact us.</div>
-    </div>
-  </div>
-</footer>
+      </div>
       <div class="admin-backdrop" id="adminBackdrop"></div>
     `;
 
     const toggle = document.getElementById('navToggle');
     const menu = document.getElementById('navMenu');
-    toggle.addEventListener('click', () => {
+    toggle?.addEventListener('click', () => {
       toggle.classList.toggle('is-open');
       menu.classList.toggle('is-open');
+      document.body.classList.toggle('nav-open');
     });
-    menu.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => {
-      toggle.classList.remove('is-open');
+    menu?.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => {
+      toggle?.classList.remove('is-open');
       menu.classList.remove('is-open');
+      document.body.classList.remove('nav-open');
     }));
-  }
-
-
-  function getSubjectAccent(subjectName = '', index = 0) {
-    const key = subjectName.toLowerCase();
-    if (key.includes('pharmacology') || key.includes('فارما')) {
-      return { icon: '💊', tag: 'Core', bg: 'linear-gradient(135deg, #0d2549 0%, #143564 62%, #1d467d 100%)' };
-    }
-    if (key.includes('biochemistry') || key.includes('bio')) {
-      return { icon: '🧬', tag: 'Pathways', bg: 'linear-gradient(135deg, #102543 0%, #1d467d 58%, #d7b14b 140%)' };
-    }
-    if (key.includes('pharmaceutics') || key.includes('سيوتكس')) {
-      return { icon: '🧪', tag: 'Dosage Forms', bg: 'linear-gradient(135deg, #07182f 0%, #0d2549 60%, #2b5c92 100%)' };
-    }
-    if (key.includes('chemistry') || key.includes('pharmaceutical chemistry') || key.includes('medicinal') || key.includes('سيوتكال')) {
-      return { icon: '⚗️', tag: 'Medicinal', bg: 'linear-gradient(135deg, #0d2549 0%, #143564 55%, #0b1c37 100%)' };
-    }
-    if (key.includes('clinical')) {
-      return { icon: '🩺', tag: 'Practice', bg: 'linear-gradient(135deg, #143564 0%, #1d467d 52%, #e8c765 155%)' };
-    }
-    const fallback = [
-      { icon: '📘', tag: 'Subject', bg: 'linear-gradient(135deg, #07182f 0%, #0d2549 56%, #143564 100%)' },
-      { icon: '🔬', tag: 'Science', bg: 'linear-gradient(135deg, #102543 0%, #1d467d 60%, #143564 100%)' },
-      { icon: '🧠', tag: 'High Yield', bg: 'linear-gradient(135deg, #0d2549 0%, #143564 58%, #d7b14b 165%)' },
-      { icon: '📚', tag: 'Review', bg: 'linear-gradient(135deg, #07182f 0%, #143564 55%, #1d467d 100%)' }
-    ];
-    return fallback[index % fallback.length];
-  }
-
-  function buildHomeSubjectCarousel(subjects) {
-    const cards = subjects.map((subject, index) => {
-      const accent = getSubjectAccent(subject.name, index);
-      const topicCount = (subject.topics || []).length;
-      const questionCount = (subject.topics || []).reduce((sum, topic) => sum + (topic.questionCount || 0), 0);
-      return `
-        <a class="subject-showcase-card" href="${pageLink('./topics.html', { subject: subject.id })}" style="--subject-bg:${accent.bg};">
-          <div class="subject-showcase-glow"></div>
-          <div class="subject-showcase-top">
-            <div class="subject-showcase-count">${String(index + 1).padStart(2, '0')}</div>
-            <div class="subject-showcase-tag">${accent.tag}</div>
-          </div>
-          <div class="subject-showcase-icon">${accent.icon}</div>
-          <div class="subject-showcase-body">
-            <h3>${subject.name}</h3>
-            <p>${topicCount} topic${topicCount === 1 ? '' : 's'} • ${questionCount} question${questionCount === 1 ? '' : 's'}</p>
-            <div class="subject-showcase-footer">
-              <span class="subject-showcase-link">Open Subject</span>
-            </div>
-          </div>
-        </a>
-      `;
-    }).join('');
-
-    return `
-      <section class="home-subject-showcase" style="margin-top:30px;">
-        <div class="section-header">
-          <div>
-            <h2>Browse Subjects</h2>
-            <p>A smooth moving subject rail that makes the home page feel richer and more visual.</p>
-          </div>
-          <a class="btn btn-secondary" href="./subjects.html">See All Subjects</a>
-        </div>
-        <div class="subject-showcase-shell">
-          <div class="subject-showcase-track">
-            ${cards}
-            ${cards}
-          </div>
-        </div>
-      </section>
-    `;
   }
 
 function renderHome(index) {
@@ -527,13 +599,7 @@ function renderHome(index) {
   );
 
   root.innerHTML = `
-    <section class="hero hero-graphic-shell">
-      <span class="hero-chem hero-chem-a">C₂₀H₂₅N₃O</span>
-      <span class="hero-chem hero-chem-b">C₈H₉NO₂</span>
-      <span class="hero-orb hero-orb-a"></span>
-      <span class="hero-orb hero-orb-b"></span>
-
-      <div class="hero-grid">
+    <section class="hero hero-graphic-shell">      <div class="hero-grid">
         <div>
           <span class="eyebrow">Pharmacy Nexus • Structured Learning</span>
           <h1>Your Ultimate Pharmacy Learning Platform <span>Built for Future Pharmacists</span></h1>
@@ -615,8 +681,6 @@ function renderHome(index) {
         </div>
       </section>
     ` : ''}
-
-    ${buildHomeSubjectCarousel(subjects)}
 
  <section class="home-daily-section" style="margin-top:30px;">
   <div class="section-header">
@@ -1248,10 +1312,6 @@ async function renderTopicsPage() {
   async function startDailyChallenge(subjectIds) {
     const ids = (subjectIds || []).filter(Boolean);
     if (!ids.length) throw new Error('Select at least one subject for your challenge.');
-    if (ids.length === 1) {
-      return startDailyChallengeBySubject(ids[0], 5);
-    }
-
     let pool = [];
     for (const subjectId of ids) {
       const subject = state.subjectMap.get(subjectId);
@@ -1262,22 +1322,19 @@ async function renderTopicsPage() {
       }
     }
     if (!pool.length) throw new Error('No questions were found for the selected subjects.');
-
-    const actualCount = Math.min(5, pool.length);
-    const questions = shuffle(pool).slice(0, actualCount).map((q) => ({
+    const questions = shuffle(pool).slice(0, Math.min(5, pool.length)).map((q) => ({
       ...q,
       options: shuffle([...(q.options || [])])
     }));
     const selectedNames = ids.map((id) => state.subjectMap.get(id)?.name).filter(Boolean);
-
-    writeStore(KEYS.daily, {
-      date: new Date().toISOString(),
-      subjects: ids,
-      subjectNames: selectedNames,
-      questions,
-      selectedCount: actualCount,
-      selectedSubjectName: selectedNames.join(' • ') || 'Mixed Subjects'
-    });
+   writeStore(KEYS.daily, {
+  date: new Date().toISOString(),
+  subjects: [subjectId],
+  subjectNames: [subject.name],
+  questions: dailyQuestions,
+  selectedCount: actualCount,
+  selectedSubjectName: subject.name
+});
     window.location.href = './study.html?daily=1';
   }
 
@@ -1542,13 +1599,7 @@ panelMuted = (dailyData.subjectNames || []).join(' • ') || 'Selected subjects'
     : 0;
 
   root.innerHTML = `
-    <section class="hero hero-graphic-shell exam-hero">
-      <span class="hero-chem hero-chem-a">RX • FINAL • EXAM</span>
-      <span class="hero-chem hero-chem-b">Timed • Mixed • Review</span>
-      <span class="hero-orb hero-orb-a"></span>
-      <span class="hero-orb hero-orb-b"></span>
-
-      <div class="hero-grid">
+    <section class="hero hero-graphic-shell exam-hero">      <div class="hero-grid">
         <div>
           <span class="eyebrow">Pharmacy Nexus • Assessment Mode</span>
           <h1>Final Exam <span>Simulate the real pressure, then review deeply</span></h1>
@@ -2241,320 +2292,49 @@ function startExamEngine(container, questions, minutes) {
     const progress = getProgress();
     const root = document.getElementById('pageRoot');
     const success = progress.totalSelections ? Math.round((progress.correctSelections / progress.totalSelections) * 100) : 0;
-    const continueState = getContinueState();
-    const savedCount = Object.keys(progress.savedBank || {}).length;
-    const notesCount = Object.keys(progress.savedNotes || {}).length;
-
-    const topicRows = Object.entries(progress.topics || {}).map(([key, topic]) => {
-      const [subjectId, topicId] = key.split(':');
-      const pct = topic.total ? Math.round((topic.correct / topic.total) * 100) : 0;
-      return {
-        ...topic,
-        key,
-        subjectId,
-        topicId,
-        pct,
-        attempts: topic.attempts || 0,
-        total: topic.total || 0,
-        correct: topic.correct || 0
-      };
-    });
-
-    const strengths = [...topicRows].sort((a, b) => b.pct - a.pct || b.total - a.total).slice(0, 4);
-    const weak = [...topicRows].sort((a, b) => a.pct - b.pct || b.total - a.total).slice(0, 4);
+    const topicRows = Object.values(progress.topics).map((topic) => ({
+      ...topic,
+      pct: topic.total ? Math.round((topic.correct / topic.total) * 100) : 0
+    }));
+    const strengths = [...topicRows].sort((a, b) => b.pct - a.pct).slice(0, 4);
+    const weak = [...topicRows].sort((a, b) => a.pct - b.pct).slice(0, 4);
     const recommendation = weak[0];
-
     const achievementItems = [
-      { label: 'Studied 100 Questions', on: progress.studiedQuestions >= 100, meta: `${progress.studiedQuestions}/100` },
-      { label: 'Completed 5 Study Sessions', on: progress.studySessions >= 5, meta: `${progress.studySessions}/5` },
-      { label: 'Completed 3 Final Exams', on: progress.finalExamsCompleted >= 3, meta: `${progress.finalExamsCompleted}/3` },
-      { label: 'Reached 80%+ Overall', on: success >= 80, meta: `${success}%` }
+      { label: 'Studied 100 Questions', on: progress.studiedQuestions >= 100 },
+      { label: 'Completed 5 Study Sessions', on: progress.studySessions >= 5 },
+      { label: 'Completed 3 Final Exams', on: progress.finalExamsCompleted >= 3 },
+      { label: 'Reached 80%+ Overall', on: success >= 80 }
     ];
 
-    const parseScore = (value) => {
-      const match = String(value || '').match(/(\d+)\s*\/\s*(\d+)/);
-      if (!match) return null;
-      const correct = Number(match[1]);
-      const total = Number(match[2]);
-      if (!total) return null;
-      return Math.round((correct / total) * 100);
-    };
-
-    const recent = Array.isArray(progress.recent) ? progress.recent : [];
-    const recentFive = recent.slice(0, 5).map((item) => parseScore(item.score)).filter((n) => Number.isFinite(n));
-    const previousFive = recent.slice(5, 10).map((item) => parseScore(item.score)).filter((n) => Number.isFinite(n));
-    const avg = (items) => items.length ? Math.round(items.reduce((sum, n) => sum + n, 0) / items.length) : 0;
-    const recentAvg = avg(recentFive);
-    const previousAvg = avg(previousFive);
-    const trendDelta = previousFive.length ? recentAvg - previousAvg : 0;
-
-    const studyItems = recent.filter((item) => item.type === 'study');
-    const examItems = recent.filter((item) => item.type === 'exam');
-    const studyAvg = avg(studyItems.map((item) => parseScore(item.score)).filter((n) => Number.isFinite(n)));
-    const examAvg = avg(examItems.map((item) => parseScore(item.score)).filter((n) => Number.isFinite(n)));
-
-    const levelLabel = success >= 85 ? 'Excellent momentum' : success >= 70 ? 'Good momentum' : success >= 50 ? 'Building momentum' : 'Just getting started';
-    const levelTone = success >= 85 ? 'is-great' : success >= 70 ? 'is-good' : success >= 50 ? 'is-fair' : 'is-starting';
-    const trendLabel = previousFive.length
-      ? trendDelta > 0
-        ? `Up ${trendDelta}% from your previous sessions`
-        : trendDelta < 0
-          ? `Down ${Math.abs(trendDelta)}% from your previous sessions`
-          : 'Stable compared with your previous sessions'
-      : 'Complete more sessions to unlock trend tracking';
-
-    const recommendationLink = recommendation
-      ? pageLink('./topic.html', { subject: recommendation.subjectId, topic: recommendation.topicId })
-      : pageLink('./subjects.html');
-
-    const nextActionHref = continueState
-      ? continueLink()
-      : recommendation
-        ? recommendationLink
-        : pageLink('./subjects.html');
-
-    const nextActionLabel = continueState
-      ? 'Resume Study'
-      : recommendation
-        ? 'Review Weak Topic'
-        : 'Explore Subjects';
-
     root.innerHTML = `
-      <div class="dashboard-hero card">
-        <div class="dashboard-hero-main">
-          <div class="dashboard-eyebrow">Student Dashboard</div>
-          <h2>Your performance at a glance</h2>
-          <p class="muted">Provides continuous performance tracking, identifying core weaknesses and suggesting targeted interventions for optimization.</p>
-
-          <div class="dashboard-score-ring-clean">
-  <div class="dashboard-score-ring-track">
-    <div class="dashboard-score-ring-fill" style="--score:${success};"></div>
-    <div class="dashboard-score-ring-center">
-      <strong>${success}%</strong>
-      <span>OVERALL</span>
-    </div>
-  </div>
-</div>
-
-            <div class="dashboard-hero-copy">
-              <div class="dashboard-status-chip ${levelTone}">${levelLabel}</div>
-              <div class="dashboard-progress-block">
-                <div class="metric-row">
-                  <span>Overall mastery progress</span>
-                  <strong>${success}%</strong>
-                </div>
-                <div class="dashboard-progress-bar">
-                  <span style="width:${Math.max(success, 6)}%"></span>
-                </div>
-                <div class="dashboard-trend ${trendDelta > 0 ? 'is-up' : trendDelta < 0 ? 'is-down' : ''}">${trendLabel}</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="dashboard-quick-actions">
-            <a class="btn btn-primary" href="${nextActionHref}">${nextActionLabel}</a>
-            <a class="btn btn-secondary" href="${recommendationLink}">Weakest Topic</a>
-            <a class="btn btn-light" href="./saved.html">Saved & Notes</a>
-          </div>
-        </div>
-
-        <div class="dashboard-hero-side">
-       <div class="dashboard-side-card is-primary">
-            <div class="muted">Recommended next move</div>
-            ${
-              recommendation
-                ? `<h3>Review ${recommendation.topicName}</h3>
-                   <p class="muted">${recommendation.subjectName} • ${recommendation.pct}% accuracy • ${recommendation.correct}/${recommendation.total} correct</p>
-                   <a class="btn btn-dark" href="${recommendationLink}">Open Topic</a>`
-                : `<h3>Start your first focused session</h3>
-                   <p class="muted">Once you solve a few sets, your personalized recommendation will appear here.</p>
-                   <a class="btn btn-dark" href="./subjects.html">Start Studying</a>`
-            }
-          </div>
-
-          ${
-            continueState
-              ? `<div class="dashboard-side-card dashboard-side-soft">
-                   <div class="muted">Continue where you left off</div>
-                   <h3>${continueState.topicName}</h3>
-                   <p class="muted">${continueState.subjectName} • Set ${continueState.setNumber} • Resume from question ${Math.min((continueState.questionIndex || 0) + 1, Math.max(continueState.totalQuestions || 1, 1))}</p>
-                   <a class="btn btn-light" href="${continueLink()}">Resume Now</a>
-                 </div>`
-              : `<div class="dashboard-side-card dashboard-side-soft">
-                   <div class="muted">Keep the streak alive</div>
-                   <h3>Open a fresh study set</h3>
-                   <p class="muted">Jump back into your subjects and keep the learning rhythm consistent.</p>
-                   <a class="btn btn-light" href="./subjects.html">Browse Subjects</a>
-                 </div>`
-          }
-        </div>
+      <div class="section-header"><div><h2>Student Dashboard</h2><p>Track progress, review weak areas, and monitor recent study and final exam activity.</p></div></div>
+      <div class="summary-grid four">
+        <div class="card summary-card"><div class="muted">Overall Success Rate</div><div class="big">${success}%</div></div>
+        <div class="card summary-card"><div class="muted">Total Solved Questions</div><div class="big">${progress.studiedQuestions}</div></div>
+        <div class="card summary-card"><div class="muted">Study Sessions</div><div class="big">${progress.studySessions}</div></div>
+        <div class="card summary-card"><div class="muted">Final Exams Completed</div><div class="big">${progress.finalExamsCompleted}</div></div>
       </div>
-
-      <div class="summary-grid four dashboard-summary-grid">
-        <div class="card summary-card">
-          <div class="muted">Overall Success Rate</div>
-          <div class="big">${success}%</div>
-          <div class="dashboard-card-sub">Across all tracked study and exam attempts</div>
-        </div>
-        <div class="card summary-card">
-          <div class="muted">Total Solved Questions</div>
-          <div class="big">${progress.studiedQuestions}</div>
-          <div class="dashboard-card-sub">Questions answered inside study and retry flows</div>
-        </div>
-        <div class="card summary-card">
-          <div class="muted">Study Sessions</div>
-          <div class="big">${progress.studySessions}</div>
-          <div class="dashboard-card-sub">Focused practice sessions completed</div>
-        </div>
-        <div class="card summary-card">
-          <div class="muted">Final Exams Completed</div>
-          <div class="big">${progress.finalExamsCompleted}</div>
-          <div class="dashboard-card-sub">Timed mixed exams finished so far</div>
-        </div>
-      </div>
-
-      <div class="dashboard-grid dashboard-main-grid" style="margin-top:24px;">
-        <div class="dashboard-main-column">
-          <div class="card dashboard-panel">
-            <div class="dashboard-panel-head">
-              <div>
-                <h3>Performance breakdown</h3>
-                <p class="muted">A cleaner read on what is going well and what needs recovery.</p>
-              </div>
-            </div>
-
-            <div class="dashboard-split-grid">
-              <div class="dashboard-topic-box">
-                <div class="dashboard-box-title">Strength Areas</div>
-                ${strengths.length ? strengths.map((row) => `
-                  <div class="dashboard-topic-row is-strong">
-                    <div class="dashboard-topic-copy">
-                      <strong>${row.topicName}</strong>
-                      <div class="muted">${row.subjectName} • ${row.correct}/${row.total} correct • ${row.attempts} session${row.attempts === 1 ? '' : 's'}</div>
-                    </div>
-                    <div class="dashboard-topic-score">
-                      <span>${row.pct}%</span>
-                      <div class="dashboard-mini-bar"><span style="width:${Math.max(row.pct, 6)}%"></span></div>
-                    </div>
-                  </div>
-                `).join('') : '<div class="muted">No strong areas yet. Keep solving questions to build your performance map.</div>'}
-              </div>
-
-              <div class="dashboard-topic-box">
-                <div class="dashboard-box-title">Weak Areas</div>
-                ${weak.length ? weak.map((row) => `
-                  <div class="dashboard-topic-row is-weak">
-                    <div class="dashboard-topic-copy">
-                      <strong>${row.topicName}</strong>
-                      <div class="muted">${row.subjectName} • ${row.correct}/${row.total} correct • ${row.attempts} session${row.attempts === 1 ? '' : 's'}</div>
-                    </div>
-                    <div class="dashboard-topic-score">
-                      <span>${row.pct}%</span>
-                      <div class="dashboard-mini-bar"><span style="width:${Math.max(row.pct, 6)}%"></span></div>
-                    </div>
-                  </div>
-                `).join('') : '<div class="muted">No weak areas tracked yet. Your first completed sessions will unlock this section.</div>'}
-              </div>
-            </div>
+      ${(() => { const c = getContinueState(); return c ? `
+      <div class="card" style="margin-top:24px;">
+        <div class="question-top">
+          <div>
+            <div class="meta-row"><span class="badge">Continue Studying</span><span class="tag">Set ${c.setNumber}</span></div>
+            <h3 style="margin:10px 0 6px;">${c.topicName}</h3>
+            <p class="muted">${c.subjectName} • Resume from question ${Math.min((c.questionIndex || 0) + 1, Math.max(c.totalQuestions || 1, 1))}</p>
           </div>
-
-          <div class="card dashboard-panel">
-            <div class="dashboard-panel-head">
-              <div>
-                <h3>Recent activity</h3>
-                <p class="muted">Your latest study sessions and final exam attempts.</p>
-              </div>
-            </div>
-
-            ${recent.length ? `
-              <div class="dashboard-activity-list">
-                ${recent.slice(0, 6).map((item) => {
-                  const scorePct = parseScore(item.score);
-                  return `
-                    <div class="dashboard-activity-item">
-                      <div class="dashboard-activity-left">
-                        <div class="dashboard-activity-icon">${item.type === 'exam' ? '📝' : '📘'}</div>
-                        <div>
-                          <strong>${item.name || item.type || 'Activity'}</strong>
-                          <div class="muted">${item.subject || 'Mixed'} • ${item.date || ''}</div>
-                        </div>
-                      </div>
-                      <div class="dashboard-activity-right">
-                        <div class="dashboard-activity-badge">${item.score || '--'}</div>
-                        <div class="dashboard-activity-pct">${scorePct !== null ? `${scorePct}%` : ''}</div>
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
-              </div>
-            ` : '<div class="empty-state">No recent activity yet. Start your first study set to build momentum.</div>'}
-          </div>
+          <a class="btn btn-dark" href="${continueLink()}">Resume</a>
         </div>
-
-        <div class="dashboard-side-column">
-          <div class="card dashboard-panel">
-            <div class="dashboard-panel-head">
-              <div>
-                <h3>Smart insights</h3>
-                <p class="muted">Small signals that help you decide what to do next.</p>
-              </div>
-            </div>
-
-            <div class="dashboard-insight-list">
-              <div class="dashboard-insight-card">
-                <span class="dashboard-insight-label">Last 5 sessions average</span>
-                <strong>${recentFive.length ? `${recentAvg}%` : '--'}</strong>
-              </div>
-              <div class="dashboard-insight-card">
-                <span class="dashboard-insight-label">Study sessions average</span>
-                <strong>${studyItems.length ? `${studyAvg}%` : '--'}</strong>
-              </div>
-              <div class="dashboard-insight-card">
-                <span class="dashboard-insight-label">Final exams average</span>
-                <strong>${examItems.length ? `${examAvg}%` : '--'}</strong>
-              </div>
-              <div class="dashboard-insight-card">
-                <span class="dashboard-insight-label">Saved questions</span>
-                <strong>${savedCount}</strong>
-              </div>
-              <div class="dashboard-insight-card">
-                <span class="dashboard-insight-label">Saved notes</span>
-                <strong>${notesCount}</strong>
-              </div>
-            </div>
-          </div>
-
-          <div class="card dashboard-panel">
-            <div class="dashboard-panel-head">
-              <div>
-                <h3>Achievements</h3>
-                <p class="muted">Visible milestones that make the progress feel rewarding.</p>
-              </div>
-            </div>
-
-            <div class="dashboard-achievement-list">
-              ${achievementItems.map((item) => `
-                <div class="dashboard-achievement ${item.on ? 'is-on' : ''}">
-                  <div class="dashboard-achievement-icon">${item.on ? '🏅' : '⭕'}</div>
-                  <div>
-                    <strong>${item.label}</strong>
-                    <div class="muted">${item.on ? 'Unlocked' : 'In progress'} • ${item.meta}</div>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-
-          <div class="card dashboard-panel dashboard-cta-panel">
-            <h3>Quick actions</h3>
-            <p class="muted">Open the most useful next page in one tap.</p>
-            <div class="dashboard-cta-stack">
-              <a class="btn btn-primary" href="${nextActionHref}">${nextActionLabel}</a>
-              <a class="btn btn-secondary" href="./final-exam.html">Start Final Exam</a>
-              <a class="btn btn-light" href="./saved.html">Open Saved Questions</a>
-            </div>
-          </div>
+      </div>` : ''; })()}
+      <div class="dashboard-grid" style="margin-top:24px;">
+        <div class="analysis-grid">
+          <div class="card"><h3 style="margin-top:0;">Strength Areas</h3>${strengths.length ? strengths.map((row) => `<div class="metric-row"><span>${row.topicName}</span><strong>${row.pct}%</strong></div>`).join('') : '<div class="muted">No data yet.</div>'}</div>
+          <div class="card"><h3 style="margin-top:0;">Weak Areas</h3>${weak.length ? weak.map((row) => `<div class="metric-row"><span>${row.topicName}</span><strong>${row.pct}%</strong></div>`).join('') : '<div class="muted">No data yet.</div>'}</div>
         </div>
+        <div class="analysis-grid">
+          <div class="card"><h3 style="margin-top:0;">Recent Activity</h3>${progress.recent.length ? progress.recent.slice(0, 5).map((item) => `<div class="list-item"><div><strong>${item.name}</strong><div class="muted">${item.subject}</div></div><div><strong>${item.score}</strong><div class="muted">${item.date}</div></div></div>`).join('') : '<div class="muted">No recent activity.</div>'}</div>
+          <div class="card"><h3 style="margin-top:0;">Recommendation</h3>${recommendation ? `<div class="panel"><strong>Review ${recommendation.topicName}</strong><div class="muted" style="margin-top:8px;">This topic currently has your lowest tracked percentage.</div></div>` : '<div class="muted">Start studying to unlock recommendations.</div>'}</div>
+        </div>
+        <div class="card"><h3 style="margin-top:0;">Achievements</h3><div class="metric-list">${achievementItems.map((item) => `<div class="achievement">${item.on ? '🏅' : '⭕'} ${item.label}</div>`).join('')}</div></div>
       </div>
     `;
   }
@@ -3128,8 +2908,8 @@ function startExamEngine(container, questions, minutes) {
   }
 
   async function boot() {
-    ensureShell();
     await loadIndex();
+    ensureShell();
     injectAdmin();
     if (PAGE === 'home') renderHome(state.index);
     else if (PAGE === 'subjects') renderSubjectsPage(state.index);
