@@ -2406,7 +2406,7 @@ body.route-loading {
   background-size: auto, 44px 44px, 44px 44px;
   -webkit-mask-image: radial-gradient(circle, black 54%, transparent 78%);
   mask-image: radial-gradient(circle, black 54%, transparent 78%);
-  animation: nexusRotate 10s linear infinite;
+  animation: none;
 }
 .route-loader-bond {
   position: absolute;
