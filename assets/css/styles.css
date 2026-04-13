@@ -2522,3 +2522,11 @@ body.route-loading {
     font-size: 0.82rem;
   }
 }
+@keyframes coreSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
