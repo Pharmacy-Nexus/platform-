@@ -2406,7 +2406,7 @@ body.route-loading {
   background-size: auto, 44px 44px, 44px 44px;
   -webkit-mask-image: radial-gradient(circle, black 54%, transparent 78%);
   mask-image: radial-gradient(circle, black 54%, transparent 78%);
-  animation: none;
+  animation: nexusRotate 10s linear infinite;
 }
 .route-loader-bond {
   position: absolute;
@@ -2432,20 +2432,7 @@ body.route-loading {
   transform: translate(-50%, -50%);
   background: radial-gradient(circle, #fff 0%, var(--gold-400) 58%, var(--gold-500) 100%);
   box-shadow: 0 0 0 18px rgba(232,199,101,0.10), 0 0 44px rgba(232,199,101,0.34);
-  animation: none;
-  position: absolute;
-}
-
-.atom-center::before {
-  content: "";
-  position: absolute;
-  inset: -8px;
-  border-radius: 50%;
-  border-top: 2px solid rgba(255,255,255,0.95);
-  border-right: 2px solid rgba(232,199,101,0.95);
-  border-bottom: 2px solid transparent;
-  border-left: 2px solid transparent;
-  animation: coreSpin 1.4s linear infinite;
+  animation: atomPulse 1.9s ease-in-out infinite;
 }
 .atom-a,
 .atom-b,
@@ -2520,13 +2507,5 @@ body.route-loading {
   }
   .drawer-link-sub {
     font-size: 0.82rem;
-  }
-}
-@keyframes coreSpin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
   }
 }
