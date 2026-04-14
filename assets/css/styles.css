@@ -2413,16 +2413,25 @@ body.route-loading {
   left: 50%;
   top: 50%;
   height: 2px;
-  transform-origin: left center;
+  border-radius: 999px;
+  transform-origin: 0 50%;
   background: linear-gradient(90deg, rgba(232,199,101,0.96), rgba(255,255,255,0.14));
   box-shadow: 0 0 18px rgba(232,199,101,0.22);
 }
-.bond-a { width: 148px; transform: translate(-50%, -50%) rotate(-32deg); }
-.bond-b { width: 168px; transform: translate(-50%, -50%) rotate(92deg); }
-.bond-c { width: 162px; transform: translate(-50%, -50%) rotate(208deg); }
-.route-loader-atom {
-  position: absolute;
-  border-radius: 50%;
+
+.bond-a {
+  width: 148px;
+  transform: translateY(-50%) rotate(-30deg);
+}
+
+.bond-b {
+  width: 168px;
+  transform: translateY(-50%) rotate(90deg);
+}
+
+.bond-c {
+  width: 162px;
+  transform: translateY(-50%) rotate(210deg);
 }
 .atom-center {
   width: 28px;
