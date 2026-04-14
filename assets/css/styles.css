@@ -2417,6 +2417,7 @@ body.route-loading {
   transform-origin: 0 50%;
   background: linear-gradient(90deg, rgba(232,199,101,0.96), rgba(255,255,255,0.14));
   box-shadow: 0 0 18px rgba(232,199,101,0.22);
+  z-index: 2;
 }
 
 .bond-a {
@@ -2433,15 +2434,19 @@ body.route-loading {
   width: 162px;
   transform: translateY(-50%) rotate(210deg);
 }
+
 .atom-center {
+  position: absolute;
   width: 28px;
   height: 28px;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
+  border-radius: 50%;
   background: radial-gradient(circle, #fff 0%, var(--gold-400) 58%, var(--gold-500) 100%);
   box-shadow: 0 0 0 18px rgba(232,199,101,0.10), 0 0 44px rgba(232,199,101,0.34);
   animation: atomPulse 1.9s ease-in-out infinite;
+  z-index: 4;
 }
 .atom-a,
 .atom-b,
