@@ -223,6 +223,7 @@
   const PAGE_META = {
     home: { title: 'Home', kicker: 'Pharmacy Nexus', description: 'Your main hub for guided study, quick actions, and daily momentum.' },
     subjects: { title: 'Subjects', kicker: 'Structured Navigation', description: 'Browse the full subject map and move into any study path clearly.' },
+    auth: { title: 'Auth', kicker: 'Secure Access', description: 'Sign in or create your account for a more personalized experience.' },
     topics: { title: 'Topics', kicker: 'Subject Breakdown', description: 'See all topics inside the selected subject and choose where to continue.' },
     topic: { title: 'Topic Sets', kicker: 'Focused Practice', description: 'Review difficulty spread, progress, and launch any 30-question set.' },
     study: { title: 'Study Session', kicker: 'Interactive Practice', description: 'Answer, review instantly, save important items, and keep moving smoothly.' },
@@ -540,6 +541,7 @@ async function startDailyChallengeBySubject(subjectId, requestedCount) {
         <nav class="drawer-nav" id="navMenu">
           ${createDrawerLink('./index.html', 'Home', 'Overview, daily challenge, and recent activity', PAGE === 'home')}
           ${createDrawerLink('./subjects.html', 'Subjects', 'Browse the full subject map and start clearly', PAGE === 'subjects' || PAGE === 'topics' || PAGE === 'topic')}
+          ${createDrawerLink('./auth.html', 'Auth', 'Sign in or create your account', PAGE === 'auth')}
           ${createDrawerLink('./final-exam.html', 'Final Exam', 'Timed mixed assessment with full review', PAGE === 'final-exam')}
           ${createDrawerLink('./dashboard.html', 'Dashboard', 'Your performance, progress, and history', PAGE === 'dashboard')}
           ${createDrawerLink('./saved.html', 'Saved & Notes', 'Return to starred questions and notes', PAGE === 'saved')}
@@ -723,6 +725,7 @@ function renderHome(index) {
           <div class="hero-actions">
   <a class="btn btn-primary" href="./subjects.html">Explore Subjects</a>
   <a class="btn btn-secondary" href="./final-exam.html">Go to Final Exam</a>
+  <a class="btn btn-light" href="./auth.html">Sign In</a>
 </div>
 
           <div class="hero-mini-stats">
