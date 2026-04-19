@@ -1,23 +1,70 @@
 :root {
-  /* Colors from your list */
+  /* Full theme colors */
   --primary: #00151b;
   --primary-container: #002b36;
+  --primary-fixed: #c3e8f7;
+  --primary-fixed-dim: #a7ccda;
   --on-primary: #ffffff;
+  --on-primary-fixed: #001f28;
+  --on-primary-fixed-variant: #274c57;
+  --on-primary-container: #6f93a0;
+
   --secondary: #316574;
+  --secondary-container: #b4e8f9;
+  --secondary-fixed: #b7ebfc;
+  --secondary-fixed-dim: #9bcedf;
+  --on-secondary: #ffffff;
+  --on-secondary-container: #366978;
+  --on-secondary-fixed: #001f27;
+  --on-secondary-fixed-variant: #144d5b;
+
   --tertiary: #735c00;
   --tertiary-container: #cba72f;
   --tertiary-fixed: #ffe088;
   --tertiary-fixed-dim: #e9c349;
+  --on-tertiary: #ffffff;
+  --on-tertiary-container: #4e3d00;
+  --on-tertiary-fixed: #241a00;
+  --on-tertiary-fixed-variant: #574500;
+
   --surface: #f8f9fa;
+  --surface-bright: #f8f9fa;
+  --surface-dim: #d9dadb;
+  --surface-variant: #e1e3e4;
+  --surface-container-lowest: #ffffff;
   --surface-container-low: #f3f4f5;
   --surface-container: #edeeef;
+  --surface-container-high: #e7e8e9;
+  --surface-container-highest: #e1e3e4;
+  --surface-tint: #406370;
+
   --on-surface: #191c1d;
   --on-surface-variant: #41484b;
+  --outline: #71787b;
   --outline-variant: #c1c7cb;
-  
-  /* Radii & Fonts from your list */
+
+  --background: #f8f9fa;
+  --on-background: #191c1d;
+
+  --error: #ba1a1a;
+  --error-container: #ffdad6;
+  --on-error: #ffffff;
+  --on-error-container: #93000a;
+
+  --inverse-surface: #2e3132;
+  --inverse-primary: #a7ccda;
+  --inverse-on-surface: #f0f1f2;
+
+  /* Radius */
   --radius-default: 1rem;
   --radius-lg: 2rem;
+  --radius-xl: 3rem;
+  --radius-full: 9999px;
+
+  /* Fonts */
+  --font-headline: "Manrope", sans-serif;
+  --font-body: "Manrope", sans-serif;
+  --font-label: "Manrope", sans-serif;
   --font-main: "Manrope", sans-serif;
 }
 
@@ -35,7 +82,6 @@
   right: -60px;
   top: -60px;
   border-radius: 50%;
-  /* Use tertiary color for the glow effect */
   background: radial-gradient(circle, rgba(203, 167, 47, 0.18), transparent 70%);
   pointer-events: none;
 }
@@ -103,7 +149,6 @@
 }
 
 .mode-card.real {
-  /* Using Primary Container for the dark card mode */
   background: linear-gradient(180deg, var(--primary) 0%, var(--primary-container) 100%);
   color: var(--on-primary);
   border-color: rgba(255, 255, 255, 0.1);
@@ -118,7 +163,7 @@
   display: inline-flex;
   align-items: center;
   padding: 8px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   font-weight: 700;
   font-size: 0.9rem;
   margin-bottom: 14px;
@@ -204,7 +249,6 @@
   margin-top: 34px;
 }
 
-/* Responsiveness */
 @media (max-width: 980px) {
   .intern-grid,
   .mode-grid,
