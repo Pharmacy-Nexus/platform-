@@ -28,7 +28,7 @@
           <article class="review-card">
             <div class="question-top">
               <div>
-                <h3 style="margin:0 0 8px;">${item.topic}</h3>
+                <h3 style="margin:0 0 8px;">${InternCore.escapeHtml(item.topic)}</h3>
                 <div class="meta-row">
                   <span class="badge">${item.accuracy}% Accuracy</span>
                   <span class="tag">${item.total} Questions</span>
@@ -52,24 +52,24 @@
               <div>
                 <div class="meta-row">
                   <span class="review-status ${row.isCorrect ? 'correct' : 'wrong'}">${row.isCorrect ? 'Correct' : 'Incorrect'}</span>
-                  <span class="tag">${row.question.topic_title}</span>
-                  <span class="tag">${row.question.type}</span>
+                  <span class="tag">${InternCore.escapeHtml(row.question.topic_title)}</span>
+                  <span class="tag">${InternCore.escapeHtml(row.question.type)}</span>
                 </div>
-                <h3 style="margin:10px 0 8px;">${index + 1}. ${row.question.question_text}</h3>
+                <h3 style="margin:10px 0 8px;">${index + 1}. ${InternCore.escapeHtml(row.question.question_text)}</h3>
               </div>
             </div>
 
             ${row.question.case_text ? `
               <div class="case-box">
                 <strong>Case</strong>
-                <div class="muted" style="margin-top:8px;">${row.question.case_text}</div>
+                <div class="muted" style="margin-top:8px;">${InternCore.escapeHtml(row.question.case_text)}</div>
               </div>
             ` : ''}
 
-            <div class="review-answer"><strong>Your answer:</strong> ${row.selected}</div>
-            <div class="review-answer"><strong>Correct answer:</strong> ${row.correct}</div>
-            <div class="review-answer"><strong>Explanation:</strong> ${row.explanation}</div>
-            <div class="review-answer"><strong>Summary:</strong> ${row.summary}</div>
+            <div class="review-answer"><strong>Your answer:</strong> ${InternCore.escapeHtml(row.selected)}</div>
+            <div class="review-answer"><strong>Correct answer:</strong> ${InternCore.escapeHtml(row.correct)}</div>
+            <div class="review-answer"><strong>Explanation:</strong> ${InternCore.escapeHtml(row.explanation)}</div>
+            <div class="review-answer"><strong>Summary:</strong> ${InternCore.escapeHtml(row.summary)}</div>
           </article>
         `).join('')}
       </div>
@@ -86,7 +86,7 @@
     root.innerHTML = `
       <section class="section-header">
         <div>
-          <h2>${reviewData.title || 'Real Exam Review'}</h2>
+          <h2>${InternCore.escapeHtml(reviewData.title || 'Real Exam Review')}</h2>
           <p>Detailed score report with topic-by-topic analysis, strengths, weaknesses, and full answer review.</p>
         </div>
       </section>
@@ -140,7 +140,7 @@
             <h3 style="margin-top:0;">Strongest Topics</h3>
             ${reviewData.strongest?.length ? reviewData.strongest.map((item) => `
               <div class="metric-row">
-                <span>${item.topic}</span>
+                <span>${InternCore.escapeHtml(item.topic)}</span>
                 <strong>${item.accuracy}%</strong>
               </div>
             `).join('') : '<div class="muted">No data found.</div>'}
@@ -150,7 +150,7 @@
             <h3 style="margin-top:0;">Weakest Topics</h3>
             ${reviewData.weakest?.length ? reviewData.weakest.map((item) => `
               <div class="metric-row">
-                <span>${item.topic}</span>
+                <span>${InternCore.escapeHtml(item.topic)}</span>
                 <strong>${item.accuracy}%</strong>
               </div>
             `).join('') : '<div class="muted">No data found.</div>'}
