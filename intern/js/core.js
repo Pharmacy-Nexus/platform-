@@ -186,7 +186,7 @@
       });
     },
 
-    bindInteractionProtection() {
+bindInteractionProtection() {
   const protectedPages = new Set([
     'intern-practice',
     'intern-exam',
@@ -206,7 +206,7 @@
       if (!isProtectedPage()) return;
 
       const target = event.target;
-      const tag = target?.tagName?.toLowerCase?.() || '';
+      const tag = target?.tagName ? target.tagName.toLowerCase() : '';
       const editable =
         target?.isContentEditable ||
         tag === 'input' ||
@@ -226,7 +226,7 @@
     if (!hasModifier) return;
 
     const target = event.target;
-    const tag = target?.tagName?.toLowerCase?.() || '';
+    const tag = target?.tagName ? target.tagName.toLowerCase() : '';
     const editable =
       target?.isContentEditable ||
       tag === 'input' ||
@@ -240,52 +240,42 @@
     }
   }, { capture: true });
 },
-      document.addEventListener('keydown', (event) => {
-        const key = String(event.key || '').toLowerCase();
-        const hasModifier = event.ctrlKey || event.metaKey;
-        if (!hasModifier) return;
-        if (['c', 'x', 'v', 'u', 's', 'p'].includes(key)) {
-          event.preventDefault();
-        }
-      }, { capture: true });
-    },
 
-    createShell() {
-      const root = document.getElementById('intern-shell');
-      root.innerHTML = `
-        <header class="site-header">
-          <div class="container navbar">
-            <a class="brand" href="${this.getMainHomeLink()}">
-              <span class="brand-mark">PN</span>
-              <span>Pharmacy Nexus</span>
-            </a>
+createShell() {
+  const root = document.getElementById('intern-shell');
+  root.innerHTML = `
+    <header class="site-header">
+      <div class="container navbar">
+        <a class="brand" href="${this.getMainHomeLink()}">
+          <span class="brand-mark">PN</span>
+          <span>Pharmacy Nexus</span>
+        </a>
 
-            <nav class="nav-menu" style="display:flex;">
-              <a class="nav-link" href="${this.getMainHomeLink()}">Home</a>
-              <a class="nav-link is-active" href="${this.getInternHomeLink()}">Intern</a>
-              <a class="nav-link" href="${this.getInternDashboardLink()}">Intern Dashboard</a>
-              <a class="nav-link" href="${this.getMainDashboardLink()}">Dashboard</a>
-              <a class="nav-link" href="${this.getMainSavedLink()}">Saved</a>
-            </nav>
+        <nav class="nav-menu" style="display:flex;">
+          <a class="nav-link" href="${this.getMainHomeLink()}">Home</a>
+          <a class="nav-link is-active" href="${this.getInternHomeLink()}">Intern</a>
+          <a class="nav-link" href="${this.getInternDashboardLink()}">Intern Dashboard</a>
+          <a class="nav-link" href="${this.getMainDashboardLink()}">Dashboard</a>
+          <a class="nav-link" href="${this.getMainSavedLink()}">Saved</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="main-section">
+      <div class="container">
+        <div class="intern-topbar" style="display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap;">
+          <a class="intern-back-link" href="${this.getMainHomeLink()}">← Back to main platform</a>
+          <div class="intern-topbar-actions" style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn btn-light theme-toggle-btn" id="themeToggleBtn" type="button"></button>
+            <a class="btn btn-light" href="${this.getPracticeFlaggedLink()}">Flagged</a>
+            <a class="btn btn-light" href="${this.getInternDashboardLink()}">Intern Dashboard</a>
+            <button class="btn btn-light" id="adminLogoutBtn" type="button">Logout</button>
           </div>
-        </header>
-
-        <main class="main-section">
-          <div class="container">
-            <div class="intern-topbar" style="display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap;">
-              <a class="intern-back-link" href="${this.getMainHomeLink()}">← Back to main platform</a>
-              <div class="intern-topbar-actions" style="display:flex; gap:10px; flex-wrap:wrap;">
-                <button class="btn btn-light theme-toggle-btn" id="themeToggleBtn" type="button"></button>
-                <a class="btn btn-light" href="${this.getPracticeFlaggedLink()}">Flagged</a>
-                <a class="btn btn-light" href="${this.getInternDashboardLink()}">Intern Dashboard</a>
-                <button class="btn btn-light" id="adminLogoutBtn" type="button">Logout</button>
-              </div>
-            </div>
-            <div id="internPageRoot"></div>
-          </div>
-        </main>
-      `;
-
+        </div>
+        <div id="internPageRoot"></div>
+      </div>
+    </main>
+  `;
       this.initTheme();
       this.bindThemeToggle();
       this.bindInteractionProtection();
