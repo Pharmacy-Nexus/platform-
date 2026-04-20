@@ -187,13 +187,59 @@
     },
 
     bindInteractionProtection() {
-      const blockedEvents = ['copy', 'cut', 'paste', 'contextmenu', 'dragstart'];
-      blockedEvents.forEach((eventName) => {
-        document.addEventListener(eventName, (event) => {
-          event.preventDefault();
-        }, { capture: true });
-      });
+  const protectedPages = new Set([
+    'intern-practice',
+    'intern-exam',
+    'intern-practice-review',
+    'intern-exam-review',
+    'intern-recall-bank',
+    'intern-practice-flagged'
+  ]);
 
+  const getPage = () => document.body?.dataset?.page || '';
+  const isProtectedPage = () => protectedPages.has(getPage());
+
+  const blockedEvents = ['copy', 'cut', 'paste', 'contextmenu', 'dragstart'];
+
+  blockedEvents.forEach((eventName) => {
+    document.addEventListener(eventName, (event) => {
+      if (!isProtectedPage()) return;
+
+      const target = event.target;
+      const tag = target?.tagName?.toLowerCase?.() || '';
+      const editable =
+        target?.isContentEditable ||
+        tag === 'input' ||
+        tag === 'textarea' ||
+        tag === 'select';
+
+      if (editable) return;
+      event.preventDefault();
+    }, { capture: true });
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (!isProtectedPage()) return;
+
+    const key = String(event.key || '').toLowerCase();
+    const hasModifier = event.ctrlKey || event.metaKey;
+    if (!hasModifier) return;
+
+    const target = event.target;
+    const tag = target?.tagName?.toLowerCase?.() || '';
+    const editable =
+      target?.isContentEditable ||
+      tag === 'input' ||
+      tag === 'textarea' ||
+      tag === 'select';
+
+    if (editable) return;
+
+    if (['c', 'x', 'v', 'u', 's', 'p'].includes(key)) {
+      event.preventDefault();
+    }
+  }, { capture: true });
+},
       document.addEventListener('keydown', (event) => {
         const key = String(event.key || '').toLowerCase();
         const hasModifier = event.ctrlKey || event.metaKey;
