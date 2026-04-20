@@ -12,6 +12,160 @@
     autoNextTimerId: null
   };
 
+  const TOPIC_SECTION_DEFINITIONS = [
+    {
+      key: 'clinical',
+      label: 'Clinical Pharmacy',
+      description: 'Disease-focused and patient-centered clinical topics.',
+      keywords: [
+        'hypertension', 'diabetes', 'heart failure', 'asthma', 'copd', 'renal', 'kidney', 'hepatic', 'liver',
+        'thyroid', 'dyslipidemia', 'anemia', 'parkinson', 'alzheimer', 'rheumatoid', 'osteoporosis', 'osteoarthritis',
+        'pregnancy', 'gestational', 'cardio', 'infect', 'pneumonia', 'peptic', 'bowel', 'ibd', 'heart', 'coronary'
+      ]
+    },
+    {
+      key: 'therapeutics',
+      label: 'Therapeutics',
+      description: 'Treatment strategies, guidelines, and applied disease management.',
+      keywords: [
+        'therapy', 'therapeutic', 'treatment', 'management', 'guideline', 'case', 'otc', 'self-care', 'minor ailment',
+        'pharmacotherapy', 'practice'
+      ]
+    },
+    {
+      key: 'pharmacology',
+      label: 'Pharmacology',
+      description: 'Drug classes, mechanisms, adverse effects, and pharmacodynamics.',
+      keywords: [
+        'pharmacology', 'drug class', 'adrenergic', 'cholinergic', 'antibiotic', 'antimicrobial', 'antihypertensive',
+        'pharmacodynamics', 'mechanism', 'receptor', 'toxicity', 'adverse'
+      ]
+    },
+    {
+      key: 'calculations',
+      label: 'Calculations',
+      description: 'Dose, infusion, compounding, and pharmaceutical calculations.',
+      keywords: [
+        'calculation', 'calculations', 'dose', 'dosing', 'infusion', 'dilution', 'iv flow', 'rate', 'math', 'formula',
+        'compounding calculation'
+      ]
+    },
+    {
+      key: 'sciences',
+      label: 'Pharmaceutical Sciences',
+      description: 'PK, dosage forms, biopharmaceutics, medicinal chemistry, and core sciences.',
+      keywords: [
+        'pharmacokinetic', 'pk', 'adme', 'biopharm', 'dosage form', 'delivery', 'chemistry', 'medicinal', 'pharmaceutics',
+        'stability', 'sterile', 'formulation', 'bioavailability', 'kinetic'
+      ]
+    },
+    {
+      key: 'integrated',
+      label: 'Integrated / Other',
+      description: 'Mixed review topics and anything not matched to a main section.',
+      keywords: []
+    }
+  ];
+
+  function slugifyTopicSection(value) {
+    return String(value || '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  function inferTopicSection(topic) {
+    const haystack = `${topic.title || ''} ${topic.description || ''}`.toLowerCase();
+
+    for (const section of TOPIC_SECTION_DEFINITIONS) {
+      if (section.key === 'integrated') continue;
+      if (section.keywords.some((keyword) => haystack.includes(keyword))) {
+        return section.key;
+      }
+    }
+
+    return 'integrated';
+  }
+
+  function getSelectedPracticeTopics() {
+    return practiceState.topics.filter((topic) => topic.selected);
+  }
+
+  function getPracticeSearchTerm() {
+    return InternCore.qs('#topicSearchInput')?.value?.trim() || '';
+  }
+
+  function getPracticeFilteredTopics(searchTerm) {
+    const term = String(searchTerm || '').trim().toLowerCase();
+    if (!term) return practiceState.topics;
+
+    return practiceState.topics.filter((topic) => {
+      const haystack = `${topic.title || ''} ${topic.description || ''}`.toLowerCase();
+      return haystack.includes(term);
+    });
+  }
+
+  function getPracticeTopicGroups(searchTerm) {
+    const filtered = getPracticeFilteredTopics(searchTerm);
+
+    return TOPIC_SECTION_DEFINITIONS.map((section) => {
+      const topics = filtered.filter((topic) => topic.sectionKey === section.key);
+      const selectedCount = practiceState.topics.filter((topic) => topic.sectionKey === section.key && topic.selected).length;
+      return {
+        ...section,
+        topics,
+        selectedCount,
+        totalCount: practiceState.topics.filter((topic) => topic.sectionKey === section.key).length
+      };
+    }).filter((section) => section.topics.length);
+  }
+
+  function renderPracticeSectionSidebar(searchTerm) {
+    const groups = getPracticeTopicGroups(searchTerm);
+
+    return groups.map((section) => `
+      <button type="button" class="topic-section-nav-btn" data-section-target="${section.key}">
+        <span>${section.label}</span>
+        <span class="topic-section-nav-count">${section.selectedCount}/${section.totalCount}</span>
+      </button>
+    `).join('');
+  }
+
+  function renderPracticeSelectedTopicsBox() {
+    const selected = getSelectedPracticeTopics();
+
+    return `
+      <div class="selected-topics-box-head">
+        <div>
+          <h4>Selected Topics</h4>
+          <p>${selected.length} topic${selected.length === 1 ? '' : 's'} chosen across sections.</p>
+        </div>
+        ${selected.length ? '<button type="button" class="btn btn-light btn-sm" id="clearSelectedTopicsBtn">Clear</button>' : ''}
+      </div>
+
+      <div class="selected-topics-summary">
+        <span class="badge" id="selectedTopicsCountBadge">${selected.length} Selected</span>
+        <span class="tag" id="availableTopicsCountBadge">${practiceState.topics.length} Topics Available</span>
+      </div>
+
+      <div class="selected-topics-chip-list">
+        ${selected.length ? selected.map((topic) => `
+          <button type="button" class="selected-topic-chip" data-remove-topic-id="${topic.id}" title="Remove ${topic.title}">
+            <span>${topic.title}</span>
+            <strong>×</strong>
+          </button>
+        `).join('') : '<div class="intern-empty compact">No topics selected yet.</div>'}
+      </div>
+    `;
+  }
+
+  function scrollToPracticeSection(sectionKey) {
+    const target = InternCore.qs(`[data-topic-section="${sectionKey}"]`);
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   function renderSetupPage() {
     const root = InternCore.qs('#internPageRoot');
 
@@ -19,41 +173,46 @@
       <section class="section-header">
         <div>
           <h2>Intern Practice Mode</h2>
-          <p>Select topics and number of questions, then start a mock exam with instant feedback and summaries.</p>
+          <p>Select topics from any section, build a mixed practice set, and keep your chosen topics visible while you browse.</p>
         </div>
       </section>
 
-      <section class="card">
-        <div class="input-row two">
-          <div>
-            <label class="muted">Search topics</label>
-            <input class="input" id="topicSearchInput" placeholder="Type to search topics..." />
+      <section class="topic-setup-shell">
+        <aside class="topic-setup-sidebar">
+          <div class="sidebar-card topic-sections-card">
+            <div class="topic-sections-card-head">
+              <h3>Sections</h3>
+              <p>Jump between topic groups quickly.</p>
+            </div>
+            <div id="practiceSectionSidebarNav" class="topic-sections-nav"></div>
           </div>
-          <div>
-            <label class="muted">Number of questions</label>
-            <input class="input" id="questionCountInput" type="number" min="1" value="10" />
-          </div>
-        </div>
 
-        <div class="action-row" style="justify-content:flex-start; margin-top:16px;">
-          <button class="btn btn-light" id="selectAllTopicsBtn" type="button">Select All</button>
-          <button class="btn btn-light" id="clearAllTopicsBtn" type="button">Clear All</button>
-        </div>
+          <div class="sidebar-card selected-topics-panel" id="practiceSelectedTopicsBox"></div>
+        </aside>
 
-        <div style="margin-top:18px;">
-          <div class="meta-row">
-            <span class="badge" id="selectedTopicsCountBadge">0 Selected</span>
-            <span class="tag" id="availableTopicsCountBadge">0 Topics Available</span>
-          </div>
-        </div>
+        <div class="topic-setup-main">
+          <section class="card topic-setup-card">
+            <div class="input-row two">
+              <div>
+                <label class="muted">Search topics</label>
+                <input class="input" id="topicSearchInput" placeholder="Search title or description..." />
+              </div>
+              <div>
+                <label class="muted">Number of questions</label>
+                <input class="input" id="questionCountInput" type="number" min="1" value="10" />
+              </div>
+            </div>
 
-        <div id="practiceTopicsArea" style="margin-top:18px;"></div>
+            <div class="action-row" style="justify-content:flex-start; margin-top:16px;">
+              <button class="btn btn-light" id="selectAllTopicsBtn" type="button">Select All</button>
+              <button class="btn btn-light" id="clearAllTopicsBtn" type="button">Clear All</button>
+              <button class="btn btn-primary" id="startPracticeBtn" type="button">Start Practice Exam</button>
+              <a class="btn btn-light" href="../index.html">Back</a>
+            </div>
+          </section>
 
-        <div id="practiceSetupMessage"></div>
-
-        <div class="action-row" style="justify-content:flex-start; margin-top:22px;">
-          <button class="btn btn-primary" id="startPracticeBtn" type="button">Start Practice Exam</button>
-          <a class="btn btn-light" href="../index.html">Back</a>
+          <div id="practiceSetupMessage"></div>
+          <div id="practiceTopicsArea" class="topic-sections-wrap"></div>
         </div>
       </section>
     `;
@@ -64,47 +223,91 @@
 
   function drawTopics(searchTerm) {
     const area = InternCore.qs('#practiceTopicsArea');
-    const selectedIds = new Set(
-      practiceState.topics.filter((topic) => topic.selected).map((topic) => topic.id)
-    );
+    const sidebarNav = InternCore.qs('#practiceSectionSidebarNav');
+    const selectedBox = InternCore.qs('#practiceSelectedTopicsBox');
+    const groups = getPracticeTopicGroups(searchTerm);
 
-    const filtered = practiceState.topics.filter((topic) => {
-      return topic.title.toLowerCase().includes((searchTerm || '').toLowerCase());
-    });
+    if (selectedBox) selectedBox.innerHTML = renderPracticeSelectedTopicsBox();
+    if (sidebarNav) sidebarNav.innerHTML = renderPracticeSectionSidebar(searchTerm);
 
-    InternCore.qs('#selectedTopicsCountBadge').textContent = `${selectedIds.size} Selected`;
-    InternCore.qs('#availableTopicsCountBadge').textContent = `${practiceState.topics.length} Topics Available`;
-
-    if (!filtered.length) {
+    if (!groups.length) {
       area.innerHTML = `<div class="intern-empty">No topics matched your search.</div>`;
-      return;
-    }
-
-    area.innerHTML = `
-      <div class="analysis-grid">
-        ${filtered.map((topic) => `
-          <label class="panel" style="cursor:pointer;">
-            <div style="display:flex; align-items:flex-start; gap:12px;">
-              <input type="checkbox" class="practice-topic-checkbox" value="${topic.id}" ${topic.selected ? 'checked' : ''} />
-              <div>
-                <strong>${topic.title}</strong>
-                <div class="muted" style="margin-top:6px;">${topic.description}</div>
-                <div class="meta-row" style="margin-top:10px;">
-                  <span class="tag">${InternCore.formatNumber(topic.questions_count)} Questions</span>
-                </div>
-              </div>
+    } else {
+      area.innerHTML = groups.map((section) => `
+        <section class="topic-section-block" data-topic-section="${section.key}" id="section-${slugifyTopicSection(section.key)}">
+          <div class="topic-section-header-row">
+            <div>
+              <h3>${section.label}</h3>
+              <p>${section.description}</p>
             </div>
-          </label>
-        `).join('')}
-      </div>
-    `;
+            <div class="topic-section-header-actions">
+              <span class="tag">${section.selectedCount}/${section.totalCount} selected</span>
+              <button type="button" class="btn btn-light btn-sm" data-select-section="${section.key}">Select section</button>
+              <button type="button" class="btn btn-light btn-sm" data-clear-section="${section.key}">Clear</button>
+            </div>
+          </div>
+
+          <div class="topic-choice-grid grouped-topics-grid">
+            ${section.topics.map((topic) => `
+              <label class="topic-choice-card topic-card-${section.key} ${topic.selected ? 'is-selected' : ''}">
+                <input type="checkbox" class="practice-topic-checkbox" value="${topic.id}" ${topic.selected ? 'checked' : ''} />
+
+                <div class="topic-choice-main">
+                  <div class="topic-choice-top">
+                    <strong class="topic-choice-title">${topic.title}</strong>
+                    <span class="topic-choice-count">${InternCore.formatNumber(topic.questions_count)} Qs</span>
+                  </div>
+
+                  <p class="topic-choice-desc">${topic.description || 'No description available yet.'}</p>
+                </div>
+              </label>
+            `).join('')}
+          </div>
+        </section>
+      `).join('');
+    }
 
     InternCore.qsa('.practice-topic-checkbox').forEach((checkbox) => {
       checkbox.addEventListener('change', (event) => {
         const topic = practiceState.topics.find((item) => item.id === event.target.value);
         if (topic) topic.selected = event.target.checked;
-        drawTopics(InternCore.qs('#topicSearchInput').value);
+        drawTopics(getPracticeSearchTerm());
       });
+    });
+
+    InternCore.qsa('[data-remove-topic-id]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const topic = practiceState.topics.find((item) => item.id === button.dataset.removeTopicId);
+        if (topic) topic.selected = false;
+        drawTopics(getPracticeSearchTerm());
+      });
+    });
+
+    InternCore.qsa('[data-section-target]').forEach((button) => {
+      button.addEventListener('click', () => scrollToPracticeSection(button.dataset.sectionTarget));
+    });
+
+    InternCore.qsa('[data-select-section]').forEach((button) => {
+      button.addEventListener('click', () => {
+        practiceState.topics.forEach((topic) => {
+          if (topic.sectionKey === button.dataset.selectSection) topic.selected = true;
+        });
+        drawTopics(getPracticeSearchTerm());
+      });
+    });
+
+    InternCore.qsa('[data-clear-section]').forEach((button) => {
+      button.addEventListener('click', () => {
+        practiceState.topics.forEach((topic) => {
+          if (topic.sectionKey === button.dataset.clearSection) topic.selected = false;
+        });
+        drawTopics(getPracticeSearchTerm());
+      });
+    });
+
+    InternCore.qs('#clearSelectedTopicsBtn')?.addEventListener('click', () => {
+      practiceState.topics.forEach((topic) => { topic.selected = false; });
+      drawTopics(getPracticeSearchTerm());
     });
   }
 
@@ -117,14 +320,14 @@
       practiceState.topics.forEach((topic) => {
         topic.selected = true;
       });
-      drawTopics(InternCore.qs('#topicSearchInput').value);
+      drawTopics(getPracticeSearchTerm());
     });
 
     InternCore.qs('#clearAllTopicsBtn').addEventListener('click', () => {
       practiceState.topics.forEach((topic) => {
         topic.selected = false;
       });
-      drawTopics(InternCore.qs('#topicSearchInput').value);
+      drawTopics(getPracticeSearchTerm());
     });
 
     InternCore.qs('#startPracticeBtn').addEventListener('click', startPracticeSession);
@@ -701,7 +904,8 @@
       const topics = await InternAPI.getTopics();
       practiceState.topics = topics.map((topic) => ({
         ...topic,
-        selected: false
+        selected: false,
+        sectionKey: inferTopicSection(topic)
       }));
 
       renderSetupPage();
