@@ -209,143 +209,333 @@ area.innerHTML = `
   function getCorrectOption(question) {
     return question.options.find((option) => option.is_correct) || null;
   }
+function clearAutoNextTimer() {
+  if (practiceState.autoNextTimerId) {
+    clearTimeout(practiceState.autoNextTimerId);
+    practiceState.autoNextTimerId = null;
+  }
+}
 
-  function renderQuestionScreen() {
-    const root = InternCore.qs('#internPageRoot');
-    const question = practiceState.questions[practiceState.currentIndex];
-    const answer = practiceState.answers[question.id];
+function getAnsweredCount() {
+  return practiceState.questions.filter((question) => !!practiceState.answers[question.id]).length;
+}
 
-    root.innerHTML = `
-      <div class="study-shell">
-        <aside class="side-panel">
-          <div class="sidebar-card">
-            <div class="tag">Practice Mode</div>
-            <h3 style="margin:10px 0 12px;">Question ${practiceState.currentIndex + 1}</h3>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width:${((practiceState.currentIndex + 1) / practiceState.questions.length) * 100}%"></div>
-            </div>
-            <div class="muted" style="margin-top:10px;">
-              ${practiceState.currentIndex + 1} of ${practiceState.questions.length}
-            </div>
-            <div class="meta-row" style="margin-top:14px;">
-              <span class="badge">${question.difficulty.toUpperCase()}</span>
-              <span class="tag">${question.type}</span>
-            </div>
-          </div>
+function getQuestionStatus(question, index) {
+  const answer = practiceState.answers[question.id];
 
-          <div class="sidebar-card">
-            <h4 style="margin-top:0;">Topic</h4>
-            <p class="muted">${question.topic_title}</p>
-            <a class="btn btn-light" href="./practice.html">Back to setup</a>
-          </div>
-        </aside>
-
-        <section class="question-card">
-          <div class="question-top">
-            <div>
-              <div class="meta-row">
-                <span class="badge">${question.topic_title}</span>
-                <span class="tag">${question.type}</span>
-              </div>
-              <h2 class="question-title">${question.question_text}</h2>
-            </div>
-          </div>
-
-          ${question.case_text ? `
-            <div class="case-box">
-              <strong>Case</strong>
-              <div class="muted" style="margin-top:8px;">${question.case_text}</div>
-            </div>
-          ` : ''}
-
-          ${question.image_url ? `
-            <div style="margin-top:18px;">
-              <img src="${question.image_url}" alt="Question visual" style="border-radius:22px; border:1px solid var(--border);" />
-            </div>
-          ` : ''}
-
-          <div class="option-list" id="practiceOptionList"></div>
-
-          <div class="explanation-box ${answer ? 'is-visible' : ''}" id="practiceExplanationBox">
-            <strong>Explanation</strong>
-            <div class="muted" style="margin-top:8px;">${answer ? question.explanation : ''}</div>
-          </div>
-
-          <div class="note-panel" id="summaryPanel" style="display:${answer && answer.showSummary ? 'block' : 'none'}; margin-top:18px;">
-            <strong>Summary</strong>
-            <div class="muted" style="margin-top:8px;">${question.summary}</div>
-          </div>
-
-          <div class="action-row">
-            <button class="btn btn-light" id="prevQuestionBtn" ${practiceState.currentIndex === 0 ? 'disabled' : ''}>Previous</button>
-
-            <div style="display:flex; gap:12px; flex-wrap:wrap;">
-              <button class="btn btn-secondary" id="toggleSummaryBtn" ${answer ? '' : 'disabled'}>Summary</button>
-              <button class="btn btn-dark" id="nextQuestionBtn">${practiceState.currentIndex === practiceState.questions.length - 1 ? 'Finish Practice' : 'Next'}</button>
-            </div>
-          </div>
-        </section>
-      </div>
-    `;
-
-    const optionList = InternCore.qs('#practiceOptionList');
-
-    question.options.forEach((option) => {
-      const button = InternCore.el('button', 'option-btn');
-      button.type = 'button';
-      button.textContent = option.text;
-
-      if (answer) {
-        button.classList.add('locked');
-
-        if (option.is_correct) {
-          button.classList.add('correct');
-        }
-
-        if (answer.selectedOptionId === option.id && !option.is_correct) {
-          button.classList.add('wrong');
-        }
-      }
-
-      button.addEventListener('click', () => {
-        if (practiceState.answers[question.id]) return;
-
-        practiceState.answers[question.id] = {
-          selectedOptionId: option.id,
-          selectedText: option.text,
-          isCorrect: !!option.is_correct,
-          showSummary: false
-        };
-
-        renderQuestionScreen();
-      });
-
-      optionList.appendChild(button);
-    });
-
-    InternCore.qs('#prevQuestionBtn').addEventListener('click', () => {
-      if (practiceState.currentIndex > 0) {
-        practiceState.currentIndex -= 1;
-        renderQuestionScreen();
-      }
-    });
-
-    InternCore.qs('#nextQuestionBtn').addEventListener('click', async () => {
-      if (practiceState.currentIndex === practiceState.questions.length - 1) {
-        await finishPracticeSession();
-      } else {
-        practiceState.currentIndex += 1;
-        renderQuestionScreen();
-      }
-    });
-
-    InternCore.qs('#toggleSummaryBtn').addEventListener('click', () => {
-      if (!practiceState.answers[question.id]) return;
-      practiceState.answers[question.id].showSummary = !practiceState.answers[question.id].showSummary;
-      renderQuestionScreen();
-    });
+  if (index === practiceState.currentIndex) {
+    return answer ? 'answered-current' : 'current';
   }
 
+  if (answer) return 'answered';
+  return 'unanswered';
+}
+
+function getQuestionStatusLabel(status) {
+  switch (status) {
+    case 'answered-current':
+      return 'Answered';
+    case 'answered':
+      return 'Answered';
+    case 'current':
+      return 'Current';
+    default:
+      return 'Unanswered';
+  }
+}
+
+function renderQuestionStatusMap() {
+  return `
+    <div class="question-status-card">
+      <div class="question-status-head">
+        <div>
+          <h4>Question Status</h4>
+          <p>${getAnsweredCount()} of ${practiceState.questions.length} answered</p>
+        </div>
+      </div>
+
+      <div class="question-status-legend">
+        <span class="status-legend-item">
+          <span class="status-dot answered"></span> Answered
+        </span>
+        <span class="status-legend-item">
+          <span class="status-dot current"></span> Current
+        </span>
+        <span class="status-legend-item">
+          <span class="status-dot unanswered"></span> Unanswered
+        </span>
+      </div>
+
+      <div class="question-status-grid">
+        ${practiceState.questions.map((item, index) => {
+          const status = getQuestionStatus(item, index);
+          return `
+            <button
+              type="button"
+              class="question-status-pill ${status}"
+              data-question-index="${index}"
+              title="Question ${index + 1} • ${getQuestionStatusLabel(status)}"
+            >
+              ${index + 1}
+            </button>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function scheduleAutoNext() {
+  clearAutoNextTimer();
+
+  const question = practiceState.questions[practiceState.currentIndex];
+  const answer = practiceState.answers[question.id];
+
+  if (!practiceState.autoNextEnabled || !answer) return;
+
+  const seconds = Math.min(10, Math.max(1, Number(practiceState.autoNextSeconds || 3)));
+
+  practiceState.autoNextTimerId = window.setTimeout(async () => {
+    if (practiceState.currentIndex === practiceState.questions.length - 1) {
+      await finishPracticeSession();
+    } else {
+      practiceState.currentIndex += 1;
+      renderQuestionScreen();
+    }
+  }, seconds * 1000);
+}
+ function renderQuestionScreen() {
+  clearAutoNextTimer();
+
+  const root = InternCore.qs('#internPageRoot');
+  const question = practiceState.questions[practiceState.currentIndex];
+  const answer = practiceState.answers[question.id];
+  const answeredCount = getAnsweredCount();
+  const progressPercent = ((practiceState.currentIndex + 1) / practiceState.questions.length) * 100;
+  const safeAutoNextSeconds = Math.min(10, Math.max(1, Number(practiceState.autoNextSeconds || 3)));
+
+  root.innerHTML = `
+    <div class="study-shell">
+      <aside class="side-panel">
+        <div class="sidebar-card">
+          <div class="tag">Practice Mode</div>
+          <h3 style="margin:10px 0 12px;">Question ${practiceState.currentIndex + 1}</h3>
+
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:${progressPercent}%"></div>
+          </div>
+
+          <div class="muted" style="margin-top:10px;">
+            ${practiceState.currentIndex + 1} of ${practiceState.questions.length}
+          </div>
+
+          <div class="meta-row" style="margin-top:14px;">
+            <span class="badge">${question.difficulty.toUpperCase()}</span>
+            <span class="tag">${question.type}</span>
+          </div>
+
+          <div class="practice-progress-meta">
+            <div class="practice-progress-row">
+              <span>Answered</span>
+              <strong>${answeredCount}/${practiceState.questions.length}</strong>
+            </div>
+            <div class="practice-progress-row">
+              <span>Remaining</span>
+              <strong>${practiceState.questions.length - answeredCount}</strong>
+            </div>
+          </div>
+        </div>
+
+        ${renderQuestionStatusMap()}
+
+        <div class="sidebar-card">
+          <h4 style="margin-top:0;">Auto-next</h4>
+
+          <label class="auto-next-toggle">
+            <input type="checkbox" id="autoNextEnabledInput" ${practiceState.autoNextEnabled ? 'checked' : ''} />
+            <span>Enable auto-next after answering</span>
+          </label>
+
+          <div class="auto-next-row">
+            <label for="autoNextSecondsInput" class="muted">Seconds</label>
+            <input
+              id="autoNextSecondsInput"
+              class="input auto-next-seconds-input"
+              type="number"
+              min="1"
+              max="10"
+              value="${safeAutoNextSeconds}"
+            />
+          </div>
+
+          <div class="muted auto-next-help">
+            Choose from 1 to 10 seconds.
+          </div>
+        </div>
+
+        <div class="sidebar-card">
+          <h4 style="margin-top:0;">Topic</h4>
+          <p class="muted">${question.topic_title}</p>
+          <a class="btn btn-light" href="./practice.html">Back to setup</a>
+        </div>
+      </aside>
+
+      <section class="question-card">
+        <div class="question-top">
+          <div>
+            <div class="meta-row">
+              <span class="badge">${question.topic_title}</span>
+              <span class="tag">${question.type}</span>
+            </div>
+            <h2 class="question-title">${question.question_text}</h2>
+          </div>
+        </div>
+
+        ${question.case_text ? `
+          <div class="case-box">
+            <strong>Case</strong>
+            <div class="muted" style="margin-top:8px;">${question.case_text}</div>
+          </div>
+        ` : ''}
+
+        ${question.image_url ? `
+          <div style="margin-top:18px;">
+            <img src="${question.image_url}" alt="Question visual" style="border-radius:22px; border:1px solid var(--border);" />
+          </div>
+        ` : ''}
+
+        <div class="option-list" id="practiceOptionList"></div>
+
+        ${answer ? `
+          <div class="study-feedback-box">
+            <div class="review-answer">
+              <strong>Explanation</strong>
+              <div style="margin-top:8px;">${question.explanation || 'No explanation available.'}</div>
+            </div>
+
+            ${answer.showSummary ? `
+              <div class="review-answer" style="margin-top:14px;">
+                <strong>Summary</strong>
+                <div style="margin-top:8px;">${question.summary || 'No summary available.'}</div>
+              </div>
+            ` : ''}
+          </div>
+        ` : ''}
+
+        <div class="action-row">
+          <button class="btn btn-light" id="prevQuestionBtn" ${practiceState.currentIndex === 0 ? 'disabled' : ''}>Previous</button>
+
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-dark" id="toggleSummaryBtn" ${!answer ? 'disabled' : ''}>
+              ${answer?.showSummary ? 'Hide Summary' : 'Summary'}
+            </button>
+
+            <button class="btn btn-primary" id="nextQuestionBtn">
+              ${practiceState.currentIndex === practiceState.questions.length - 1 ? 'Finish Practice' : 'Next'}
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  `;
+
+  const optionList = InternCore.qs('#practiceOptionList');
+
+  question.options.forEach((option) => {
+    const button = InternCore.el('button', 'option-btn');
+    button.type = 'button';
+    button.textContent = option.text;
+
+    if (answer) {
+      button.classList.add('locked');
+
+      if (option.is_correct) {
+        button.classList.add('correct');
+      }
+
+      if (answer.selectedOptionId === option.id && !option.is_correct) {
+        button.classList.add('wrong');
+      }
+    }
+
+    button.addEventListener('click', () => {
+      if (practiceState.answers[question.id]) return;
+
+      practiceState.answers[question.id] = {
+        selectedOptionId: option.id,
+        selectedText: option.text,
+        isCorrect: !!option.is_correct,
+        showSummary: false
+      };
+
+      renderQuestionScreen();
+      scheduleAutoNext();
+    });
+
+    optionList.appendChild(button);
+  });
+
+  InternCore.qsa('.question-status-pill').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      clearAutoNextTimer();
+      practiceState.currentIndex = Number(btn.dataset.questionIndex);
+      renderQuestionScreen();
+    });
+  });
+
+  const autoNextEnabledInput = InternCore.qs('#autoNextEnabledInput');
+  const autoNextSecondsInput = InternCore.qs('#autoNextSecondsInput');
+
+  autoNextEnabledInput?.addEventListener('change', (event) => {
+    practiceState.autoNextEnabled = !!event.target.checked;
+
+    if (!practiceState.autoNextEnabled) {
+      clearAutoNextTimer();
+    } else if (practiceState.answers[question.id]) {
+      scheduleAutoNext();
+    }
+  });
+
+  autoNextSecondsInput?.addEventListener('input', (event) => {
+    let value = Number(event.target.value || 3);
+
+    if (!Number.isFinite(value)) value = 3;
+    value = Math.min(10, Math.max(1, value));
+
+    practiceState.autoNextSeconds = value;
+    event.target.value = value;
+
+    if (practiceState.autoNextEnabled && practiceState.answers[question.id]) {
+      scheduleAutoNext();
+    }
+  });
+
+  InternCore.qs('#prevQuestionBtn').addEventListener('click', () => {
+    clearAutoNextTimer();
+
+    if (practiceState.currentIndex > 0) {
+      practiceState.currentIndex -= 1;
+      renderQuestionScreen();
+    }
+  });
+
+  InternCore.qs('#nextQuestionBtn').addEventListener('click', async () => {
+    clearAutoNextTimer();
+
+    if (practiceState.currentIndex === practiceState.questions.length - 1) {
+      await finishPracticeSession();
+    } else {
+      practiceState.currentIndex += 1;
+      renderQuestionScreen();
+    }
+  });
+
+  InternCore.qs('#toggleSummaryBtn').addEventListener('click', () => {
+    if (!practiceState.answers[question.id]) return;
+    practiceState.answers[question.id].showSummary = !practiceState.answers[question.id].showSummary;
+    renderQuestionScreen();
+  });
+}
   async function finishPracticeSession() {
     const rows = practiceState.questions.map((question) => {
       const answer = practiceState.answers[question.id] || null;
