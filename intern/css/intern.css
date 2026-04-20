@@ -1089,19 +1089,38 @@ body[data-page^="intern"] img {
 }
 
 
-/* Copy / paste protection */
-body[data-page^="intern"] {
+/* Copy / paste protection: exam/practice only */
+body[data-page="intern-practice"],
+body[data-page="intern-exam"],
+body[data-page="intern-practice-review"],
+body[data-page="intern-exam-review"],
+body[data-page="intern-recall-bank"],
+body[data-page="intern-practice-flagged"] {
   -webkit-user-select: none;
   user-select: none;
 }
 
-body[data-page^="intern"] input,
-body[data-page^="intern"] textarea,
-body[data-page^="intern"] select {
+body[data-page="intern-practice"] input,
+body[data-page="intern-practice"] textarea,
+body[data-page="intern-practice"] select,
+body[data-page="intern-exam"] input,
+body[data-page="intern-exam"] textarea,
+body[data-page="intern-exam"] select,
+body[data-page="intern-practice-review"] input,
+body[data-page="intern-practice-review"] textarea,
+body[data-page="intern-practice-review"] select,
+body[data-page="intern-exam-review"] input,
+body[data-page="intern-exam-review"] textarea,
+body[data-page="intern-exam-review"] select,
+body[data-page="intern-recall-bank"] input,
+body[data-page="intern-recall-bank"] textarea,
+body[data-page="intern-recall-bank"] select,
+body[data-page="intern-practice-flagged"] input,
+body[data-page="intern-practice-flagged"] textarea,
+body[data-page="intern-practice-flagged"] select {
   -webkit-user-select: text;
   user-select: text;
 }
-
 /* Stronger dark mode answer visibility */
 html[data-theme="dark"] body[data-page^="intern"] .option-btn.correct,
 html[data-theme="dark"] body[data-page^="intern"] .option-list button.correct {
