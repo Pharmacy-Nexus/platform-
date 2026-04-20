@@ -2,11 +2,14 @@
   'use strict';
 
   const practiceState = {
-    topics: [],
-    questions: [],
-    answers: {},
-    currentIndex: 0
-  };
+  topics: [],
+  questions: [],
+  answers: {},
+  currentIndex: 0,
+  autoNextEnabled: false,
+  autoNextSeconds: 3,
+  autoNextTimerId: null
+};
 
   function renderSetupPage() {
     const root = InternCore.qs('#internPageRoot');
