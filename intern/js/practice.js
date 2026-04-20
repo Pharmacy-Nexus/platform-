@@ -76,25 +76,31 @@
       return;
     }
 
-    area.innerHTML = `
-      <div class="analysis-grid">
-        ${filtered.map((topic) => `
-          <label class="panel" style="cursor:pointer;">
-            <div style="display:flex; align-items:flex-start; gap:12px;">
-              <input type="checkbox" class="practice-topic-checkbox" value="${topic.id}" ${topic.selected ? 'checked' : ''} />
-              <div>
-                <strong>${topic.title}</strong>
-                <div class="muted" style="margin-top:6px;">${topic.description}</div>
-                <div class="meta-row" style="margin-top:10px;">
-                  <span class="tag">${InternCore.formatNumber(topic.questions_count)} Questions</span>
-                </div>
-              </div>
-            </div>
-          </label>
-        `).join('')}
-      </div>
-    `;
+area.innerHTML = `
+  <div class="topic-choice-grid">
+    ${filtered.map((topic) => `
+      <label class="topic-choice-card ${topic.selected ? 'is-selected' : ''}">
+        <input
+          type="checkbox"
+          class="practice-topic-checkbox"
+          value="${topic.id}"
+          ${topic.selected ? 'checked' : ''}
+        />
 
+        <div class="topic-choice-main">
+          <div class="topic-choice-top">
+            <strong class="topic-choice-title">${topic.title}</strong>
+            <span class="topic-choice-count">${InternCore.formatNumber(topic.questions_count)} Qs</span>
+          </div>
+
+          <p class="topic-choice-desc">
+            ${topic.description || 'No description available yet.'}
+          </p>
+        </div>
+      </label>
+    `).join('')}
+  </div>
+`;
     InternCore.qsa('.practice-topic-checkbox').forEach((checkbox) => {
       checkbox.addEventListener('change', (event) => {
         const topic = practiceState.topics.find((item) => item.id === event.target.value);
