@@ -673,3 +673,11 @@ h4,
     font-size: 0.9rem;
   }
 }
+.section-header h2,
+.hero h1,
+.intern-section h2 {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #071c24;
+}
