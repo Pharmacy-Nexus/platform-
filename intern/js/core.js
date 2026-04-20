@@ -61,6 +61,15 @@
     formatNumber(value) {
       return new Intl.NumberFormat('en-US').format(value || 0);
     },
+    
+    escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+},
 
     setTopics(topics) {
       this.state.topics = Array.isArray(topics) ? topics : [];
