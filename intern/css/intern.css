@@ -1154,3 +1154,457 @@ body[data-page="intern-practice-flagged"] .summary-grid.three {
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== Topic setup sections + selected topics box ===== */
+body[data-page="intern-practice"],
+body[data-page="intern-exam"] {
+  --section-clinical: #316574;
+  --section-therapeutics: #406370;
+  --section-pharmacology: #735c00;
+  --section-calculations: #5a4f7a;
+  --section-sciences: #3f5d66;
+  --section-integrated: #6b7376;
+}
+
+body[data-page="intern-practice"] .topic-setup-shell,
+body[data-page="intern-exam"] .topic-setup-shell {
+  display: grid;
+  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+body[data-page="intern-practice"] .topic-setup-sidebar,
+body[data-page="intern-exam"] .topic-setup-sidebar {
+  display: grid;
+  gap: 16px;
+  position: sticky;
+  top: 90px;
+}
+
+body[data-page="intern-practice"] .topic-setup-main,
+body[data-page="intern-exam"] .topic-setup-main {
+  display: grid;
+  gap: 16px;
+}
+
+body[data-page="intern-practice"] .topic-setup-card,
+body[data-page="intern-exam"] .topic-setup-card,
+body[data-page="intern-practice"] .topic-section-block,
+body[data-page="intern-exam"] .topic-section-block,
+body[data-page="intern-practice"] .selected-topics-panel,
+body[data-page="intern-exam"] .selected-topics-panel,
+body[data-page="intern-practice"] .topic-sections-card,
+body[data-page="intern-exam"] .topic-sections-card {
+  border-radius: 28px;
+}
+
+body[data-page="intern-practice"] .topic-sections-card-head h3,
+body[data-page="intern-exam"] .topic-sections-card-head h3,
+body[data-page="intern-practice"] .selected-topics-box-head h4,
+body[data-page="intern-exam"] .selected-topics-box-head h4,
+body[data-page="intern-practice"] .topic-section-header-row h3,
+body[data-page="intern-exam"] .topic-section-header-row h3 {
+  margin: 0;
+  color: var(--primary);
+}
+
+body[data-page="intern-practice"] .topic-sections-card-head p,
+body[data-page="intern-exam"] .topic-sections-card-head p,
+body[data-page="intern-practice"] .selected-topics-box-head p,
+body[data-page="intern-exam"] .selected-topics-box-head p,
+body[data-page="intern-practice"] .topic-section-header-row p,
+body[data-page="intern-exam"] .topic-section-header-row p {
+  margin: 6px 0 0;
+  color: var(--on-surface-variant);
+}
+
+body[data-page="intern-practice"] .topic-sections-nav,
+body[data-page="intern-exam"] .topic-sections-nav {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+body[data-page="intern-practice"] .topic-section-nav-btn,
+body[data-page="intern-exam"] .topic-section-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--outline-variant);
+  background: var(--surface-container-lowest);
+  color: var(--primary-container);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+body[data-page="intern-practice"] .topic-section-nav-btn:hover,
+body[data-page="intern-exam"] .topic-section-nav-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--secondary-fixed-dim);
+  box-shadow: 0 10px 20px rgba(0, 21, 27, 0.06);
+}
+
+body[data-page="intern-practice"] .topic-section-nav-count,
+body[data-page="intern-exam"] .topic-section-nav-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+body[data-page="intern-practice"] .selected-topics-box-head,
+body[data-page="intern-exam"] .selected-topics-box-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+body[data-page="intern-practice"] .selected-topics-summary,
+body[data-page="intern-exam"] .selected-topics-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+body[data-page="intern-practice"] .selected-topics-chip-list,
+body[data-page="intern-exam"] .selected-topics-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+body[data-page="intern-practice"] .selected-topic-chip,
+body[data-page="intern-exam"] .selected-topic-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(49, 101, 116, 0.14);
+  background: rgba(180, 232, 249, 0.42);
+  color: var(--on-secondary-container);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+body[data-page="intern-practice"] .selected-topic-chip span,
+body[data-page="intern-exam"] .selected-topic-chip span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+body[data-page="intern-practice"] .selected-topic-chip strong,
+body[data-page="intern-exam"] .selected-topic-chip strong {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+body[data-page="intern-practice"] .intern-empty.compact,
+body[data-page="intern-exam"] .intern-empty.compact {
+  width: 100%;
+  margin-top: 0;
+  padding: 14px;
+}
+
+body[data-page="intern-practice"] .topic-sections-wrap,
+body[data-page="intern-exam"] .topic-sections-wrap {
+  display: grid;
+  gap: 18px;
+}
+
+body[data-page="intern-practice"] .topic-section-block,
+body[data-page="intern-exam"] .topic-section-block {
+  padding: 22px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(243,244,245,0.92) 100%);
+  border: 1px solid var(--outline-variant);
+  box-shadow: 0 16px 34px rgba(0, 21, 27, 0.04);
+}
+
+body[data-page="intern-practice"] .topic-section-header-row,
+body[data-page="intern-exam"] .topic-section-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+body[data-page="intern-practice"] .topic-section-header-actions,
+body[data-page="intern-exam"] .topic-section-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+body[data-page="intern-practice"] .grouped-topics-grid,
+body[data-page="intern-exam"] .grouped-topics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+body[data-page="intern-practice"] .topic-choice-card,
+body[data-page="intern-exam"] .topic-choice-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px;
+  min-height: 122px;
+  border: 1px solid var(--outline-variant);
+  border-radius: 22px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcfc 100%);
+  cursor: pointer;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease;
+  box-shadow: 0 8px 18px rgba(0, 21, 27, 0.04);
+}
+
+body[data-page="intern-practice"] .topic-choice-card:hover,
+body[data-page="intern-exam"] .topic-choice-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--secondary-fixed-dim);
+  box-shadow: 0 14px 30px rgba(0, 21, 27, 0.08);
+}
+
+body[data-page="intern-practice"] .topic-choice-card::before,
+body[data-page="intern-exam"] .topic-choice-card::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 16px;
+  bottom: 16px;
+  width: 4px;
+  border-radius: 999px;
+  opacity: 0;
+  transition: opacity .18s ease;
+}
+
+body[data-page="intern-practice"] .topic-choice-card.is-selected::before,
+body[data-page="intern-exam"] .topic-choice-card.is-selected::before {
+  opacity: 1;
+}
+
+body[data-page="intern-practice"] .topic-choice-card input[type="checkbox"],
+body[data-page="intern-exam"] .topic-choice-card input[type="checkbox"] {
+  margin-top: 4px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--secondary);
+  flex-shrink: 0;
+}
+
+body[data-page="intern-practice"] .topic-choice-main,
+body[data-page="intern-exam"] .topic-choice-main {
+  flex: 1;
+  min-width: 0;
+}
+
+body[data-page="intern-practice"] .topic-choice-top,
+body[data-page="intern-exam"] .topic-choice-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+body[data-page="intern-practice"] .topic-choice-title,
+body[data-page="intern-exam"] .topic-choice-title {
+  color: var(--primary);
+  font-size: 1.04rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+body[data-page="intern-practice"] .topic-choice-count,
+body[data-page="intern-exam"] .topic-choice-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--surface-container);
+  color: var(--on-surface-variant);
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+  border: 1px solid var(--outline-variant);
+}
+
+body[data-page="intern-practice"] .topic-choice-desc,
+body[data-page="intern-exam"] .topic-choice-desc {
+  margin: 0;
+  color: var(--on-surface-variant);
+  font-size: 0.93rem;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+body[data-page="intern-practice"] .topic-choice-card.is-selected,
+body[data-page="intern-exam"] .topic-choice-card.is-selected {
+  box-shadow: 0 16px 34px rgba(0, 21, 27, 0.10);
+}
+
+body[data-page="intern-practice"] .topic-card-clinical.is-selected,
+body[data-page="intern-exam"] .topic-card-clinical.is-selected {
+  background: linear-gradient(180deg, #f8fcfe 0%, #eaf6fb 100%);
+  border-color: rgba(49,101,116,0.38);
+}
+body[data-page="intern-practice"] .topic-card-clinical.is-selected::before,
+body[data-page="intern-exam"] .topic-card-clinical.is-selected::before { background: var(--section-clinical); }
+
+body[data-page="intern-practice"] .topic-card-therapeutics.is-selected,
+body[data-page="intern-exam"] .topic-card-therapeutics.is-selected {
+  background: linear-gradient(180deg, #f9fcfd 0%, #eef5f7 100%);
+  border-color: rgba(64,99,112,0.34);
+}
+body[data-page="intern-practice"] .topic-card-therapeutics.is-selected::before,
+body[data-page="intern-exam"] .topic-card-therapeutics.is-selected::before { background: var(--section-therapeutics); }
+
+body[data-page="intern-practice"] .topic-card-pharmacology.is-selected,
+body[data-page="intern-exam"] .topic-card-pharmacology.is-selected {
+  background: linear-gradient(180deg, #fffaf0 0%, #fff4d7 100%);
+  border-color: rgba(115,92,0,0.34);
+}
+body[data-page="intern-practice"] .topic-card-pharmacology.is-selected::before,
+body[data-page="intern-exam"] .topic-card-pharmacology.is-selected::before { background: var(--section-pharmacology); }
+
+body[data-page="intern-practice"] .topic-card-calculations.is-selected,
+body[data-page="intern-exam"] .topic-card-calculations.is-selected {
+  background: linear-gradient(180deg, #faf8fe 0%, #efebfb 100%);
+  border-color: rgba(90,79,122,0.32);
+}
+body[data-page="intern-practice"] .topic-card-calculations.is-selected::before,
+body[data-page="intern-exam"] .topic-card-calculations.is-selected::before { background: var(--section-calculations); }
+
+body[data-page="intern-practice"] .topic-card-sciences.is-selected,
+body[data-page="intern-exam"] .topic-card-sciences.is-selected {
+  background: linear-gradient(180deg, #f8fbfc 0%, #eaf2f5 100%);
+  border-color: rgba(63,93,102,0.34);
+}
+body[data-page="intern-practice"] .topic-card-sciences.is-selected::before,
+body[data-page="intern-exam"] .topic-card-sciences.is-selected::before { background: var(--section-sciences); }
+
+body[data-page="intern-practice"] .topic-card-integrated.is-selected,
+body[data-page="intern-exam"] .topic-card-integrated.is-selected {
+  background: linear-gradient(180deg, #fafbfb 0%, #eff2f3 100%);
+  border-color: rgba(107,115,118,0.28);
+}
+body[data-page="intern-practice"] .topic-card-integrated.is-selected::before,
+body[data-page="intern-exam"] .topic-card-integrated.is-selected::before { background: var(--section-integrated); }
+
+html[data-theme="dark"] body[data-page="intern-practice"] .topic-section-nav-btn,
+html[data-theme="dark"] body[data-page="intern-exam"] .topic-section-nav-btn,
+html[data-theme="dark"] body[data-page="intern-practice"] .topic-choice-card,
+html[data-theme="dark"] body[data-page="intern-exam"] .topic-choice-card {
+  background: #101920;
+  color: var(--inverse-on-surface);
+}
+
+html[data-theme="dark"] body[data-page="intern-practice"] .topic-section-block,
+html[data-theme="dark"] body[data-page="intern-exam"] .topic-section-block {
+  background: linear-gradient(180deg, rgba(17,26,33,0.98) 0%, rgba(12,19,24,0.98) 100%);
+}
+
+html[data-theme="dark"] body[data-page="intern-practice"] .topic-choice-title,
+html[data-theme="dark"] body[data-page="intern-exam"] .topic-choice-title,
+html[data-theme="dark"] body[data-page="intern-practice"] .topic-sections-card-head h3,
+html[data-theme="dark"] body[data-page="intern-exam"] .topic-sections-card-head h3,
+html[data-theme="dark"] body[data-page="intern-practice"] .selected-topics-box-head h4,
+html[data-theme="dark"] body[data-page="intern-exam"] .selected-topics-box-head h4,
+html[data-theme="dark"] body[data-page="intern-practice"] .topic-section-header-row h3,
+html[data-theme="dark"] body[data-page="intern-exam"] .topic-section-header-row h3 {
+  color: var(--inverse-on-surface);
+}
+
+html[data-theme="dark"] body[data-page="intern-practice"] .topic-choice-desc,
+html[data-theme="dark"] body[data-page="intern-exam"] .topic-choice-desc,
+html[data-theme="dark"] body[data-page="intern-practice"] .topic-sections-card-head p,
+html[data-theme="dark"] body[data-page="intern-exam"] .topic-sections-card-head p,
+html[data-theme="dark"] body[data-page="intern-practice"] .selected-topics-box-head p,
+html[data-theme="dark"] body[data-page="intern-exam"] .selected-topics-box-head p,
+html[data-theme="dark"] body[data-page="intern-practice"] .topic-section-header-row p,
+html[data-theme="dark"] body[data-page="intern-exam"] .topic-section-header-row p {
+  color: #aab8be;
+}
+
+html[data-theme="dark"] body[data-page="intern-practice"] .selected-topic-chip,
+html[data-theme="dark"] body[data-page="intern-exam"] .selected-topic-chip {
+  background: rgba(49, 101, 116, 0.26);
+  color: var(--secondary-fixed);
+  border-color: rgba(167,204,218,0.14);
+}
+
+html[data-theme="dark"] body[data-page="intern-practice"] .topic-card-clinical.is-selected,
+html[data-theme="dark"] body[data-page="intern-exam"] .topic-card-clinical.is-selected {
+  background: linear-gradient(180deg, rgba(16,34,43,0.98) 0%, rgba(20,49,61,0.98) 100%);
+}
+html[data-theme="dark"] body[data-page="intern-practice"] .topic-card-therapeutics.is-selected,
+html[data-theme="dark"] body[data-page="intern-exam"] .topic-card-therapeutics.is-selected {
+  background: linear-gradient(180deg, rgba(16,29,36,0.98) 0%, rgba(24,44,54,0.98) 100%);
+}
+html[data-theme="dark"] body[data-page="intern-practice"] .topic-card-pharmacology.is-selected,
+html[data-theme="dark"] body[data-page="intern-exam"] .topic-card-pharmacology.is-selected {
+  background: linear-gradient(180deg, rgba(39,31,7,0.98) 0%, rgba(57,45,10,0.98) 100%);
+}
+html[data-theme="dark"] body[data-page="intern-practice"] .topic-card-calculations.is-selected,
+html[data-theme="dark"] body[data-page="intern-exam"] .topic-card-calculations.is-selected {
+  background: linear-gradient(180deg, rgba(28,24,40,0.98) 0%, rgba(40,34,58,0.98) 100%);
+}
+html[data-theme="dark"] body[data-page="intern-practice"] .topic-card-sciences.is-selected,
+html[data-theme="dark"] body[data-page="intern-exam"] .topic-card-sciences.is-selected {
+  background: linear-gradient(180deg, rgba(15,25,31,0.98) 0%, rgba(24,39,46,0.98) 100%);
+}
+html[data-theme="dark"] body[data-page="intern-practice"] .topic-card-integrated.is-selected,
+html[data-theme="dark"] body[data-page="intern-exam"] .topic-card-integrated.is-selected {
+  background: linear-gradient(180deg, rgba(20,24,27,0.98) 0%, rgba(32,36,39,0.98) 100%);
+}
+
+@media (max-width: 1080px) {
+  body[data-page="intern-practice"] .topic-setup-shell,
+  body[data-page="intern-exam"] .topic-setup-shell {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-page="intern-practice"] .topic-setup-sidebar,
+  body[data-page="intern-exam"] .topic-setup-sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  body[data-page="intern-practice"] .grouped-topics-grid,
+  body[data-page="intern-exam"] .grouped-topics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-page="intern-practice"] .topic-section-header-row,
+  body[data-page="intern-exam"] .topic-section-header-row,
+  body[data-page="intern-practice"] .selected-topics-box-head,
+  body[data-page="intern-exam"] .selected-topics-box-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
