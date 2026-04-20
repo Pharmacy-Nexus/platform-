@@ -1087,3 +1087,70 @@ body[data-page^="intern"] img {
     min-width: 94px;
   }
 }
+
+
+/* Copy / paste protection */
+body[data-page^="intern"] {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+body[data-page^="intern"] input,
+body[data-page^="intern"] textarea,
+body[data-page^="intern"] select {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Stronger dark mode answer visibility */
+html[data-theme="dark"] body[data-page^="intern"] .option-btn.correct,
+html[data-theme="dark"] body[data-page^="intern"] .option-list button.correct {
+  background: linear-gradient(180deg, rgba(52, 123, 86, 0.55) 0%, rgba(39, 98, 68, 0.72) 100%);
+  border-color: #76d7a1;
+  color: #f3fff8;
+  box-shadow: 0 0 0 1px rgba(118, 215, 161, 0.18), 0 12px 24px rgba(19, 58, 40, 0.3);
+}
+
+html[data-theme="dark"] body[data-page^="intern"] .option-btn.wrong,
+html[data-theme="dark"] body[data-page^="intern"] .option-list button.wrong {
+  background: linear-gradient(180deg, rgba(136, 48, 48, 0.58) 0%, rgba(110, 33, 33, 0.78) 100%);
+  border-color: #ff9b9b;
+  color: #fff7f7;
+  box-shadow: 0 0 0 1px rgba(255, 155, 155, 0.16), 0 12px 24px rgba(72, 20, 20, 0.32);
+}
+
+html[data-theme="dark"] body[data-page^="intern"] .review-status.correct {
+  background: rgba(47, 143, 99, 0.32);
+  color: #b8f1d0;
+  border-color: rgba(118, 215, 161, 0.35);
+}
+
+html[data-theme="dark"] body[data-page^="intern"] .review-status.wrong {
+  background: rgba(187, 77, 77, 0.28);
+  color: #ffb2b2;
+  border-color: rgba(255, 155, 155, 0.32);
+}
+
+html[data-theme="dark"] body[data-page^="intern"] .question-status-pill.correct,
+html[data-theme="dark"] body[data-page^="intern"] .question-status-pill.current-correct {
+  background: linear-gradient(180deg, rgba(52, 123, 86, 0.46) 0%, rgba(39, 98, 68, 0.62) 100%);
+  border-color: #76d7a1;
+  color: #effff6;
+}
+
+html[data-theme="dark"] body[data-page^="intern"] .question-status-pill.wrong,
+html[data-theme="dark"] body[data-page^="intern"] .question-status-pill.current-wrong {
+  background: linear-gradient(180deg, rgba(136, 48, 48, 0.46) 0%, rgba(110, 33, 33, 0.62) 100%);
+  border-color: #ff9b9b;
+  color: #fff3f3;
+}
+
+body[data-page="intern-practice-flagged"] .summary-grid.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  body[data-page="intern-practice-flagged"] .summary-grid.three {
+    grid-template-columns: 1fr;
+  }
+}
