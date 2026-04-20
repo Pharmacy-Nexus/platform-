@@ -65,36 +65,35 @@
 
     rows.forEach((row, index) => {
       const reviewCard = InternCore.el('article', 'review-card');
-      reviewCard.innerHTML = `
-        <div class="question-top">
-          <div>
-            <div class="meta-row">
-              <span class="flag-chip">Flagged</span>
-              <span class="tag">${row.question.topic_title}</span>
-              <span class="tag">${row.question.type}</span>
-              <span class="badge">${row.question.difficulty.toUpperCase()}</span>
-              ${row.selected !== 'No answer selected'
-                ? `<span class="review-status ${row.isCorrect ? 'correct' : 'wrong'}">${row.isCorrect ? 'Correct' : 'Incorrect'}</span>`
-                : '<span class="review-status">Unanswered</span>'}
-            </div>
-            <h3 style="margin:10px 0 8px;">${index + 1}. ${row.question.question_text}</h3>
-          </div>
-        </div>
+     reviewCard.innerHTML = `
+  <div class="question-top">
+    <div>
+      <div class="meta-row">
+        <span class="flag-chip">Flagged</span>
+        <span class="tag">${InternCore.escapeHtml(row.question.topic_title)}</span>
+        <span class="tag">${InternCore.escapeHtml(row.question.type)}</span>
+        <span class="badge">${InternCore.escapeHtml((row.question.difficulty || '').toUpperCase())}</span>
+        ${row.selected !== 'No answer selected'
+          ? `<span class="review-status ${row.isCorrect ? 'correct' : 'wrong'}">${row.isCorrect ? 'Correct' : 'Incorrect'}</span>`
+          : '<span class="review-status">Unanswered</span>'}
+      </div>
+      <h3 style="margin:10px 0 8px;">${index + 1}. ${InternCore.escapeHtml(row.question.question_text)}</h3>
+    </div>
+  </div>
 
-        ${row.question.case_text ? `
-          <div class="case-box">
-            <strong>Case</strong>
-            <div class="muted" style="margin-top:8px;">${row.question.case_text}</div>
-          </div>
-        ` : ''}
+  ${row.question.case_text ? `
+    <div class="case-box">
+      <strong>Case</strong>
+      <div class="muted" style="margin-top:8px;">${InternCore.escapeHtml(row.question.case_text)}</div>
+    </div>
+  ` : ''}
 
-        <div class="review-answer"><strong>Your answer:</strong> ${row.selected}</div>
-        <div class="review-answer"><strong>Correct answer:</strong> ${row.correct}</div>
-        <div class="review-answer"><strong>Explanation:</strong> ${row.explanation}</div>
-        <div class="review-answer"><strong>Summary:</strong> ${row.summary}</div>
-      `;
-      list.appendChild(reviewCard);
-    });
+  <div class="review-answer"><strong>Your answer:</strong> ${InternCore.escapeHtml(row.selected)}</div>
+  <div class="review-answer"><strong>Correct answer:</strong> ${InternCore.escapeHtml(row.correct)}</div>
+  <div class="review-answer"><strong>Explanation:</strong> ${InternCore.escapeHtml(row.explanation)}</div>
+  <div class="review-answer"><strong>Summary:</strong> ${InternCore.escapeHtml(row.summary)}</div>
+`;
+list.appendChild(reviewCard);
 
     InternCore.qs('#retryFlaggedSetBtn')?.addEventListener('click', () => {
       InternCore.writeStore(InternCore.config.storageKeys.practiceRetry, {
