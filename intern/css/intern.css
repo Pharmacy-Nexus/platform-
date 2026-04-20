@@ -681,3 +681,19 @@ h4,
   letter-spacing: -0.03em;
   color: #071c24;
 }
+.btn {
+  border-radius: 16px;
+  font-weight: 700;
+  font-family: var(--font-body);
+}
+
+.btn.btn-light {
+  background: #ffffff;
+  border: 1px solid #d5dde0;
+  color: #173843;
+}
+
+.btn.btn-light:hover {
+  border-color: #bfcfd5;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.04);
+}
