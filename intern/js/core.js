@@ -12,6 +12,7 @@
         session: 'pn_intern_session_v1',
         practiceReview: 'pn_intern_practice_review_v1',
         practiceRetry: 'pn_intern_practice_retry_v1',
+        practiceFlagged: 'pn_intern_practice_flagged_v1',
         examReview: 'pn_intern_exam_review_v1',
         examRetry: 'pn_intern_exam_retry_v1',
         internDashboard: 'pn_intern_dashboard_v1',
@@ -113,6 +114,10 @@
       return window.location.pathname.includes('/intern/pages/') ? './dashboard.html' : './pages/dashboard.html';
     },
 
+    getPracticeFlaggedLink() {
+      return window.location.pathname.includes('/intern/pages/') ? './practice-flagged.html' : './pages/practice-flagged.html';
+    },
+
     async getCurrentUser() {
       try {
         const { data, error } = await InternSupabase.auth.getUser();
@@ -181,6 +186,24 @@
       });
     },
 
+    bindInteractionProtection() {
+      const blockedEvents = ['copy', 'cut', 'paste', 'contextmenu', 'dragstart'];
+      blockedEvents.forEach((eventName) => {
+        document.addEventListener(eventName, (event) => {
+          event.preventDefault();
+        }, { capture: true });
+      });
+
+      document.addEventListener('keydown', (event) => {
+        const key = String(event.key || '').toLowerCase();
+        const hasModifier = event.ctrlKey || event.metaKey;
+        if (!hasModifier) return;
+        if (['c', 'x', 'v', 'u', 's', 'p'].includes(key)) {
+          event.preventDefault();
+        }
+      }, { capture: true });
+    },
+
     createShell() {
       const root = document.getElementById('intern-shell');
       root.innerHTML = `
@@ -207,6 +230,7 @@
               <a class="intern-back-link" href="${this.getMainHomeLink()}">← Back to main platform</a>
               <div class="intern-topbar-actions" style="display:flex; gap:10px; flex-wrap:wrap;">
                 <button class="btn btn-light theme-toggle-btn" id="themeToggleBtn" type="button"></button>
+                <a class="btn btn-light" href="${this.getPracticeFlaggedLink()}">Flagged</a>
                 <a class="btn btn-light" href="${this.getInternDashboardLink()}">Intern Dashboard</a>
                 <button class="btn btn-light" id="adminLogoutBtn" type="button">Logout</button>
               </div>
@@ -218,6 +242,7 @@
 
       this.initTheme();
       this.bindThemeToggle();
+      this.bindInteractionProtection();
 
       const logoutBtn = this.qs('#adminLogoutBtn');
       if (logoutBtn) {

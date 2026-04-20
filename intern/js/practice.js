@@ -226,6 +226,33 @@
     } else {
       practiceState.flaggedQuestionIds.push(questionId);
     }
+    persistFlaggedSnapshot();
+  }
+
+  function persistFlaggedSnapshot() {
+    const rows = practiceState.questions
+      .filter((question) => isFlagged(question.id))
+      .map((question) => {
+        const answer = practiceState.answers[question.id] || null;
+        const correctOption = getCorrectOption(question);
+        return {
+          question,
+          selected: answer ? answer.selectedText : 'No answer selected',
+          selectedOptionId: answer ? answer.selectedOptionId : null,
+          correct: correctOption ? correctOption.text : '',
+          isCorrect: answer ? answer.isCorrect : false,
+          explanation: question.explanation,
+          summary: question.summary,
+          isFlagged: true
+        };
+      });
+
+    InternCore.writeStore(InternCore.config.storageKeys.practiceFlagged, {
+      title: 'Flagged Questions',
+      total: rows.length,
+      rows,
+      createdAt: new Date().toISOString()
+    });
   }
 
   function getQuestionVisualStatus(question, index) {
@@ -652,6 +679,13 @@
       score,
       total: rows.length,
       rows,
+      createdAt: new Date().toISOString()
+    });
+
+    InternCore.writeStore(InternCore.config.storageKeys.practiceFlagged, {
+      title: 'Flagged Questions',
+      total: rows.filter((row) => row.isFlagged).length,
+      rows: rows.filter((row) => row.isFlagged),
       createdAt: new Date().toISOString()
     });
 
