@@ -14,7 +14,8 @@
         practiceRetry: 'pn_intern_practice_retry_v1',
         examReview: 'pn_intern_exam_review_v1',
         examRetry: 'pn_intern_exam_retry_v1',
-        internDashboard: 'pn_intern_dashboard_v1'
+        internDashboard: 'pn_intern_dashboard_v1',
+        theme: 'pn_intern_theme_v1'
       }
     },
 
@@ -144,6 +145,42 @@
       });
     },
 
+
+    getTheme() {
+      const saved = this.readStore(this.config.storageKeys.theme, null);
+      if (saved === 'dark' || saved === 'light') return saved;
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
+    },
+
+    applyTheme(theme) {
+      const safeTheme = theme === 'dark' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', safeTheme);
+      this.writeStore(this.config.storageKeys.theme, safeTheme);
+
+      const toggleBtn = this.qs('#themeToggleBtn');
+      if (toggleBtn) {
+        toggleBtn.innerHTML = safeTheme === 'dark'
+          ? '<span class="theme-toggle-icon">☀</span><span>Light</span>'
+          : '<span class="theme-toggle-icon">☾</span><span>Dark</span>';
+        toggleBtn.setAttribute('aria-label', safeTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+      }
+    },
+
+    initTheme() {
+      this.applyTheme(this.getTheme());
+    },
+
+    bindThemeToggle() {
+      const toggleBtn = this.qs('#themeToggleBtn');
+      if (!toggleBtn) return;
+      toggleBtn.addEventListener('click', () => {
+        const nextTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        this.applyTheme(nextTheme);
+      });
+    },
+
     createShell() {
       const root = document.getElementById('intern-shell');
       root.innerHTML = `
@@ -168,7 +205,8 @@
           <div class="container">
             <div class="intern-topbar" style="display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap;">
               <a class="intern-back-link" href="${this.getMainHomeLink()}">← Back to main platform</a>
-              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <div class="intern-topbar-actions" style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn btn-light theme-toggle-btn" id="themeToggleBtn" type="button"></button>
                 <a class="btn btn-light" href="${this.getInternDashboardLink()}">Intern Dashboard</a>
                 <button class="btn btn-light" id="adminLogoutBtn" type="button">Logout</button>
               </div>
@@ -177,6 +215,9 @@
           </div>
         </main>
       `;
+
+      this.initTheme();
+      this.bindThemeToggle();
 
       const logoutBtn = this.qs('#adminLogoutBtn');
       if (logoutBtn) {
