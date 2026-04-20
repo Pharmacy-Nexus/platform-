@@ -423,7 +423,11 @@
     examState.timerId = setInterval(() => {
       examState.remainingSeconds -= 1;
       const timerEl = InternCore.qs('#examTimerValue');
-      if (timerEl) timerEl.textContent = formatTimer(Math.max(examState.remainingSeconds, 0));
+      if (timerEl) {
+        timerEl.textContent = formatTimer(Math.max(examState.remainingSeconds, 0));
+        timerEl.classList.toggle('is-warning', examState.remainingSeconds <= 300 && examState.remainingSeconds > 60);
+        timerEl.classList.toggle('is-danger', examState.remainingSeconds <= 60);
+      }
 
       if (examState.remainingSeconds <= 0) {
         clearInterval(examState.timerId);
@@ -432,71 +436,134 @@
     }, 1000);
   }
 
+  function getExamAnsweredCount() {
+    return examState.questions.filter((question) => !!examState.answers[question.id]).length;
+  }
+
+  function getExamQuestionState(question, index) {
+    const isCurrent = index === examState.currentIndex;
+    const isAnswered = !!examState.answers[question.id];
+
+    if (isCurrent && isAnswered) return 'current-answered';
+    if (isCurrent) return 'current';
+    if (isAnswered) return 'answered';
+    return 'unanswered';
+  }
+
+  function renderExamQuestionRail() {
+    return `
+      <div class="exam-question-rail" id="examQuestionRail">
+        ${examState.questions.map((question, index) => `
+          <button
+            type="button"
+            class="exam-question-pill ${getExamQuestionState(question, index)}"
+            data-exam-index="${index}"
+            title="Question ${index + 1}"
+          >
+            ${index + 1}
+          </button>
+        `).join('')}
+      </div>
+    `;
+  }
+
   function renderExamScreen() {
     const root = InternCore.qs('#internPageRoot');
     const question = examState.questions[examState.currentIndex];
     const selectedOptionId = examState.answers[question.id] || null;
+    const answeredCount = getExamAnsweredCount();
+    const unansweredCount = examState.questions.length - answeredCount;
+    const progressPercent = ((examState.currentIndex + 1) / examState.questions.length) * 100;
 
     root.innerHTML = `
-      <div class="study-shell">
-        <aside class="side-panel">
-          <div class="sidebar-card">
-            <div class="tag">Real Exam</div>
-            <div class="timer" id="examTimerValue">${formatTimer(examState.remainingSeconds)}</div>
-            <div class="muted">Time remaining</div>
+      <div class="study-shell exam-luxe-shell">
+        <aside class="side-panel exam-luxe-sidebar">
+          <div class="sidebar-card exam-hero-card">
+            <div class="exam-hero-top">
+              <span class="tag">Real Exam</span>
+              <span class="exam-hero-status">Focused Mode</span>
+            </div>
+
+            <div class="exam-timer-card">
+              <div class="exam-timer-label">Time remaining</div>
+              <div class="timer exam-timer-value" id="examTimerValue">${formatTimer(examState.remainingSeconds)}</div>
+            </div>
+
+            <div class="exam-progress-copy">Stay calm, finish every question, then submit when ready.</div>
           </div>
 
-          <div class="sidebar-card">
-            <h4 style="margin-top:0;">Progress</h4>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width:${((examState.currentIndex + 1) / examState.questions.length) * 100}%"></div>
+          <div class="sidebar-card exam-progress-card">
+            <div class="exam-progress-head">
+              <h4>Progress</h4>
+              <span class="badge">${examState.currentIndex + 1}/${examState.questions.length}</span>
             </div>
-            <div class="muted" style="margin-top:10px;">
-              Question ${examState.currentIndex + 1} of ${examState.questions.length}
+
+            <div class="progress-bar exam-progress-bar">
+              <div class="progress-fill" style="width:${progressPercent}%"></div>
             </div>
-            <div class="meta-row" style="margin-top:14px;">
+
+            <div class="exam-progress-stats">
+              <div class="exam-progress-stat">
+                <span>Answered</span>
+                <strong>${answeredCount}</strong>
+              </div>
+              <div class="exam-progress-stat">
+                <span>Remaining</span>
+                <strong>${unansweredCount}</strong>
+              </div>
+            </div>
+
+            <div class="meta-row exam-meta-row">
               <span class="badge">${question.topic_title}</span>
               <span class="tag">${question.type}</span>
             </div>
           </div>
 
-          <div class="sidebar-card">
+          <div class="sidebar-card exam-rail-card">
+            <div class="exam-progress-head">
+              <h4>Question Navigator</h4>
+              <span class="tag">Jump</span>
+            </div>
+            ${renderExamQuestionRail()}
+          </div>
+
+          <div class="sidebar-card exam-submit-card">
             <div class="action-row" style="margin-top:0; justify-content:flex-start;">
               <button class="btn btn-danger" id="submitExamNowBtn" type="button">Submit Exam</button>
             </div>
           </div>
         </aside>
 
-        <section class="question-card">
-          <div class="question-top">
+        <section class="question-card exam-luxe-card">
+          <div class="question-top exam-question-top">
             <div>
-              <div class="meta-row">
+              <div class="meta-row exam-question-meta">
                 <span class="badge">${question.topic_title}</span>
                 <span class="tag">${question.type}</span>
                 <span class="tag">${question.difficulty}</span>
               </div>
-              <h2 class="question-title">${question.question_text}</h2>
+              <h2 class="question-title exam-question-title">${question.question_text}</h2>
             </div>
           </div>
 
           ${question.case_text ? `
-            <div class="case-box">
+            <div class="case-box exam-case-box">
               <strong>Case</strong>
               <div class="muted" style="margin-top:8px;">${question.case_text}</div>
             </div>
           ` : ''}
 
           ${question.image_url ? `
-            <div style="margin-top:18px;">
-              <img src="${question.image_url}" alt="Question visual" style="border-radius:22px; border:1px solid var(--border);" />
+            <div class="exam-image-wrap" style="margin-top:18px;">
+              <img src="${question.image_url}" alt="Question visual" style="border-radius:22px; border:1px solid var(--outline-variant);" />
             </div>
           ` : ''}
 
-          <div class="option-list" id="examOptionList"></div>
+          <div class="option-list exam-option-list" id="examOptionList"></div>
 
-          <div class="action-row">
+          <div class="action-row exam-bottom-actions">
             <button class="btn btn-light" id="examPrevBtn" ${examState.currentIndex === 0 ? 'disabled' : ''}>Previous</button>
-            <button class="btn btn-dark" id="examNextBtn">${examState.currentIndex === examState.questions.length - 1 ? 'Last Question' : 'Next'}</button>
+            <button class="btn btn-dark" id="examNextBtn">${examState.currentIndex === examState.questions.length - 1 ? 'Review Last Question' : 'Next Question'}</button>
           </div>
         </section>
       </div>
@@ -504,10 +571,13 @@
 
     const optionList = InternCore.qs('#examOptionList');
 
-    question.options.forEach((option) => {
-      const button = InternCore.el('button', `option-btn ${selectedOptionId === option.id ? 'ghost-correct' : ''}`);
+    question.options.forEach((option, optionIndex) => {
+      const button = InternCore.el('button', `option-btn exam-option-btn ${selectedOptionId === option.id ? 'ghost-correct is-selected' : ''}`);
       button.type = 'button';
-      button.textContent = option.text;
+      button.innerHTML = `
+        <span class="exam-option-letter">${String.fromCharCode(65 + optionIndex)}</span>
+        <span class="exam-option-text">${option.text}</span>
+      `;
 
       button.addEventListener('click', () => {
         examState.answers[question.id] = option.id;
@@ -515,6 +585,13 @@
       });
 
       optionList.appendChild(button);
+    });
+
+    InternCore.qsa('[data-exam-index]').forEach((button) => {
+      button.addEventListener('click', () => {
+        examState.currentIndex = Number(button.dataset.examIndex);
+        renderExamScreen();
+      });
     });
 
     InternCore.qs('#examPrevBtn').addEventListener('click', () => {
@@ -532,7 +609,7 @@
     });
 
     InternCore.qs('#submitExamNowBtn').addEventListener('click', async () => {
-      const ok = window.confirm('Submit the exam now?');
+      const ok = window.confirm(`Submit the exam now? You still have ${unansweredCount} unanswered question${unansweredCount === 1 ? '' : 's'}.`);
       if (ok) await finishExam();
     });
   }
