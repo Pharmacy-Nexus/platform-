@@ -61,6 +61,7 @@
           </div>
           <div class="action-row" style="justify-content:flex-end; margin-top:0;">
             ${wrongRows.length ? '<button class="btn btn-primary" id="retryWrongQuestionsBtn" type="button">Retry Wrong Questions</button>' : ''}
+            ${rows.some((row) => row.isFlagged) ? '<button class="btn btn-secondary" id="retryFlaggedQuestionsBtn" type="button">Retry Flagged</button>' : ''}
             <a class="btn btn-light" href="./practice.html">Back to Practice</a>
             <a class="btn btn-dark" href="./practice.html">Start New Practice</a>
           </div>
@@ -82,6 +83,7 @@
               <span class="tag">${row.question.topic_title}</span>
               <span class="tag">${row.question.type}</span>
               <span class="badge">${row.question.difficulty.toUpperCase()}</span>
+              ${row.isFlagged ? '<span class="flag-chip">Flagged</span>' : ''}
             </div>
             <h3 style="margin:10px 0 8px;">${index + 1}. ${row.question.question_text}</h3>
           </div>
@@ -116,6 +118,23 @@
         InternCore.writeStore(InternCore.config.storageKeys.practiceRetry, {
           title: 'Retry Wrong Questions',
           questions: wrongQuestions,
+          createdAt: new Date().toISOString()
+        });
+
+        window.location.href = './practice.html?retry=1';
+      });
+    }
+
+    const retryFlaggedBtn = InternCore.qs('#retryFlaggedQuestionsBtn');
+    if (retryFlaggedBtn) {
+      retryFlaggedBtn.addEventListener('click', () => {
+        const flaggedQuestions = rows
+          .filter((row) => row.isFlagged)
+          .map((row) => row.question);
+
+        InternCore.writeStore(InternCore.config.storageKeys.practiceRetry, {
+          title: 'Retry Flagged Questions',
+          questions: flaggedQuestions,
           createdAt: new Date().toISOString()
         });
 
