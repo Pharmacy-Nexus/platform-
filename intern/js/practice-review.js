@@ -73,89 +73,71 @@
 
     const list = InternCore.qs('#practiceReviewList');
 
-    rows.forEach((row, index) => {
-      const reviewCard = InternCore.el('article', 'review-card');
-      reviewCard.innerHTML = `
-        <div class="question-top">
-          <div>
-            <div class="meta-row">
-              <span class="review-status ${row.isCorrect ? 'correct' : 'wrong'}">${row.isCorrect ? 'Correct' : 'Incorrect'}</span>
-              <span class="tag">${row.question.topic_title}</span>
-              <span class="tag">${row.question.type}</span>
-              <span class="badge">${row.question.difficulty.toUpperCase()}</span>
-              ${row.isFlagged ? '<span class="flag-chip">Flagged</span>' : ''}
-            </div>
-            <h3 style="margin:10px 0 8px;">${index + 1}. ${row.question.question_text}</h3>
-          </div>
+rows.forEach((row, index) => {
+  const reviewCard = InternCore.el('article', 'review-card');
+  reviewCard.innerHTML = `
+    <div class="question-top">
+      <div>
+        <div class="meta-row">
+          <span class="review-status ${row.isCorrect ? 'correct' : 'wrong'}">${row.isCorrect ? 'Correct' : 'Incorrect'}</span>
+          <span class="tag">${InternCore.escapeHtml(row.question.topic_title)}</span>
+          <span class="tag">${InternCore.escapeHtml(row.question.type)}</span>
+          <span class="badge">${InternCore.escapeHtml((row.question.difficulty || '').toUpperCase())}</span>
+          ${row.isFlagged ? '<span class="flag-chip">Flagged</span>' : ''}
         </div>
+        <h3 style="margin:10px 0 8px;">${index + 1}. ${InternCore.escapeHtml(row.question.question_text)}</h3>
+      </div>
+    </div>
 
-        ${row.question.case_text ? `
-          <div class="case-box">
-            <strong>Case</strong>
-            <div class="muted" style="margin-top:8px;">${row.question.case_text}</div>
-          </div>
-        ` : ''}
+    ${row.question.case_text ? `
+      <div class="case-box">
+        <strong>Case</strong>
+        <div class="muted" style="margin-top:8px;">${InternCore.escapeHtml(row.question.case_text)}</div>
+      </div>
+    ` : ''}
 
-        ${row.question.image_url ? `
-          <div style="margin-top:18px;">
-            <img src="${row.question.image_url}" alt="Question visual" style="border-radius:22px; border:1px solid var(--border);" />
-          </div>
-        ` : ''}
+    ${row.question.image_url ? `
+      <div style="margin-top:18px;">
+        <img src="${InternCore.escapeHtml(row.question.image_url)}" alt="Question visual" style="border-radius:22px; border:1px solid var(--border);" />
+      </div>
+    ` : ''}
 
-        <div class="review-answer"><strong>Your answer:</strong> ${row.selected}</div>
-        <div class="review-answer"><strong>Correct answer:</strong> ${row.correct}</div>
-        <div class="review-answer"><strong>Explanation:</strong> ${row.explanation}</div>
-        <div class="review-answer"><strong>Summary:</strong> ${row.summary}</div>
-      `;
-      list.appendChild(reviewCard);
+    <div class="review-answer"><strong>Your answer:</strong> ${InternCore.escapeHtml(row.selected)}</div>
+    <div class="review-answer"><strong>Correct answer:</strong> ${InternCore.escapeHtml(row.correct)}</div>
+    <div class="review-answer"><strong>Explanation:</strong> ${InternCore.escapeHtml(row.explanation)}</div>
+    <div class="review-answer"><strong>Summary:</strong> ${InternCore.escapeHtml(row.summary)}</div>
+  `;
+  list.appendChild(reviewCard);
+});
+
+const retryBtn = InternCore.qs('#retryWrongQuestionsBtn');
+if (retryBtn) {
+  retryBtn.addEventListener('click', () => {
+    const wrongQuestions = wrongRows.map((row) => row.question);
+
+    InternCore.writeStore(InternCore.config.storageKeys.practiceRetry, {
+      title: 'Retry Wrong Questions',
+      questions: wrongQuestions,
+      createdAt: new Date().toISOString()
     });
 
-    const retryBtn = InternCore.qs('#retryWrongQuestionsBtn');
-    if (retryBtn) {
-      retryBtn.addEventListener('click', () => {
-        const wrongQuestions = wrongRows.map((row) => row.question);
+    window.location.href = './practice.html?retry=1';
+  });
+}
 
-        InternCore.writeStore(InternCore.config.storageKeys.practiceRetry, {
-          title: 'Retry Wrong Questions',
-          questions: wrongQuestions,
-          createdAt: new Date().toISOString()
-        });
+const retryFlaggedBtn = InternCore.qs('#retryFlaggedQuestionsBtn');
+if (retryFlaggedBtn) {
+  retryFlaggedBtn.addEventListener('click', () => {
+    const flaggedQuestions = rows
+      .filter((row) => row.isFlagged)
+      .map((row) => row.question);
 
-        window.location.href = './practice.html?retry=1';
-      });
-    }
+    InternCore.writeStore(InternCore.config.storageKeys.practiceRetry, {
+      title: 'Retry Flagged Questions',
+      questions: flaggedQuestions,
+      createdAt: new Date().toISOString()
+    });
 
-    const retryFlaggedBtn = InternCore.qs('#retryFlaggedQuestionsBtn');
-    if (retryFlaggedBtn) {
-      retryFlaggedBtn.addEventListener('click', () => {
-        const flaggedQuestions = rows
-          .filter((row) => row.isFlagged)
-          .map((row) => row.question);
-
-        InternCore.writeStore(InternCore.config.storageKeys.practiceRetry, {
-          title: 'Retry Flagged Questions',
-          questions: flaggedQuestions,
-          createdAt: new Date().toISOString()
-        });
-
-        window.location.href = './practice.html?retry=1';
-      });
-    }
-  }
-
-  function initPracticeReviewPage() {
-    InternCore.createShell();
-
-    const root = InternCore.qs('#internPageRoot');
-    const reviewData = InternCore.readStore(InternCore.config.storageKeys.practiceReview, null);
-
-    if (!reviewData || !Array.isArray(reviewData.rows) || !reviewData.rows.length) {
-      renderEmptyState(root);
-      return;
-    }
-
-    renderReviewPage(root, reviewData);
-  }
-
-  document.addEventListener('DOMContentLoaded', initPracticeReviewPage);
-})();
+    window.location.href = './practice.html?retry=1';
+  });
+}
