@@ -116,21 +116,46 @@
           </div>
         </div>
 
-        <div class="card recall-bank-card">
-          <div class="meta-row">
-            <span class="badge" id="recallBankCountBadge">-- Questions</span>
-            <span class="tag">Mixed recall bank</span>
-            <span class="tag">Resume unfinished exam</span>
-          </div>
+        <article class="recall-bank-feature-card">
+          <div class="recall-bank-feature-grid">
+            <div class="recall-bank-feature-main">
+              <div class="recall-bank-feature-eyebrow">Recall mode • Mixed bank</div>
+              <h3>Train on reconstructed and recalled licensure patterns in one focused flow.</h3>
+              <p>
+                Open one mixed recall bank, hide solved questions automatically, and resume unfinished attempts for up to 24 hours without rebuilding your exam.
+              </p>
 
-          <div style="margin-top:14px;">
-            <p class="muted" style="margin:0;">Launch a mixed recall exam without choosing topics. You can hide solved questions and resume unfinished attempts for up to 24 hours.</p>
-          </div>
+              <div class="recall-bank-pill-row">
+                <span class="badge" id="recallBankCountBadge">-- Questions</span>
+                <span class="tag">Mixed recall sets</span>
+                <span class="tag">Hide solved questions</span>
+                <span class="tag">Resume unfinished exam</span>
+              </div>
 
-          <div class="action-row" style="justify-content:flex-start; margin-top:18px;">
-            <a class="btn btn-primary" href="./pages/recall-bank.html">Open Recall Bank</a>
+              <div class="recall-bank-action-row">
+                <a class="btn btn-primary" href="./pages/recall-bank.html">Open Recall Bank</a>
+                <a class="btn btn-light" href="./pages/recall-bank.html">Resume / Continue</a>
+              </div>
+            </div>
+
+            <div class="recall-bank-feature-side">
+              <div class="recall-bank-stat-grid">
+                <div class="recall-bank-stat">
+                  <div class="label">Bank Type</div>
+                  <div class="value">Mixed</div>
+                </div>
+                <div class="recall-bank-stat">
+                  <div class="label">Resume Window</div>
+                  <div class="value">24h</div>
+                </div>
+                <div class="recall-bank-stat wide">
+                  <div class="label">Best for</div>
+                  <div class="value small">High-yield recall drills</div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        </article>
       </section>
     `;
 
