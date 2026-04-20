@@ -47,7 +47,8 @@
     return questions.map((question) => ({
       id: question.id,
       topic_id: question.topic_id,
-      topic_title: question.intern_topics?.title || '',
+      topic_title: question.intern_topics?.title || (question.bank_type === 'real_exam_recall' ? 'Real Exam Recall Bank' : ''),
+      bank_type: question.bank_type || 'topic_bank',
       type: question.type,
       difficulty: question.difficulty,
       question_text: question.question_text,
@@ -67,6 +68,7 @@
       .select(`
         id,
         topic_id,
+        bank_type,
         type,
         difficulty,
         question_text,
@@ -78,7 +80,8 @@
         created_at,
         intern_topics(title)
       `)
-      .eq('is_active', true);
+      .eq('is_active', true)
+      .eq('bank_type', 'topic_bank');
 
     if (topicIds.length) {
       query = query.in('topic_id', topicIds);
@@ -143,6 +146,7 @@
         .select(`
           id,
           topic_id,
+          bank_type,
           type,
           difficulty,
           question_text,
@@ -171,6 +175,54 @@
 
     async getExamQuestions({ topicIds = [], count = 20 }) {
       return getQuestionsByTopics({ topicIds, count });
+    },
+
+    async getRecallQuestionCount() {
+      const { count, error } = await InternSupabase
+        .from('intern_questions')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_active', true)
+        .eq('bank_type', 'real_exam_recall');
+
+      if (error) throw error;
+      return Number(count || 0);
+    },
+
+    async getRecallQuestions({ count = 20, excludeQuestionIds = [] }) {
+      const safeCount = Math.max(1, Number(count || 20));
+      const fetchLimit = Math.max(safeCount * 4, safeCount);
+
+      const { data: questions, error } = await InternSupabase
+        .from('intern_questions')
+        .select(`
+          id,
+          topic_id,
+          bank_type,
+          type,
+          difficulty,
+          question_text,
+          case_text,
+          image_url,
+          explanation,
+          summary,
+          is_active,
+          created_at,
+          intern_topics(title)
+        `)
+        .eq('is_active', true)
+        .eq('bank_type', 'real_exam_recall')
+        .order('created_at', { ascending: false })
+        .limit(fetchLimit);
+
+      if (error) throw error;
+
+      const excluded = new Set(excludeQuestionIds || []);
+      const filtered = (questions || []).filter((question) => !excluded.has(question.id));
+      const shuffledQuestions = shuffle(filtered).slice(0, safeCount);
+      const questionIds = shuffledQuestions.map((question) => question.id);
+      const options = await fetchQuestionOptions(questionIds);
+
+      return attachOptionsToQuestions(shuffledQuestions, shuffle(options));
     },
 
     async createExamSession({ mode, selectedTopicIds, questionCount, timerMinutes = null }) {
@@ -273,7 +325,8 @@
     },
 
     async createQuestion({
-      topicId,
+      topicId = null,
+      bankType = 'topic_bank',
       type,
       difficulty,
       questionText,
@@ -287,6 +340,7 @@
         .from('intern_questions')
         .insert({
           topic_id: topicId,
+          bank_type: bankType,
           type,
           difficulty,
           question_text: questionText,
@@ -304,7 +358,8 @@
     },
 
     async updateQuestion(questionId, {
-      topicId,
+      topicId = null,
+      bankType = 'topic_bank',
       type,
       difficulty,
       questionText,
@@ -318,6 +373,7 @@
         .from('intern_questions')
         .update({
           topic_id: topicId,
+          bank_type: bankType,
           type,
           difficulty,
           question_text: questionText,

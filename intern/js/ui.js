@@ -107,6 +107,31 @@
           <div class="intern-empty">Loading topics...</div>
         </div>
       </section>
+
+      <section class="intern-section recall-bank-preview">
+        <div class="section-header">
+          <div>
+            <h2>Real Exam Recall Bank</h2>
+            <p>Mixed licensure-style recall questions uploaded in one bank, with solved-question hiding and resume support.</p>
+          </div>
+        </div>
+
+        <div class="card recall-bank-card">
+          <div class="meta-row">
+            <span class="badge" id="recallBankCountBadge">-- Questions</span>
+            <span class="tag">Mixed recall bank</span>
+            <span class="tag">Resume unfinished exam</span>
+          </div>
+
+          <div style="margin-top:14px;">
+            <p class="muted" style="margin:0;">Launch a mixed recall exam without choosing topics. You can hide solved questions and resume unfinished attempts for up to 24 hours.</p>
+          </div>
+
+          <div class="action-row" style="justify-content:flex-start; margin-top:18px;">
+            <a class="btn btn-primary" href="./pages/recall-bank.html">Open Recall Bank</a>
+          </div>
+        </div>
+      </section>
     `;
 
     const topics = await InternAPI.getTopics();
@@ -118,6 +143,11 @@
     }
 
     const previewArea = InternCore.qs('#topicPreviewArea');
+    const recallBankCount = await InternAPI.getRecallQuestionCount().catch(() => 0);
+    const recallCountBadge = InternCore.qs('#recallBankCountBadge');
+    if (recallCountBadge) {
+      recallCountBadge.textContent = `${InternCore.formatNumber(recallBankCount)} Questions`;
+    }
     if (!topics.length) {
       previewArea.innerHTML = `<div class="intern-empty">No topics found yet.</div>`;
       return;

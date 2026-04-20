@@ -232,6 +232,53 @@ What is the first-line treatment for hypertension?,medium,,,ACE inhibitors are c
         </div>
       </section>
 
+
+      <section class="intern-section">
+        <div class="section-header">
+          <div>
+            <h2>Real Exam Recall Bulk Upload</h2>
+            <p>Upload mixed recall questions without assigning a topic. These questions go directly to the Real Exam Recall Bank.</p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px;">
+          <div class="input-row two">
+            <div>
+              <label class="muted">Default question type</label>
+              <select class="select" id="adminRecallBulkType">
+                <option value="mcq">MCQ</option>
+                <option value="true_false">True / False</option>
+                <option value="image_mcq">Image with MCQ</option>
+                <option value="case">Case</option>
+              </select>
+            </div>
+            <div>
+              <label class="muted">CSV header</label>
+              <input class="input" value="question_text,difficulty,case_text,image_url,explanation,summary,is_active,option_1,option_2,option_3,option_4,correct_option[,type]" readonly />
+            </div>
+          </div>
+
+          <div style="margin-top:16px;">
+            <label class="muted">Paste CSV content</label>
+            <textarea class="textarea" id="adminRecallBulkCsv" style="min-height:240px;" placeholder='question_text,difficulty,case_text,image_url,explanation,summary,is_active,option_1,option_2,option_3,option_4,correct_option
+A patient misses a warfarin monitoring visit,medium,,,Follow-up is required...,INR follow-up pearl,true,Continue and review later,Ignore the issue,Stop all therapy,Increase dose immediately,1'></textarea>
+          </div>
+
+          <div class="meta-row" style="margin-top:12px;">
+            <span class="tag">No topic required</span>
+            <span class="tag">Stored in Real Exam Recall Bank</span>
+            <span class="tag">Mixed exam use</span>
+          </div>
+
+          <div id="adminRecallBulkMessage" style="margin-top:16px;"></div>
+
+          <div class="action-row" style="justify-content:flex-start;">
+            <button class="btn btn-primary" id="adminRecallBulkUploadBtn" type="button">Upload Recall Questions</button>
+            <button class="btn btn-light" id="adminRecallBulkClearBtn" type="button">Clear CSV</button>
+          </div>
+        </div>
+      </section>
+
       <section class="intern-section">
         <div class="section-header">
           <div>
@@ -753,13 +800,28 @@ What is the first-line treatment for hypertension?,medium,,,ACE inhibitors are c
     const topicSelect = InternCore.qs('#adminBulkTopic');
     const typeSelect = InternCore.qs('#adminBulkType');
 
+    const recallUploadBtn = InternCore.qs('#adminRecallBulkUploadBtn');
+    const recallClearBtn = InternCore.qs('#adminRecallBulkClearBtn');
+    const recallCsvInput = InternCore.qs('#adminRecallBulkCsv');
+    const recallMsg = InternCore.qs('#adminRecallBulkMessage');
+    const recallTypeSelect = InternCore.qs('#adminRecallBulkType');
+
     typeSelect?.addEventListener('change', (event) => {
+      adminState.bulkDefaultType = event.target.value;
+    });
+
+    recallTypeSelect?.addEventListener('change', (event) => {
       adminState.bulkDefaultType = event.target.value;
     });
 
     clearBtn?.addEventListener('click', () => {
       if (csvInput) csvInput.value = '';
       msg.innerHTML = '';
+    });
+
+    recallClearBtn?.addEventListener('click', () => {
+      if (recallCsvInput) recallCsvInput.value = '';
+      recallMsg.innerHTML = '';
     });
 
     uploadBtn?.addEventListener('click', async () => {
@@ -809,6 +871,7 @@ What is the first-line treatment for hypertension?,medium,,,ACE inhibitors are c
         try {
           createdQuestion = await InternAPI.createQuestion({
             topicId: row.topicId,
+            bankType: 'topic_bank',
             type: row.type,
             difficulty: row.difficulty,
             questionText: row.questionText,
@@ -870,6 +933,96 @@ What is the first-line treatment for hypertension?,medium,,,ACE inhibitors are c
       }
 
       msg.innerHTML = reportParts.join('');
+    });
+
+    recallUploadBtn?.addEventListener('click', async () => {
+      const csvText = recallCsvInput?.value || '';
+      const defaultType = recallTypeSelect?.value || 'mcq';
+
+      if (!csvText.trim()) {
+        recallMsg.innerHTML = `<div class="message error">Please paste CSV content first.</div>`;
+        return;
+      }
+
+      let parsedRows;
+      try {
+        const parsed = parseBulkCsv(csvText);
+        parsedRows = parsed.rows.map((row) => normalizeBulkRow(row, defaultType));
+      } catch (error) {
+        recallMsg.innerHTML = `<div class="message error">${escapeHtml(error.message)}</div>`;
+        return;
+      }
+
+      const ok = window.confirm(`Upload ${parsedRows.length} recall question(s) to Real Exam Recall Bank?`);
+      if (!ok) return;
+
+      recallUploadBtn.disabled = true;
+      recallClearBtn.disabled = true;
+      recallMsg.innerHTML = `<div class="message">Uploading ${parsedRows.length} recall question(s)...</div>`;
+
+      const results = {
+        uploaded: 0,
+        failed: 0,
+        errors: []
+      };
+
+      for (const row of parsedRows) {
+        let createdQuestion = null;
+
+        try {
+          createdQuestion = await InternAPI.createQuestion({
+            topicId: null,
+            bankType: 'real_exam_recall',
+            type: row.type,
+            difficulty: row.difficulty,
+            questionText: row.questionText,
+            caseText: row.caseText,
+            imageUrl: row.imageUrl,
+            explanation: row.explanation,
+            summary: row.summary,
+            isActive: row.isActive
+          });
+
+          await InternAPI.createQuestionOptions(
+            row.optionsPayload.map((option) => ({
+              question_id: createdQuestion.id,
+              option_text: option.option_text,
+              is_correct: option.is_correct,
+              sort_order: option.sort_order
+            }))
+          );
+
+          results.uploaded += 1;
+        } catch (error) {
+          results.failed += 1;
+          results.errors.push(`Row ${row.rowNumber}: ${error.message || 'Upload failed.'}`);
+
+          if (createdQuestion?.id) {
+            try {
+              await InternAPI.deleteQuestion(createdQuestion.id);
+            } catch (_) {}
+          }
+        }
+      }
+
+      recallUploadBtn.disabled = false;
+      recallClearBtn.disabled = false;
+
+      const reportParts = [
+        `<div class="message success">Uploaded ${results.uploaded} recall question(s).${results.failed ? ` Failed: ${results.failed}.` : ''}</div>`
+      ];
+
+      if (results.errors.length) {
+        reportParts.push(`
+          <div class="message error" style="margin-top:12px;">
+            <strong>Errors</strong>
+            <div style="margin-top:8px; white-space:pre-wrap;">${escapeHtml(results.errors.slice(0, 10).join('\n'))}</div>
+            ${results.errors.length > 10 ? `<div style="margin-top:8px;">+ ${results.errors.length - 10} more error(s)</div>` : ''}
+          </div>
+        `);
+      }
+
+      recallMsg.innerHTML = reportParts.join('');
     });
   }
 
