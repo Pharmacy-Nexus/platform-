@@ -170,29 +170,33 @@
     const previewArea = InternCore.qs('#topicPreviewArea');
     const recallBankCount = await InternAPI.getRecallQuestionCount().catch(() => 0);
     const recallCountBadge = InternCore.qs('#recallBankCountBadge');
+
     if (recallCountBadge) {
       recallCountBadge.textContent = `${InternCore.formatNumber(recallBankCount)} Questions`;
     }
+
     if (!topics.length) {
       previewArea.innerHTML = `<div class="intern-empty">No topics found yet.</div>`;
       return;
     }
 
-previewArea.innerHTML = `
-  <div class="topic-preview-grid">
-    ${topics.slice(0, 6).map((topic, index) => `
-      <article class="topic-preview-card" style="animation-delay:${0.06 * (index + 1)}s;">
-        <h3 class="topic-preview-title">${topic.title}</h3>
-        <p class="topic-preview-desc">${topic.description || 'No description available yet.'}</p>
+    previewArea.innerHTML = `
+      <div class="topic-preview-grid">
+        ${topics.slice(0, 6).map((topic, index) => `
+          <article class="topic-preview-card" style="animation-delay:${0.06 * (index + 1)}s;">
+            <h3 class="topic-preview-title">${topic.title}</h3>
+            <p class="topic-preview-desc">${topic.description || 'No description available yet.'}</p>
 
-        <div class="topic-preview-meta">
-          <span class="topic-preview-badge">${InternCore.formatNumber(topic.questions_count)} Questions</span>
-          <span class="topic-preview-link">Explore →</span>
-        </div>
-      </article>
-    `).join('')}
-  </div>
-`;
+            <div class="topic-preview-meta">
+              <span class="topic-preview-badge">${InternCore.formatNumber(topic.questions_count)} Questions</span>
+              <span class="topic-preview-link">Explore →</span>
+            </div>
+          </article>
+        `).join('')}
+      </div>
+    `;
+  }
+
   document.addEventListener('DOMContentLoaded', async () => {
     InternCore.createShell();
     await renderInternHome();
