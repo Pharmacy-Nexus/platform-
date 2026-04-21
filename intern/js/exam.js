@@ -124,7 +124,7 @@
 
     return groups.map((section) => `
       <button type="button" class="topic-section-nav-btn" data-section-target="${section.key}">
-        <span>${section.label}</span>
+        <span>${InternCore.escapeHtml(section.label)}</span>
         <span class="topic-section-nav-count">${section.selectedCount}/${section.totalCount}</span>
       </button>
     `).join('');
@@ -149,8 +149,8 @@
 
       <div class="selected-topics-chip-list">
         ${selected.length ? selected.map((topic) => `
-          <button type="button" class="selected-topic-chip" data-remove-exam-topic-id="${topic.id}" title="Remove ${topic.title}">
-            <span>${topic.title}</span>
+          <button type="button" class="selected-topic-chip" data-remove-exam-topic-id="${topic.id}" title="Remove ${InternCore.escapeHtml(topic.title)}">
+            <span>${InternCore.escapeHtml(topic.title)}</span>
             <strong>×</strong>
           </button>
         `).join('') : '<div class="intern-empty compact">No topics selected yet.</div>'}
@@ -239,8 +239,8 @@
         <section class="topic-section-block" data-topic-section="${section.key}" id="exam-section-${slugifyTopicSection(section.key)}">
           <div class="topic-section-header-row">
             <div>
-              <h3>${section.label}</h3>
-              <p>${section.description}</p>
+              <h3>${InternCore.escapeHtml(section.label)}</h3>
+              <p>${InternCore.escapeHtml(section.description)}</p>
             </div>
             <div class="topic-section-header-actions">
               <span class="tag">${section.selectedCount}/${section.totalCount} selected</span>
@@ -253,14 +253,12 @@
             ${section.topics.map((topic) => `
               <label class="topic-choice-card topic-card-${section.key} ${topic.selected ? 'is-selected' : ''}">
                 <input type="checkbox" class="exam-topic-checkbox" value="${topic.id}" ${topic.selected ? 'checked' : ''} />
-
                 <div class="topic-choice-main">
                   <div class="topic-choice-top">
-                    <strong class="topic-choice-title">${topic.title}</strong>
+                    <strong class="topic-choice-title">${InternCore.escapeHtml(topic.title)}</strong>
                     <span class="topic-choice-count">${InternCore.formatNumber(topic.questions_count)} Qs</span>
                   </div>
-
-                  <p class="topic-choice-desc">${topic.description || 'No description available yet.'}</p>
+                  <p class="topic-choice-desc">${InternCore.escapeHtml(topic.description || 'No description available yet.')}</p>
                 </div>
               </label>
             `).join('')}
@@ -514,8 +512,8 @@
             </div>
 
             <div class="meta-row exam-meta-row">
-              <span class="badge">${question.topic_title}</span>
-              <span class="tag">${question.type}</span>
+              <span class="badge">${InternCore.escapeHtml(question.topic_title)}</span>
+              <span class="tag">${InternCore.escapeHtml(question.type)}</span>
             </div>
           </div>
 
@@ -538,24 +536,24 @@
           <div class="question-top exam-question-top">
             <div>
               <div class="meta-row exam-question-meta">
-                <span class="badge">${question.topic_title}</span>
-                <span class="tag">${question.type}</span>
-                <span class="tag">${question.difficulty}</span>
+                <span class="badge">${InternCore.escapeHtml(question.topic_title)}</span>
+                <span class="tag">${InternCore.escapeHtml(question.type)}</span>
+                <span class="tag">${InternCore.escapeHtml(question.difficulty)}</span>
               </div>
-              <h2 class="question-title exam-question-title">${question.question_text}</h2>
+              <h2 class="question-title exam-question-title">${InternCore.escapeHtml(question.question_text)}</h2>
             </div>
           </div>
 
           ${question.case_text ? `
             <div class="case-box exam-case-box">
               <strong>Case</strong>
-              <div class="muted" style="margin-top:8px;">${question.case_text}</div>
+              <div class="muted" style="margin-top:8px;">${InternCore.escapeHtml(question.case_text)}</div>
             </div>
           ` : ''}
 
           ${question.image_url ? `
             <div class="exam-image-wrap" style="margin-top:18px;">
-              <img src="${question.image_url}" alt="Question visual" style="border-radius:22px; border:1px solid var(--outline-variant);" />
+              <img src="${InternCore.escapeHtml(question.image_url)}" alt="Question visual" style="border-radius:22px; border:1px solid var(--outline-variant);" />
             </div>
           ` : ''}
 
@@ -572,12 +570,20 @@
     const optionList = InternCore.qs('#examOptionList');
 
     question.options.forEach((option, optionIndex) => {
-      const button = InternCore.el('button', `option-btn exam-option-btn ${selectedOptionId === option.id ? 'ghost-correct is-selected' : ''}`);
+      const button = InternCore.el(
+        'button',
+        `option-btn exam-option-btn ${selectedOptionId === option.id ? 'ghost-correct is-selected' : ''}`
+      );
       button.type = 'button';
-      button.innerHTML = `
-        <span class="exam-option-letter">${String.fromCharCode(65 + optionIndex)}</span>
-        <span class="exam-option-text">${option.text}</span>
-      `;
+
+      const letter = InternCore.el('span', 'exam-option-letter');
+      letter.textContent = String.fromCharCode(65 + optionIndex);
+
+      const text = InternCore.el('span', 'exam-option-text');
+      text.textContent = option.text || '';
+
+      button.appendChild(letter);
+      button.appendChild(text);
 
       button.addEventListener('click', () => {
         examState.answers[question.id] = option.id;
@@ -594,21 +600,21 @@
       });
     });
 
-    InternCore.qs('#examPrevBtn').addEventListener('click', () => {
+    InternCore.qs('#examPrevBtn')?.addEventListener('click', () => {
       if (examState.currentIndex > 0) {
         examState.currentIndex -= 1;
         renderExamScreen();
       }
     });
 
-    InternCore.qs('#examNextBtn').addEventListener('click', () => {
+    InternCore.qs('#examNextBtn')?.addEventListener('click', () => {
       if (examState.currentIndex < examState.questions.length - 1) {
         examState.currentIndex += 1;
         renderExamScreen();
       }
     });
 
-    InternCore.qs('#submitExamNowBtn').addEventListener('click', async () => {
+    InternCore.qs('#submitExamNowBtn')?.addEventListener('click', async () => {
       const ok = window.confirm(`Submit the exam now? You still have ${unansweredCount} unanswered question${unansweredCount === 1 ? '' : 's'}.`);
       if (ok) await finishExam();
     });
@@ -634,12 +640,13 @@
     });
 
     const score = rows.filter((row) => row.isCorrect).length;
+
     InternCore.updateDashboardFromSession({
-  mode: 'real',
-  rows,
-  score,
-  total: rows.length
-});
+      mode: 'real',
+      rows,
+      score,
+      total: rows.length
+    });
 
     const byTopic = {};
     rows.forEach((row) => {
