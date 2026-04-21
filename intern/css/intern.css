@@ -1873,3 +1873,45 @@ html[data-theme="dark"] body[data-page="intern-recall-bank"] .summary-card .big 
   min-width: 0;
   line-height: 1.5;
 }
+/* Real Exam selected option - green */
+.exam-option-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: transform 0.16s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+
+.exam-option-btn.is-selected {
+  background: linear-gradient(180deg, #e8f7ee 0%, #d7f0e1 100%);
+  border: 2px solid #2f8f63;
+  color: #14523a;
+  box-shadow: 0 12px 26px rgba(47, 143, 99, 0.16);
+  transform: translateY(-1px);
+}
+
+.exam-option-btn.is-selected .exam-option-letter {
+  background: #2f8f63;
+  color: #ffffff;
+  border-color: #2f8f63;
+}
+
+.exam-option-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--outline-variant);
+  background: var(--surface-container);
+  color: var(--primary-container);
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.exam-option-text {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.5;
+}
