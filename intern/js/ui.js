@@ -178,7 +178,7 @@
       return;
     }
 
-    previewArea.innerHTML = `
+previewArea.innerHTML = `
   <div class="topic-preview-grid">
     ${topics.slice(0, 6).map((topic, index) => `
       <article class="topic-preview-card" style="animation-delay:${0.06 * (index + 1)}s;">
@@ -193,7 +193,6 @@
     `).join('')}
   </div>
 `;
-
   document.addEventListener('DOMContentLoaded', async () => {
     InternCore.createShell();
     await renderInternHome();
