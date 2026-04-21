@@ -1932,24 +1932,33 @@ html[data-theme="dark"] .exam-option-btn.is-selected .exam-option-letter {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
 }
+/* Topic bank preview - premium cards */
+.topic-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
 
 .topic-preview-card {
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 290px;
   padding: 24px 22px 20px;
   border-radius: 26px;
   border: 1px solid rgba(113, 120, 123, 0.22);
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(243,244,245,0.96) 100%);
+  background: linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(243,244,245,0.98) 100%);
   box-shadow:
     0 10px 28px rgba(0, 21, 27, 0.06),
-    0 1px 0 rgba(255,255,255,0.8) inset;
+    inset 0 1px 0 rgba(255,255,255,0.85);
   transition:
     transform 0.28s ease,
     box-shadow 0.28s ease,
-    border-color 0.28s ease,
-    background 0.28s ease;
-  transform-style: preserve-3d;
+    border-color 0.28s ease;
+  opacity: 0;
+  transform: translateY(18px);
+  animation: topicPreviewReveal 0.55s ease forwards;
   will-change: transform;
 }
 
@@ -1959,35 +1968,34 @@ html[data-theme="dark"] .exam-option-btn.is-selected .exam-option-letter {
   inset: 0 0 auto 0;
   height: 5px;
   background: linear-gradient(90deg, #316574 0%, #b4e8f9 100%);
-  opacity: 0.95;
 }
 
 .topic-preview-card::after {
   content: "";
   position: absolute;
-  top: -30%;
-  left: -40%;
-  width: 60%;
+  top: -35%;
+  left: -45%;
+  width: 58%;
   height: 180%;
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255,255,255,0.08) 35%,
-    rgba(255,255,255,0.38) 50%,
-    rgba(255,255,255,0.08) 65%,
+    rgba(255,255,255,0.06) 35%,
+    rgba(255,255,255,0.36) 50%,
+    rgba(255,255,255,0.06) 65%,
     transparent 100%
   );
   transform: rotate(18deg) translateX(-140%);
-  transition: transform 0.7s ease;
+  transition: transform 0.8s ease;
   pointer-events: none;
 }
 
 .topic-preview-card:hover {
   transform: translateY(-8px) scale(1.01);
-  border-color: rgba(49, 101, 116, 0.35);
+  border-color: rgba(49, 101, 116, 0.34);
   box-shadow:
     0 22px 42px rgba(0, 21, 27, 0.12),
-    0 1px 0 rgba(255,255,255,0.9) inset;
+    inset 0 1px 0 rgba(255,255,255,0.9);
 }
 
 .topic-preview-card:hover::after {
@@ -1996,31 +2004,30 @@ html[data-theme="dark"] .exam-option-btn.is-selected .exam-option-letter {
 
 .topic-preview-title {
   margin: 0 0 12px;
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 800;
   line-height: 1.25;
-  color: #082029;
   letter-spacing: -0.02em;
-  transition: color 0.25s ease;
-}
-
-.topic-preview-card:hover .topic-preview-title {
-  color: #163843;
+  color: #082029;
 }
 
 .topic-preview-desc {
   margin: 0 0 18px;
   color: #42575f;
   font-size: 0.98rem;
-  line-height: 1.55;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .topic-preview-meta {
+  margin-top: auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: auto;
 }
 
 .topic-preview-badge {
@@ -2031,10 +2038,10 @@ html[data-theme="dark"] .exam-option-btn.is-selected .exam-option-letter {
   border-radius: 999px;
   background: linear-gradient(180deg, #eef7fb 0%, #e2f1f7 100%);
   color: #17404c;
+  border: 1px solid rgba(180, 232, 249, 0.92);
+  box-shadow: 0 6px 14px rgba(49, 101, 116, 0.08);
   font-weight: 800;
   font-size: 0.95rem;
-  border: 1px solid rgba(180, 232, 249, 0.9);
-  box-shadow: 0 6px 14px rgba(49, 101, 116, 0.08);
 }
 
 .topic-preview-badge::before {
@@ -2048,13 +2055,52 @@ html[data-theme="dark"] .exam-option-btn.is-selected .exam-option-letter {
 .topic-preview-link {
   color: #316574;
   font-weight: 700;
-  text-decoration: none;
   transition: transform 0.2s ease, color 0.2s ease;
 }
 
 .topic-preview-card:hover .topic-preview-link {
-  transform: translateX(3px);
+  transform: translateX(4px);
   color: #163843;
+}
+
+@keyframes topicPreviewReveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+html[data-theme="dark"] .topic-preview-card {
+  background: linear-gradient(180deg, rgba(18,29,37,0.98) 0%, rgba(12,20,26,0.98) 100%);
+  border-color: rgba(167, 204, 218, 0.10);
+  box-shadow:
+    0 14px 32px rgba(0, 0, 0, 0.30),
+    inset 0 1px 0 rgba(255,255,255,0.03);
+}
+
+html[data-theme="dark"] .topic-preview-card:hover {
+  border-color: rgba(155, 206, 223, 0.30);
+  box-shadow:
+    0 24px 44px rgba(0, 0, 0, 0.36),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+html[data-theme="dark"] .topic-preview-title {
+  color: #f1fbff;
+}
+
+html[data-theme="dark"] .topic-preview-desc {
+  color: #b6c4ca;
+}
+
+html[data-theme="dark"] .topic-preview-badge {
+  background: linear-gradient(180deg, rgba(20, 77, 91, 0.44) 0%, rgba(49, 101, 116, 0.34) 100%);
+  color: #e5f7fd;
+  border-color: rgba(155, 206, 223, 0.24);
+}
+
+html[data-theme="dark"] .topic-preview-link {
+  color: #9bcedf;
 }
 
 @media (max-width: 1080px) {
@@ -2069,26 +2115,8 @@ html[data-theme="dark"] .exam-option-btn.is-selected .exam-option-letter {
   }
 
   .topic-preview-card {
+    min-height: auto;
     padding: 20px 18px 18px;
     border-radius: 22px;
-  }
-}
-.topic-preview-card {
-  opacity: 0;
-  transform: translateY(18px);
-  animation: topicCardReveal 0.55s ease forwards;
-}
-
-.topic-preview-card:nth-child(1) { animation-delay: 0.05s; }
-.topic-preview-card:nth-child(2) { animation-delay: 0.12s; }
-.topic-preview-card:nth-child(3) { animation-delay: 0.19s; }
-.topic-preview-card:nth-child(4) { animation-delay: 0.26s; }
-.topic-preview-card:nth-child(5) { animation-delay: 0.33s; }
-.topic-preview-card:nth-child(6) { animation-delay: 0.40s; }
-
-@keyframes topicCardReveal {
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
