@@ -1847,16 +1847,3 @@ html[data-theme="dark"] body[data-page="intern-recall-bank"] .summary-card .big 
     grid-template-columns: 1fr;
   }
 }
-/* Real Exam selected answer - stronger green */
-.exam-option-btn.is-selected {
-  background: linear-gradient(180deg, #dff5e7 0%, #c9ecd8 100%);
-  border: 2px solid #2f8f63;
-  color: #114430;
-  box-shadow: 0 10px 22px rgba(47, 143, 99, 0.16);
-}
-
-.exam-option-btn.is-selected .exam-option-letter {
-  background: #2f8f63;
-  color: #fff;
-  border: 1px solid #2f8f63;
-}
