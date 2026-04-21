@@ -1,4 +1,3 @@
-
 (function () {
   'use strict';
 
@@ -24,7 +23,7 @@
     root.innerHTML = `
       <section class="section-header">
         <div>
-          <h2>${flaggedData.title || 'Flagged Questions'}</h2>
+          <h2>${InternCore.escapeHtml(flaggedData.title || 'Flagged Questions')}</h2>
           <p>Review every flagged question, retry them as a focused set, or clear the flagged list.</p>
         </div>
       </section>
@@ -65,40 +64,49 @@
 
     rows.forEach((row, index) => {
       const reviewCard = InternCore.el('article', 'review-card');
-     reviewCard.innerHTML = `
-  <div class="question-top">
-    <div>
-      <div class="meta-row">
-        <span class="flag-chip">Flagged</span>
-        <span class="tag">${InternCore.escapeHtml(row.question.topic_title)}</span>
-        <span class="tag">${InternCore.escapeHtml(row.question.type)}</span>
-        <span class="badge">${InternCore.escapeHtml((row.question.difficulty || '').toUpperCase())}</span>
-        ${row.selected !== 'No answer selected'
-          ? `<span class="review-status ${row.isCorrect ? 'correct' : 'wrong'}">${row.isCorrect ? 'Correct' : 'Incorrect'}</span>`
-          : '<span class="review-status">Unanswered</span>'}
-      </div>
-      <h3 style="margin:10px 0 8px;">${index + 1}. ${InternCore.escapeHtml(row.question.question_text)}</h3>
-    </div>
-  </div>
+      reviewCard.innerHTML = `
+        <div class="question-top">
+          <div>
+            <div class="meta-row">
+              <span class="flag-chip">Flagged</span>
+              <span class="tag">${InternCore.escapeHtml(row.question.topic_title)}</span>
+              <span class="tag">${InternCore.escapeHtml(row.question.type)}</span>
+              <span class="badge">${InternCore.escapeHtml((row.question.difficulty || '').toUpperCase())}</span>
+              ${row.selected !== 'No answer selected'
+                ? `<span class="review-status ${row.isCorrect ? 'correct' : 'wrong'}">${row.isCorrect ? 'Correct' : 'Incorrect'}</span>`
+                : '<span class="review-status">Unanswered</span>'}
+            </div>
+            <h3 style="margin:10px 0 8px;">${index + 1}. ${InternCore.escapeHtml(row.question.question_text)}</h3>
+          </div>
+        </div>
 
-  ${row.question.case_text ? `
-    <div class="case-box">
-      <strong>Case</strong>
-      <div class="muted" style="margin-top:8px;">${InternCore.escapeHtml(row.question.case_text)}</div>
-    </div>
-  ` : ''}
+        ${row.question.case_text ? `
+          <div class="case-box">
+            <strong>Case</strong>
+            <div class="muted" style="margin-top:8px;">${InternCore.escapeHtml(row.question.case_text)}</div>
+          </div>
+        ` : ''}
 
-  <div class="review-answer"><strong>Your answer:</strong> ${InternCore.escapeHtml(row.selected)}</div>
-  <div class="review-answer"><strong>Correct answer:</strong> ${InternCore.escapeHtml(row.correct)}</div>
-  <div class="review-answer"><strong>Explanation:</strong> ${InternCore.escapeHtml(row.explanation)}</div>
-  <div class="review-answer"><strong>Summary:</strong> ${InternCore.escapeHtml(row.summary)}</div>
-`;
-list.appendChild(reviewCard);
+        ${row.question.image_url ? `
+          <div style="margin-top:18px;">
+            <img src="${InternCore.escapeHtml(row.question.image_url)}" alt="Question visual" style="border-radius:22px; border:1px solid var(--border);" />
+          </div>
+        ` : ''}
+
+        <div class="review-answer"><strong>Your answer:</strong> ${InternCore.escapeHtml(row.selected)}</div>
+        <div class="review-answer"><strong>Correct answer:</strong> ${InternCore.escapeHtml(row.correct)}</div>
+        <div class="review-answer"><strong>Explanation:</strong> ${InternCore.escapeHtml(row.explanation)}</div>
+        <div class="review-answer"><strong>Summary:</strong> ${InternCore.escapeHtml(row.summary)}</div>
+      `;
+      list.appendChild(reviewCard);
+    });
 
     InternCore.qs('#retryFlaggedSetBtn')?.addEventListener('click', () => {
+      const flaggedQuestions = rows.map((row) => row.question);
+
       InternCore.writeStore(InternCore.config.storageKeys.practiceRetry, {
         title: 'Retry Flagged Questions',
-        questions: rows.map((row) => row.question),
+        questions: flaggedQuestions,
         createdAt: new Date().toISOString()
       });
 
@@ -106,11 +114,13 @@ list.appendChild(reviewCard);
     });
 
     InternCore.qs('#clearFlaggedSetBtn')?.addEventListener('click', () => {
-      const ok = window.confirm('Clear all flagged questions?');
-      if (!ok) return;
+      InternCore.writeStore(InternCore.config.storageKeys.practiceFlagged, {
+        title: 'Flagged Questions',
+        rows: [],
+        createdAt: new Date().toISOString()
+      });
 
-      InternCore.removeStore(InternCore.config.storageKeys.practiceFlagged);
-      renderEmptyState(root);
+      window.location.reload();
     });
   }
 
