@@ -2073,3 +2073,22 @@ html[data-theme="dark"] .exam-option-btn.is-selected .exam-option-letter {
     border-radius: 22px;
   }
 }
+.topic-preview-card {
+  opacity: 0;
+  transform: translateY(18px);
+  animation: topicCardReveal 0.55s ease forwards;
+}
+
+.topic-preview-card:nth-child(1) { animation-delay: 0.05s; }
+.topic-preview-card:nth-child(2) { animation-delay: 0.12s; }
+.topic-preview-card:nth-child(3) { animation-delay: 0.19s; }
+.topic-preview-card:nth-child(4) { animation-delay: 0.26s; }
+.topic-preview-card:nth-child(5) { animation-delay: 0.33s; }
+.topic-preview-card:nth-child(6) { animation-delay: 0.40s; }
+
+@keyframes topicCardReveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
