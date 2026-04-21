@@ -66,7 +66,7 @@ const adminState = {
             <textarea class="textarea" id="adminTopicDescription" placeholder="Short topic description"></textarea>
           </div>
 
-          <div class="input-row two" style="margin-top:16px;">
+          <div class="input-row three" style="margin-top:16px;">
             <div>
               <label class="muted">Sort order</label>
               <input class="input" id="adminTopicSortOrder" type="number" value="0" />
@@ -76,6 +76,17 @@ const adminState = {
               <select class="select" id="adminTopicStatus">
                 <option value="true">Active</option>
                 <option value="false">Inactive</option>
+              </select>
+            </div>
+            <div>
+              <label class="muted">Section</label>
+              <select class="select" id="adminTopicSection">
+                <option value="clinical">Clinical Pharmacy</option>
+                <option value="therapeutics">Therapeutics</option>
+                <option value="pharmacology">Pharmacology</option>
+                <option value="calculations">Calculations</option>
+                <option value="sciences">Pharmaceutical Sciences</option>
+                <option value="integrated" selected>Integrated / Other</option>
               </select>
             </div>
           </div>
@@ -350,6 +361,7 @@ A patient misses a warfarin monitoring visit,medium,,,Follow-up is required...,I
     InternCore.qs('#adminTopicDescription').value = '';
     InternCore.qs('#adminTopicSortOrder').value = '0';
     InternCore.qs('#adminTopicStatus').value = 'true';
+    InternCore.qs('#adminTopicSection').value = 'integrated';
     InternCore.qs('#topicFormModeBadge').textContent = 'Create Topic';
     InternCore.qs('#cancelTopicEditBtn').classList.add('hidden');
   }
@@ -379,6 +391,7 @@ A patient misses a warfarin monitoring visit,medium,,,Follow-up is required...,I
     InternCore.qs('#adminTopicDescription').value = topic.description || '';
     InternCore.qs('#adminTopicSortOrder').value = topic.sort_order ?? 0;
     InternCore.qs('#adminTopicStatus').value = String(!!topic.is_active);
+    InternCore.qs('#adminTopicSection').value = topic.section || 'integrated';
     InternCore.qs('#topicFormModeBadge').textContent = 'Edit Topic';
     InternCore.qs('#cancelTopicEditBtn').classList.remove('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -500,6 +513,7 @@ A patient misses a warfarin monitoring visit,medium,,,Follow-up is required...,I
                   <span class="badge">${topic.is_active ? 'Active' : 'Inactive'}</span>
                   <span class="tag">Sort: ${topic.sort_order}</span>
                   <span class="tag">${escapeHtml(topic.slug)}</span>
+                  <span class="tag">${escapeHtml(topic.section || 'integrated')}</span>
                   <span class="tag">${topic.questions_count} Questions</span>
                 </div>
                 <h3 style="margin:10px 0 8px;">${escapeHtml(topic.title)}</h3>
@@ -1054,6 +1068,7 @@ A patient misses a warfarin monitoring visit,medium,,,Follow-up is required...,I
       const description = InternCore.qs('#adminTopicDescription').value.trim();
       const sortOrder = Number(InternCore.qs('#adminTopicSortOrder').value || '0');
       const isActive = InternCore.qs('#adminTopicStatus').value === 'true';
+      const section = InternCore.qs('#adminTopicSection').value || 'integrated';
 
       if (!title) {
         msg.innerHTML = `<div class="message error">Topic title is required.</div>`;
@@ -1072,7 +1087,8 @@ A patient misses a warfarin monitoring visit,medium,,,Follow-up is required...,I
             slug,
             description,
             sortOrder,
-            isActive
+            isActive,
+            section
           });
           msg.innerHTML = `<div class="message success">Topic updated successfully.</div>`;
         } else {
@@ -1081,7 +1097,8 @@ A patient misses a warfarin monitoring visit,medium,,,Follow-up is required...,I
             slug,
             description,
             sortOrder,
-            isActive
+            isActive,
+            section
           });
           msg.innerHTML = `<div class="message success">Topic created successfully.</div>`;
         }

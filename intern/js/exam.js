@@ -716,7 +716,7 @@
       examState.topics = topics.map((topic) => ({
         ...topic,
         selected: false,
-        sectionKey: inferTopicSection(topic)
+        sectionKey: topic.section || inferTopicSection(topic)
       }));
 
       renderSetupPage();
