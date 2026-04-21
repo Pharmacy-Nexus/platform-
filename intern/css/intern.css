@@ -1847,3 +1847,29 @@ html[data-theme="dark"] body[data-page="intern-recall-bank"] .summary-card .big 
     grid-template-columns: 1fr;
   }
 }
+.exam-option-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.exam-option-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--outline-variant);
+  background: var(--surface-container);
+  color: var(--primary-container);
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.exam-option-text {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.5;
+}
