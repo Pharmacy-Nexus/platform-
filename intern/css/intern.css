@@ -1915,3 +1915,15 @@ html[data-theme="dark"] body[data-page="intern-recall-bank"] .summary-card .big 
   min-width: 0;
   line-height: 1.5;
 }
+html[data-theme="dark"] .exam-option-btn.is-selected {
+  background: linear-gradient(180deg, rgba(52, 123, 86, 0.55) 0%, rgba(39, 98, 68, 0.74) 100%);
+  border: 2px solid #76d7a1;
+  color: #f3fff8;
+  box-shadow: 0 14px 28px rgba(19, 58, 40, 0.34);
+}
+
+html[data-theme="dark"] .exam-option-btn.is-selected .exam-option-letter {
+  background: #76d7a1;
+  color: #0d2619;
+  border-color: #76d7a1;
+}
