@@ -113,7 +113,7 @@
         title: topic.title,
         slug: topic.slug,
         description: topic.description || '',
-        section: topic.section || 'integrated',
+        section: topic.section || '',
         questions_count: Number(topic.questions_count || 0)
       }));
     },
@@ -132,7 +132,7 @@
         title: topic.title,
         slug: topic.slug,
         description: topic.description || '',
-        section: topic.section || 'integrated',
+        section: topic.section || '',
         is_active: topic.is_active,
         sort_order: topic.sort_order,
         created_at: topic.created_at,
@@ -281,16 +281,16 @@
       return data;
     },
 
-    async createTopic({ title, slug, description, sortOrder = 0, isActive = true, section = 'integrated' }) {
+    async createTopic({ title, slug, description, section = '', sortOrder = 0, isActive = true }) {
       const { data, error } = await InternSupabase
         .from('intern_topics')
         .insert({
           title,
           slug,
           description,
+          section,
           sort_order: sortOrder,
-          is_active: isActive,
-          section
+          is_active: isActive
         })
         .select()
         .single();
@@ -299,16 +299,16 @@
       return data;
     },
 
-    async updateTopic(topicId, { title, slug, description, sortOrder = 0, isActive = true, section = 'integrated' }) {
+    async updateTopic(topicId, { title, slug, description, section = '', sortOrder = 0, isActive = true }) {
       const { data, error } = await InternSupabase
         .from('intern_topics')
         .update({
           title,
           slug,
           description,
+          section,
           sort_order: sortOrder,
-          is_active: isActive,
-          section
+          is_active: isActive
         })
         .eq('id', topicId)
         .select()

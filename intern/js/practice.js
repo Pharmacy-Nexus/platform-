@@ -12,9 +12,8 @@
     autoNextTimerId: null
   };
 
-  const TOPIC_SECTION_DEFINITIONS = [
-    {
-      key: 'clinical',
+  const SECTION_FALLBACKS = {
+    clinical: {
       label: 'Clinical Pharmacy',
       description: 'Disease-focused and patient-centered clinical topics.',
       keywords: [
@@ -23,8 +22,7 @@
         'pregnancy', 'gestational', 'cardio', 'infect', 'pneumonia', 'peptic', 'bowel', 'ibd', 'heart', 'coronary'
       ]
     },
-    {
-      key: 'therapeutics',
+    therapeutics: {
       label: 'Therapeutics',
       description: 'Treatment strategies, guidelines, and applied disease management.',
       keywords: [
@@ -32,8 +30,7 @@
         'pharmacotherapy', 'practice'
       ]
     },
-    {
-      key: 'pharmacology',
+    pharmacology: {
       label: 'Pharmacology',
       description: 'Drug classes, mechanisms, adverse effects, and pharmacodynamics.',
       keywords: [
@@ -41,8 +38,7 @@
         'pharmacodynamics', 'mechanism', 'receptor', 'toxicity', 'adverse'
       ]
     },
-    {
-      key: 'calculations',
+    calculations: {
       label: 'Calculations',
       description: 'Dose, infusion, compounding, and pharmaceutical calculations.',
       keywords: [
@@ -50,42 +46,55 @@
         'compounding calculation'
       ]
     },
-    {
-      key: 'sciences',
+    sciences: {
       label: 'Pharmaceutical Sciences',
       description: 'PK, dosage forms, biopharmaceutics, medicinal chemistry, and core sciences.',
       keywords: [
         'pharmacokinetic', 'pk', 'adme', 'biopharm', 'dosage form', 'delivery', 'chemistry', 'medicinal', 'pharmaceutics',
         'stability', 'sterile', 'formulation', 'bioavailability', 'kinetic'
       ]
-    },
-    {
-      key: 'integrated',
-      label: 'Integrated / Other',
-      description: 'Mixed review topics and anything not matched to a main section.',
-      keywords: []
     }
-  ];
+  };
 
   function slugifyTopicSection(value) {
     return String(value || '')
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
+      .replace(/^-+|-+$/g, '') || 'other';
   }
 
-  function inferTopicSection(topic) {
+  function inferLegacySection(topic) {
     const haystack = `${topic.title || ''} ${topic.description || ''}`.toLowerCase();
 
-    for (const section of TOPIC_SECTION_DEFINITIONS) {
-      if (section.key === 'integrated') continue;
+    for (const [key, section] of Object.entries(SECTION_FALLBACKS)) {
       if (section.keywords.some((keyword) => haystack.includes(keyword))) {
-        return section.key;
+        return {
+          key,
+          label: section.label,
+          description: section.description
+        };
       }
     }
 
-    return 'integrated';
+    return {
+      key: 'other',
+      label: 'Other',
+      description: 'Topics without a custom section yet.'
+    };
+  }
+
+  function resolveTopicSection(topic) {
+    const rawSection = String(topic.section || '').trim();
+    if (rawSection) {
+      return {
+        key: slugifyTopicSection(rawSection),
+        label: rawSection,
+        description: `Custom section: ${rawSection}`
+      };
+    }
+
+    return inferLegacySection(topic);
   }
 
   function getSelectedPracticeTopics() {
@@ -108,17 +117,37 @@
 
   function getPracticeTopicGroups(searchTerm) {
     const filtered = getPracticeFilteredTopics(searchTerm);
+    const orderedGroups = [];
+    const groupMap = new Map();
 
-    return TOPIC_SECTION_DEFINITIONS.map((section) => {
-      const topics = filtered.filter((topic) => topic.sectionKey === section.key);
-      const selectedCount = practiceState.topics.filter((topic) => topic.sectionKey === section.key && topic.selected).length;
-      return {
-        ...section,
-        topics,
-        selectedCount,
-        totalCount: practiceState.topics.filter((topic) => topic.sectionKey === section.key).length
-      };
-    }).filter((section) => section.topics.length);
+    const ensureGroup = (topic) => {
+      if (!groupMap.has(topic.sectionKey)) {
+        const group = {
+          key: topic.sectionKey,
+          label: topic.sectionLabel || topic.section || 'Other',
+          description: topic.sectionDescription || `Custom section: ${topic.sectionLabel || topic.section || 'Other'}`,
+          topics: [],
+          selectedCount: 0,
+          totalCount: 0
+        };
+        groupMap.set(topic.sectionKey, group);
+        orderedGroups.push(group);
+      }
+      return groupMap.get(topic.sectionKey);
+    };
+
+    practiceState.topics.forEach((topic) => {
+      const group = ensureGroup(topic);
+      group.totalCount += 1;
+      if (topic.selected) group.selectedCount += 1;
+    });
+
+    filtered.forEach((topic) => {
+      const group = ensureGroup(topic);
+      group.topics.push(topic);
+    });
+
+    return orderedGroups.filter((group) => group.topics.length);
   }
 
   function renderPracticeSectionSidebar(searchTerm) {
@@ -902,11 +931,16 @@
 
     try {
       const topics = await InternAPI.getTopics();
-      practiceState.topics = topics.map((topic) => ({
-        ...topic,
-        selected: false,
-        sectionKey: topic.section || inferTopicSection(topic)
-      }));
+      practiceState.topics = topics.map((topic) => {
+        const resolvedSection = resolveTopicSection(topic);
+        return {
+          ...topic,
+          selected: false,
+          sectionKey: resolvedSection.key,
+          sectionLabel: resolvedSection.label,
+          sectionDescription: resolvedSection.description
+        };
+      });
 
       renderSetupPage();
     } catch (error) {

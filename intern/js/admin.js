@@ -66,7 +66,13 @@ const adminState = {
             <textarea class="textarea" id="adminTopicDescription" placeholder="Short topic description"></textarea>
           </div>
 
-          <div class="input-row three" style="margin-top:16px;">
+          <div style="margin-top:16px;">
+            <label class="muted">Section name</label>
+            <input class="input" id="adminTopicSection" list="adminTopicSectionsList" placeholder="e.g. Clinical Core, CVS, Endocrine..." />
+            <datalist id="adminTopicSectionsList"></datalist>
+          </div>
+
+          <div class="input-row two" style="margin-top:16px;">
             <div>
               <label class="muted">Sort order</label>
               <input class="input" id="adminTopicSortOrder" type="number" value="0" />
@@ -76,17 +82,6 @@ const adminState = {
               <select class="select" id="adminTopicStatus">
                 <option value="true">Active</option>
                 <option value="false">Inactive</option>
-              </select>
-            </div>
-            <div>
-              <label class="muted">Section</label>
-              <select class="select" id="adminTopicSection">
-                <option value="clinical">Clinical Pharmacy</option>
-                <option value="therapeutics">Therapeutics</option>
-                <option value="pharmacology">Pharmacology</option>
-                <option value="calculations">Calculations</option>
-                <option value="sciences">Pharmaceutical Sciences</option>
-                <option value="integrated" selected>Integrated / Other</option>
               </select>
             </div>
           </div>
@@ -359,9 +354,9 @@ A patient misses a warfarin monitoring visit,medium,,,Follow-up is required...,I
     InternCore.qs('#adminTopicSlug').value = '';
     InternCore.qs('#adminTopicSlug').dataset.userEdited = '';
     InternCore.qs('#adminTopicDescription').value = '';
+    InternCore.qs('#adminTopicSection').value = '';
     InternCore.qs('#adminTopicSortOrder').value = '0';
     InternCore.qs('#adminTopicStatus').value = 'true';
-    InternCore.qs('#adminTopicSection').value = 'integrated';
     InternCore.qs('#topicFormModeBadge').textContent = 'Create Topic';
     InternCore.qs('#cancelTopicEditBtn').classList.add('hidden');
   }
@@ -389,9 +384,9 @@ A patient misses a warfarin monitoring visit,medium,,,Follow-up is required...,I
     InternCore.qs('#adminTopicSlug').value = topic.slug || '';
     InternCore.qs('#adminTopicSlug').dataset.userEdited = 'true';
     InternCore.qs('#adminTopicDescription').value = topic.description || '';
+    InternCore.qs('#adminTopicSection').value = topic.section || '';
     InternCore.qs('#adminTopicSortOrder').value = topic.sort_order ?? 0;
     InternCore.qs('#adminTopicStatus').value = String(!!topic.is_active);
-    InternCore.qs('#adminTopicSection').value = topic.section || 'integrated';
     InternCore.qs('#topicFormModeBadge').textContent = 'Edit Topic';
     InternCore.qs('#cancelTopicEditBtn').classList.remove('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -484,6 +479,16 @@ A patient misses a warfarin monitoring visit,medium,,,Follow-up is required...,I
     browseSelect.innerHTML = optionsHtml;
   }
 
+  const sectionList = InternCore.qs('#adminTopicSectionsList');
+  if (sectionList) {
+    const sections = Array.from(new Set(
+      adminState.topics
+        .map((topic) => String(topic.section || '').trim())
+        .filter(Boolean)
+    )).sort((a, b) => a.localeCompare(b));
+    sectionList.innerHTML = sections.map((section) => `<option value="${escapeHtml(section)}"></option>`).join('');
+  }
+
   if (bulkTopicSelect) {
     bulkTopicSelect.innerHTML = optionsHtml;
 
@@ -513,7 +518,7 @@ A patient misses a warfarin monitoring visit,medium,,,Follow-up is required...,I
                   <span class="badge">${topic.is_active ? 'Active' : 'Inactive'}</span>
                   <span class="tag">Sort: ${topic.sort_order}</span>
                   <span class="tag">${escapeHtml(topic.slug)}</span>
-                  <span class="tag">${escapeHtml(topic.section || 'integrated')}</span>
+                  <span class="tag">${escapeHtml(topic.section || 'Other')}</span>
                   <span class="tag">${topic.questions_count} Questions</span>
                 </div>
                 <h3 style="margin:10px 0 8px;">${escapeHtml(topic.title)}</h3>
@@ -1066,9 +1071,9 @@ A patient misses a warfarin monitoring visit,medium,,,Follow-up is required...,I
       const title = titleInput.value.trim();
       const slug = slugInput.value.trim() || slugify(title);
       const description = InternCore.qs('#adminTopicDescription').value.trim();
+      const section = InternCore.qs('#adminTopicSection').value.trim();
       const sortOrder = Number(InternCore.qs('#adminTopicSortOrder').value || '0');
       const isActive = InternCore.qs('#adminTopicStatus').value === 'true';
-      const section = InternCore.qs('#adminTopicSection').value || 'integrated';
 
       if (!title) {
         msg.innerHTML = `<div class="message error">Topic title is required.</div>`;
@@ -1086,9 +1091,9 @@ A patient misses a warfarin monitoring visit,medium,,,Follow-up is required...,I
             title,
             slug,
             description,
+            section,
             sortOrder,
-            isActive,
-            section
+            isActive
           });
           msg.innerHTML = `<div class="message success">Topic updated successfully.</div>`;
         } else {
@@ -1096,9 +1101,9 @@ A patient misses a warfarin monitoring visit,medium,,,Follow-up is required...,I
             title,
             slug,
             description,
+            section,
             sortOrder,
-            isActive,
-            section
+            isActive
           });
           msg.innerHTML = `<div class="message success">Topic created successfully.</div>`;
         }
